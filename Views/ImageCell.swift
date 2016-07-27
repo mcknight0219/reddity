@@ -13,7 +13,7 @@ class ImageCell: UITableViewCell {
     
     
     lazy var picture: UIImageView! = {
-        return self.viewWithTag(1) as! UIImageView
+        return self.viewWithTag(1) as! AnimatableImageView
     }()
     
     lazy var titleLabel: UILabel! = {
@@ -44,16 +44,27 @@ class ImageCell: UITableViewCell {
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         
-        let downloadUrl = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) ?? aTopic.url
-        
-        ImageDownloader.sharedInstance.downloadImageAt(downloadUrl) { (image) -> Void in
-            dispatch_async(dispatch_get_main_queue()) {
-                self.picture.contentMode = .ScaleAspectFill
-                self.picture.clipsToBounds = true
-                self.picture.image = image
-            }
+        var isGif = aTopic.isUrlGif()
+        var downloadUrl: NSURL = aTopic.url
+        if !isGif && let url = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
+            downloadUrl = url
         }
-        
+
+        if !isGif {
+            ImageDownloader.sharedInstance.downloadImageAt(downloadUrl) { (image) -> Void in
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.picture.contentMode = .ScaleAspectFill
+                    self.picture.clipsToBounds = true
+                    self.picture.image = image    
+                }
+            }
+        } else {
+            // For gif, we show the thumbnail and progress
+            ImageDownloader.sharedInstance.downloadImageWithProgressReport(downloadUrl, onProgress: { (fragment) -> Void in
+                
+                }, onFinish: { (data) -> Void in
+                    })
+        }
     }
     
     // MARK: Theme

@@ -56,6 +56,15 @@ struct Link: ResourceType {
         
         self.name = "\(self.listType.description)\(self.id)"
     }
+
+    func isUrlGif() -> Bool {
+        if let components = NSURLComponents(self.url, resovleAgainstBaseURL: false), 
+            let ext = components.pathExtension {
+                return ext == "gif"
+            }
+
+        return false
+    }
     
     func type() -> LinkType {
         switch self.selfType {
