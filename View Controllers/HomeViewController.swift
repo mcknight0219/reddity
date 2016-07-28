@@ -90,8 +90,6 @@ extension HomeViewController: TopicControllerDelegate {
         self.topicDataSource.topics = self.topicController.topics
         dispatch_async(dispatch_get_main_queue()) {
             self.topicTableViewController.tableView.reloadData()
-            // Scroll to top after reload
-            self.topicTableViewController.tableView.setContentOffset(CGPointZero, animated: true)
         }
     }
     
@@ -126,6 +124,8 @@ extension HomeViewController {
             self.topicTableViewController.tableView.userInteractionEnabled = true
             dispatch_async(dispatch_get_main_queue()) {
                 self.topicController.reload()
+                // Scroll to top after reload
+                self.topicTableViewController.tableView.setContentOffset(CGPointZero, animated: true)
             }
         }
         

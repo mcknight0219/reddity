@@ -49,7 +49,7 @@ final class TokenService {
                 timer.invalidate()
             }
             
-            timer = NSTimer.scheduledTimerWithTimeInterval(60 * 59 + 58, target: self, selector: #selector(TokenService.refresh), userInfo: nil, repeats: true)
+            timer = NSTimer.scheduledTimerWithTimeInterval(60 * 59 + 58 , target: self, selector: #selector(TokenService.refresh), userInfo: nil, repeats: true)
         }
     }
     
@@ -77,7 +77,8 @@ final class TokenService {
         // Just use refresh token to request an access token
         if let refreshToken = NSUserDefaults.standardUserDefaults().objectForKey("RefreshToken") as? String {
             self.cache.setObject(refreshToken, forKey: "RefreshToken")
-            self.refresh(refreshToken, completion: completion)
+            self.refresh()
+            completion()
             return
         }
         
@@ -117,23 +118,23 @@ final class TokenService {
         }
     }
     
-    @objc func refresh(refreshToken: String, completion: (() -> Void)? = nil) {
+    @objc func refresh() {
+        let refreshToken = self.cache.objectForKey("RefreshToken") as! String
         let request = NSMutableURLRequest(URL: NSURL(string: "https://www.reddit.com/api/v1/access_token")!)
         request.HTTPMethod = "POST"
         request.HTTPBody = "grant_type=refresh_token&refresh_token=\(refreshToken)".dataUsingEncoding(NSUTF8StringEncoding)
         request.addValue(basicAuthHeaderString(), forHTTPHeaderField: "Authorization")
         
-        NSURLSession.sharedSession().dataTaskWithRequest(request) { (data, response, error) in
-            if let data = data, let response = response as? NSHTTPURLResponse {
-                if response.statusCode == 401 {
-                    print("401 response when refreshing access token")
-                    // toast
-                } else {
-                    let json = JSON(data: data)
-                    self.token = json["access_token"].stringValue
-                    
-                    completion?()
-                }
+        let (data, response, _) = NSURLSession.sharedSession().synchronousDataTaskWithURL(request)
+        if let data = data, let response = response as? NSHTTPURLResponse {
+            if response.statusCode == 401 {
+                print("401 response when refreshing access token")
+                // toast
+            } else {
+                let json = JSON(data: data)
+                self.token = json["access_token"].stringValue
+                
+                print("update refresh token")
             }
         }
     }

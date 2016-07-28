@@ -53,12 +53,10 @@ extension TopicDataSource: UITableViewDataSource {
         switch type {
         case .Image:
             let cell = tableView.dequeueReusableCellWithIdentifier("ImageCell", forIndexPath: indexPath) as! ImageCell
-            cell.picture.image = nil
             cell.loadTopic(self.topics![indexPath.row])
             return cell
         case .News:
             let cell = tableView.dequeueReusableCellWithIdentifier("NewsCell", forIndexPath: indexPath) as! NewsCell
-            cell.picture.image = nil
             cell.loadTopic(self.topics![indexPath.row])
             return cell
         default:

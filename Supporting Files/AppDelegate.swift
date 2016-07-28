@@ -22,8 +22,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         if let queryParams = result, let code = queryParams["code"] {
-            NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 1))
             TokenService.sharedInstance.code = code
+            NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 1))
         } else {
             NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 0))
         }
@@ -38,21 +38,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let isFirstTime = NSUserDefaults().objectForKey("FirstTime") as? Bool ?? true
         if isFirstTime {
-            NSUserDefaults().setObject(true, forKey: "FirstTime")
+            NSUserDefaults().setObject(false, forKey: "FirstTime")
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
-            
             self.window?.rootViewController = startVC
-            self.window?.makeKeyAndVisible()
         } else {
             TokenService.sharedInstance.withAccessToken {
                 let mainVC = HomeViewController()
                 mainVC.modalTransitionStyle = .CrossDissolve
                 
-                self.window?.rootViewController = mainVC
-                self.window?.makeKeyAndVisible()
+                let navigationController = NavigationController(rootViewController: mainVC)
+                self.window?.rootViewController = navigationController
             }
         }
+        self.window?.makeKeyAndVisible()
         
         return true
     }

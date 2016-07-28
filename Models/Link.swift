@@ -58,9 +58,9 @@ struct Link: ResourceType {
     }
 
     func isUrlGif() -> Bool {
-        if let components = NSURLComponents(self.url, resovleAgainstBaseURL: false), 
-            let ext = components.pathExtension {
-                return ext == "gif"
+        if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false), 
+            let path = components.path {
+                return NSString(string: path).pathExtension == "gif"
             }
 
         return false

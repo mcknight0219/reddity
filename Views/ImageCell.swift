@@ -7,12 +7,11 @@
 //
 
 import UIKit
-import ChameleonFramework
+import Gifu
 
 class ImageCell: UITableViewCell {
     
-    
-    lazy var picture: UIImageView! = {
+    lazy var picture: AnimatableImageView! = {
         return self.viewWithTag(1) as! AnimatableImageView
     }()
     
@@ -44,10 +43,10 @@ class ImageCell: UITableViewCell {
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         
-        var isGif = aTopic.isUrlGif()
+        let isGif = aTopic.isUrlGif()
         var downloadUrl: NSURL = aTopic.url
-        if !isGif && let url = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
-            downloadUrl = url
+        if let url = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
+            if !isGif { downloadUrl = url }
         }
 
         if !isGif {
@@ -61,9 +60,15 @@ class ImageCell: UITableViewCell {
         } else {
             // For gif, we show the thumbnail and progress
             ImageDownloader.sharedInstance.downloadImageWithProgressReport(downloadUrl, onProgress: { (fragment) -> Void in
+                if let placeholderImage = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
+                    
+                }
                 
                 }, onFinish: { (data) -> Void in
-                    })
+                    dispatch_async(dispatch_get_main_queue()) {
+                        self.picture.animateWithImageData(data)
+                    }
+            })
         }
     }
     

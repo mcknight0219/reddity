@@ -13,15 +13,16 @@ enum ResizeMode {
     case AspectFit
 }
 
-typealias ProgressHandler = (progress: Float) -> Void
-typealias FinishHandler = (data: NSData) -> Void
+typealias ProgressHandler = (Double) -> Void
+typealias FinishHandler = (NSData) -> Void
+
 struct ProgressReporter {
     let task: NSURLSessionDataTask
     let onProgress: ProgressHandler?
     let onFinish: FinishHandler?
 
-    let progress: NSProgress()
-    let tempData = NSMutalbeData()
+    let progress = NSProgress()
+    let tempData = NSMutableData()
 }
 
 class ImageDownloader: NSObject {
@@ -30,7 +31,7 @@ class ImageDownloader: NSObject {
     
     var session: NSURLSession?
     let cache = NSCache()
-    let tasks: Dictionary = [NSURLSessionDataTask: ProgressReporter]()
+    var tasks: Dictionary = [NSURLSessionDataTask: ProgressReporter]()
 
     var imageProcessQueue = {
         return dispatch_queue_create("reddity.image.process.queue", DISPATCH_QUEUE_SERIAL)
@@ -77,12 +78,12 @@ class ImageDownloader: NSObject {
     // Usefulf to large images such as gif
     func downloadImageWithProgressReport(url: NSURL, onProgress: ProgressHandler?, onFinish: FinishHandler?) {
         if let data = self.cache.objectForKey(url) as? NSData {
-            completion(data)
+            onFinish?(data)
             return
         }
 
         // Without a completion handler, the delegate method will be used
-        let task = self.session?.dataTaskWithURL(url)
+        let task = self.session!.dataTaskWithURL(url)
         let reporter = ProgressReporter(task: task, onProgress: onProgress, onFinish: onFinish)
         self.tasks[task] = reporter
         task.resume()
@@ -96,8 +97,10 @@ extension ImageDownloader: NSURLSessionDelegate {
 extension ImageDownloader: NSURLSessionDataDelegate {
     func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didRecevieResponse response: NSURLResponse) {
         if let reporter = self.tasks[dataTask] {
-            reporter.progress.totalUnitCount =  NSProgress()response.expectedContentLength
-            reporter.onProgress(reporter.progress.fractionCompleted)
+            reporter.progress.totalUnitCount =  response.expectedContentLength
+            reporter.onProgress?(reporter.progress.fractionCompleted)
+            
+            return
         }
         
         print("Could not find a progress reporter for task: \(dataTask.description)")
@@ -106,13 +109,15 @@ extension ImageDownloader: NSURLSessionDataDelegate {
     func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData data: NSData) {
         if let reporter = self.tasks[dataTask] {
             reporter.progress.completedUnitCount += data.length
-            reporter.progress.tempData.appendData(data)
+            reporter.tempData.appendData(data)
 
             if reporter.progress.completedUnitCount == reporter.progress.totalUnitCount {
-                reporter.onPorgress(reporter.progress.fractionCompleted)
+                reporter.onProgress?(reporter.progress.fractionCompleted)
             } else {
-                reporter.onFinish(reporter.progress.tempData)
+                reporter.onFinish?(reporter.tempData)
             }
+            
+            return
         }
 
         print("Could not find a progress reporter for task: \(dataTask.description)")
