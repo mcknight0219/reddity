@@ -20,17 +20,7 @@ class HomeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        self.navigationItem.title = "Front Page"
-        self.navigationItem.leftBarButtonItem   = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: nil)
-        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        
-        let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
-        let rightBarButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Tag), style: .Plain, target: self, action: #selector(HomeViewController.changeSubreddit))
-        rightBarButton.setTitleTextAttributes(attributes, forState: .Normal)
-        self.navigationItem.rightBarButtonItem  = rightBarButton
-        
-        self.automaticallyAdjustsScrollViewInsets = false
+        self.setupUI()
         
         self.topicDataSource = TopicDataSource()
         self.topicDataSource.cellIdentifier = "Cell"
@@ -70,7 +60,18 @@ class HomeViewController: UIViewController {
     }
     
     func setupUI() {
+        self.navigationItem.title = "Front Page"
+        self.navigationItem.leftBarButtonItem   = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: nil)
+        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
         
+        let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
+        let rightBarButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Tag), style: .Plain, target: self, action: #selector(HomeViewController.changeSubreddit))
+        rightBarButton.setTitleTextAttributes(attributes, forState: .Normal)
+        self.navigationItem.rightBarButtonItem  = rightBarButton
+        self.navigationController?.navigationBar.translucent = true
+        self.automaticallyAdjustsScrollViewInsets = true
+        
+        self.tabBarItem = UITabBarItem(title: .None, image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(40, 40)), tag: 0)
     }
 }
 
@@ -125,7 +126,7 @@ extension HomeViewController {
             dispatch_async(dispatch_get_main_queue()) {
                 self.topicController.reload()
                 // Scroll to top after reload
-                self.topicTableViewController.tableView.setContentOffset(CGPointZero, animated: true)
+                self.topicTableViewController.tableView.setContentOffset(CGPointMake(0, -64), animated: true)
             }
         }
         

@@ -54,7 +54,7 @@ final class StartupViewController: UIViewController {
         loginButton.titleEdgeInsets = UIEdgeInsetsMake(5, 7, 5, 7)
         loginButton.backgroundColor = FlatOrange()
         loginButton.tintColor = FlatWhite()
-        loginButton.layer.cornerRadius = 5
+        loginButton.layer.cornerRadius = 20
         loginButton.layer.borderWidth = 0.8
         loginButton.layer.borderColor = FlatWhite().CGColor
         
@@ -73,7 +73,7 @@ final class StartupViewController: UIViewController {
         skipButton.setTitleColor(FlatOrange(), forState: .Normal)
         skipButton.titleLabel?.font = UIFont(name: "Lato-Regular", size: 18)
         skipButton.tintColor = FlatOrange()
-        skipButton.layer.cornerRadius = 5
+        skipButton.layer.cornerRadius = 20
         skipButton.layer.borderWidth = 0.8
         skipButton.layer.borderColor = FlatOrange().CGColor
         

@@ -36,7 +36,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         
-        let isFirstTime = NSUserDefaults().objectForKey("FirstTime") as? Bool ?? true
+        let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("FirstTime") as? Bool ?? true
         if isFirstTime {
             NSUserDefaults().setObject(false, forKey: "FirstTime")
             let startVC = StartupViewController()
@@ -48,7 +48,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 mainVC.modalTransitionStyle = .CrossDissolve
                 
                 let navigationController = NavigationController(rootViewController: mainVC)
-                self.window?.rootViewController = navigationController
+                let tabBarController = UITabBarController()
+                tabBarController.viewControllers = [navigationController]
+                self.window?.rootViewController = tabBarController
             }
         }
         self.window?.makeKeyAndVisible()
