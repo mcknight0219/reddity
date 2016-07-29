@@ -26,26 +26,29 @@ struct ProgressReporter {
 }
 
 class ImageDownloader: NSObject {
-    
+       
     static let sharedInstance = ImageDownloader()
     
     var session: NSURLSession?
     let cache = NSCache()
     var tasks: Dictionary = [NSURLSessionDataTask: ProgressReporter]()
-
-    var imageProcessQueue = {
-        return dispatch_queue_create("reddity.image.process.queue", DISPATCH_QUEUE_SERIAL)
-    }()
+    let imageFetchQueue = dispatch_queue_create("reddity.image.fetch.queue", DISPATCH_QUEUE_SERIAL)
     
     override init() {
         super.init()
         
         let config = NSURLSessionConfiguration.ephemeralSessionConfiguration()
         config.HTTPMaximumConnectionsPerHost = 3
-        self.session = NSURLSession(configuration: config, delegate: self, delegateQueue: nil)
+        self.session = NSURLSession(configuration: config, delegate: self, delegateQueue: imageFetchQueue)
         self.cache.countLimit = 100
     }
     
+    private struct PrefetchTask {
+        var onFinish: FinishHandler?
+        var task: NSURLSessionDataTask
+    } 
+    private prefetchTasks: Dictionary = [NSURL: PrefetchTask]()
+
     typealias SessionHandler = (UIImage?) -> Void
     
     func downloadImageAt(url: NSURL, completion: SessionHandler) {
@@ -53,24 +56,23 @@ class ImageDownloader: NSObject {
     }
     
     func downloadImageAt(url: NSURL, resizeMode: ResizeMode?, size: CGSize?, completion: SessionHandler) {
-        
         if let image = self.cache.objectForKey(url) as? UIImage {
             completion(image)
             return
         }
         
+        NetworkActivityIndicator.incrementActivityCount()
         self.session?.dataTaskWithURL(url) { (data, response, error) in
+            NetworkActiVityIndicator.decreaseActivityCount()
             if let data = data {
-                dispatch_async(self.imageProcessQueue) {
-                    if let image = UIImage(data: data) {
-                        // We only cache the original size of the image
-                        self.cache.setObject(image, forKey: url)
-                        completion(image)
-                        return
-                    }
-
-                    completion(nil)
+                if let image = UIImage(data: data) {
+                    // We only cache the original size of the image
+                    self.cache.setObject(image, forKey: url)
+                    completion(image)
+                    return
                 }
+
+                completion(nil)
             }
         }.resume()
     }
@@ -86,7 +88,15 @@ class ImageDownloader: NSObject {
         let task = self.session!.dataTaskWithURL(url)
         let reporter = ProgressReporter(task: task, onProgress: onProgress, onFinish: onFinish)
         self.tasks[task] = reporter
+
+        NetworkActivityIndicator.increamentActivityCount()
         task.resume()
+    }
+
+    func prefetchImagesInBackground(urls: [NSURL]?) {
+        urls.map {
+
+        }
     }
 }
 
@@ -117,6 +127,7 @@ extension ImageDownloader: NSURLSessionDataDelegate {
                 reporter.onFinish?(reporter.tempData)
             }
             
+            NetworkActivityIndicator.decreaseActivityCount()
             return
         }
 

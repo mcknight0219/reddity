@@ -46,7 +46,9 @@ func apiRequest<A>(base: NSURL, resource: Resource<A>, params: [String:String]?,
     request.addValue("bearer \(TokenService.sharedInstance.token)", forHTTPHeaderField: "Authorization")
     request.addValue(UIApplication.userAgent(), forHTTPHeaderField: "User-Agent")
     
+    NetworkActivityIndicator.incrementActivityCount()
     session.dataTaskWithRequest(request) { (data, response, error) in
+        NetworkActivityIndicator.decreaseActivityCount()
         if let response = response as? NSHTTPURLResponse {
             if 200..<300 ~= response.statusCode {
                 let json = JSON(data: data!)
