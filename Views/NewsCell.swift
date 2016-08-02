@@ -40,6 +40,14 @@ class NewsCell: UITableViewCell {
         // Configure the view for the selected state
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        self.picture.image = .None
+        self.titleLabel.text = .None
+        self.descriptionLabel.text = .None
+    }
+    
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"

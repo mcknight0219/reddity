@@ -71,7 +71,7 @@ class HomeViewController: UIViewController {
         self.navigationController?.navigationBar.translucent = true
         self.automaticallyAdjustsScrollViewInsets = true
         
-        self.tabBarItem = UITabBarItem(title: .None, image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(40, 40)), tag: 0)
+        self.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Reddit, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
     }
 }
 
@@ -127,6 +127,7 @@ extension HomeViewController {
                 self.topicController.reload()
                 // Scroll to top after reload
                 self.topicTableViewController.tableView.setContentOffset(CGPointMake(0, -64), animated: true)
+                self.navigationItem.title = textField.text ?? "Front Page"
             }
         }
         

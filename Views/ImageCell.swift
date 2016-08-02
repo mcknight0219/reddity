@@ -38,6 +38,12 @@ class ImageCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.picture.image = .None
+        self.titleLabel.text = .None
+    }
+    
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
@@ -64,10 +70,7 @@ class ImageCell: UITableViewCell {
                     
                 }
                 
-                }, onFinish: { (data) -> Void in
-                    dispatch_async(dispatch_get_main_queue()) {
-                        self.picture.animateWithImageData(data)
-                    }
+                }, onFinish: { (image) -> Void in
             })
         }
     }

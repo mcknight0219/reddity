@@ -18,6 +18,9 @@ final class HUDManager {
     
     init() {
         progressView = UINib(nibName: "CentralProgressView", bundle: nil).instantiateWithOwner(nil, options: nil).first as! UIView
+        let label = progressView.viewWithTag(1) as! UILabel
+        label.text = "Loading"
+        
     }
     
     func showCentralActivityIndicator() {

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -46,10 +47,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             TokenService.sharedInstance.withAccessToken {
                 let mainVC = HomeViewController()
                 mainVC.modalTransitionStyle = .CrossDissolve
+                let searchVC = SearchViewController()
+                searchVC.modalTransitionStyle = .CoverVertical
+                searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
                 
-                let navigationController = NavigationController(rootViewController: mainVC)
                 let tabBarController = UITabBarController()
-                tabBarController.viewControllers = [navigationController]
+                tabBarController.viewControllers = [NavigationController(rootViewController: searchVC), NavigationController(rootViewController: mainVC)]
+                // Show the main view controller initially
+                tabBarController.selectedIndex = 1
+                tabBarController.tabBar.tintColor = FlatOrange()
+                
                 self.window?.rootViewController = tabBarController
             }
         }

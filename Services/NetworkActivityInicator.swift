@@ -10,11 +10,11 @@ import UIKit
 class NetworkActivityIndicator {
     private static var activityCount: Int = 0
 
-    class func increatementActivityCount () {
+    class func incrementActivityCount () {
         self.activityCount = self.activityCount + 1
-        if self.activity > 1 {
+        if self.activityCount > 1 {
             dispatch_async(dispatch_get_main_queue()) {
-                UIApplication.sharedApplication().isNetworkActivityIndicatorVisible = true           
+                UIApplication.sharedApplication().networkActivityIndicatorVisible = true
             }
         }
     }
@@ -23,8 +23,8 @@ class NetworkActivityIndicator {
         self.activityCount = self.activityCount - 1
         if self.activityCount < 0 { self.activityCount = 0 }
 
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 0.5 * NSEC_PER_SEC), dispatch_get_main_queue()) {
-            UIApplication.sharedApplication().isNetworkActivityIndicatorVisible = ( self.activityCount > 0 )
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = ( self.activityCount > 0 )
         }
     }
 }

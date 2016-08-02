@@ -14,7 +14,7 @@ enum ResizeMode {
 }
 
 typealias ProgressHandler = (Double) -> Void
-typealias FinishHandler = (NSData) -> Void
+typealias FinishHandler = (UIImage) -> Void
 
 struct ProgressReporter {
     let task: NSURLSessionDataTask
@@ -30,24 +30,24 @@ class ImageDownloader: NSObject {
     static let sharedInstance = ImageDownloader()
     
     var session: NSURLSession?
-    let cache = NSCache()
+    let cache = RTCache(name: "imageCache", maxSizeInMb: 25)
     var tasks: Dictionary = [NSURLSessionDataTask: ProgressReporter]()
-    let imageFetchQueue = dispatch_queue_create("reddity.image.fetch.queue", DISPATCH_QUEUE_SERIAL)
+    //let imageFetchQueue = dispatch_queue_create("reddity.image.fetch.queue", DISPATCH_QUEUE_SERIAL)
     
     override init() {
         super.init()
         
         let config = NSURLSessionConfiguration.ephemeralSessionConfiguration()
         config.HTTPMaximumConnectionsPerHost = 3
-        self.session = NSURLSession(configuration: config, delegate: self, delegateQueue: imageFetchQueue)
-        self.cache.countLimit = 100
+        self.session = NSURLSession(configuration: config, delegate: self, delegateQueue: nil)
     }
     
     private struct PrefetchTask {
         var onFinish: FinishHandler?
         var task: NSURLSessionDataTask
-    } 
-    private prefetchTasks: Dictionary = [NSURL: PrefetchTask]()
+    }
+    
+    private var prefetchTasks: Dictionary = [NSURL: PrefetchTask]()
 
     typealias SessionHandler = (UIImage?) -> Void
     
@@ -56,18 +56,23 @@ class ImageDownloader: NSObject {
     }
     
     func downloadImageAt(url: NSURL, resizeMode: ResizeMode?, size: CGSize?, completion: SessionHandler) {
-        if let image = self.cache.objectForKey(url) as? UIImage {
+        if let image = self.cache.object(forKey: url) as? UIImage {
             completion(image)
+            return
+        }
+        
+        if var prefetchTask = self.prefetchTasks[url] {
+            prefetchTask.onFinish = completion
             return
         }
         
         NetworkActivityIndicator.incrementActivityCount()
         self.session?.dataTaskWithURL(url) { (data, response, error) in
-            NetworkActiVityIndicator.decreaseActivityCount()
+            NetworkActivityIndicator.decreaseActivityCount()
             if let data = data {
                 if let image = UIImage(data: data) {
                     // We only cache the original size of the image
-                    self.cache.setObject(image, forKey: url)
+                    self.cache.setObject(image, forKey: url, cost: data.length)
                     completion(image)
                     return
                 }
@@ -79,8 +84,8 @@ class ImageDownloader: NSObject {
 
     // Usefulf to large images such as gif
     func downloadImageWithProgressReport(url: NSURL, onProgress: ProgressHandler?, onFinish: FinishHandler?) {
-        if let data = self.cache.objectForKey(url) as? NSData {
-            onFinish?(data)
+        if let data = self.cache.object(forKey: url) as? NSData {
+            onFinish?(UIImage(data: data)!)
             return
         }
 
@@ -89,13 +94,32 @@ class ImageDownloader: NSObject {
         let reporter = ProgressReporter(task: task, onProgress: onProgress, onFinish: onFinish)
         self.tasks[task] = reporter
 
-        NetworkActivityIndicator.increamentActivityCount()
+        NetworkActivityIndicator.incrementActivityCount()
         task.resume()
     }
 
     func prefetchImagesInBackground(urls: [NSURL]?) {
-        urls.map {
-
+        if let urls = urls where urls.count > 0 {
+            urls.map { url in
+                let task = self.session!.dataTaskWithURL(url) { (data, response, _) in
+                    if let data = data {
+                        
+                        if let image = UIImage(data: data) {
+                            self.cache.setObject(image, forKey: url, cost: data.length)
+                        
+                            if let prefetchTask = self.prefetchTasks[url] {
+                                prefetchTask.onFinish?(image)
+                            
+                                // Remove the prefetch task once it's done
+                                self.prefetchTasks[url] = .None
+                            }
+                        }
+                    }
+                }
+                
+                self.prefetchTasks[url] = PrefetchTask(onFinish: nil, task: task)
+                task.resume()
+            }
         }
     }
 }
@@ -122,9 +146,9 @@ extension ImageDownloader: NSURLSessionDataDelegate {
             reporter.tempData.appendData(data)
 
             if reporter.progress.completedUnitCount == reporter.progress.totalUnitCount {
-                reporter.onProgress?(reporter.progress.fractionCompleted)
+                reporter.onFinish?(UIImage(data: reporter.tempData)!)
             } else {
-                reporter.onFinish?(reporter.tempData)
+                reporter.onProgress?(reporter.progress.fractionCompleted)
             }
             
             NetworkActivityIndicator.decreaseActivityCount()

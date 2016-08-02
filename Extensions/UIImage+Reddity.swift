@@ -16,8 +16,8 @@ extension UIImage {
         UIGraphicsBeginImageContext(CGSizeMake(1, 1))
         
         color.setFill()
-        CGContextFillRect(UIGraphicsGetCurrentContext(), CGRectMake(0, 0, 1, 1))
-        image = UIGraphicsGetImageFromCurrentImageContext()
+        CGContextFillRect(UIGraphicsGetCurrentContext()!, CGRectMake(0, 0, 1, 1))
+        image = UIGraphicsGetImageFromCurrentImageContext()!
         
         UIGraphicsEndImageContext()
         

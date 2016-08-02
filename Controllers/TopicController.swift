@@ -47,6 +47,9 @@ class TopicController: NSObject {
         apiRequest(Config.ApiBaseURL, resource: linksResource, params: ["raw_json": "1"]) { links -> Void in
             if let links = links {
                 self.topics = links
+                
+                ImageDownloader.sharedInstance.prefetchImagesInBackground(links.map { $0.url })
+                
                 self.delegate?.topicControllerDidFinishLoading?(self)
             } else {
                 self.delegate?.topicControllerDidFailedLoading?(self)

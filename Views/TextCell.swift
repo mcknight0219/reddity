@@ -36,6 +36,13 @@ class TextCell: UITableViewCell {
         super.setSelected(selected, animated: animated)
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        self.titleLabel.text = .None
+        self.descLabel.text = .None
+    }
+    
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
