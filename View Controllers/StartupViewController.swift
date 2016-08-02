@@ -24,7 +24,7 @@ final class StartupViewController: UIViewController {
 
         self.makeUI()
         self.loginButton.addTarget(self, action: #selector(StartupViewController.login), forControlEvents: .TouchDown)
-        self.skipButton.addTarget(self, action: #selector(StartupViewController.openFrontPage), forControlEvents: .TouchDown)
+        self.skipButton.addTarget(self, action: #selector(UIApplication.pushTabbar), forControlEvents: .TouchDown)
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(StartupViewController.postOAuth(_:)), name: "OAuthFinishedNotification", object: nil)
     }
@@ -96,16 +96,6 @@ final class StartupViewController: UIViewController {
             safariViewController.dismissViewControllerAnimated(true, completion: nil)
         }
     }
-    
-    func openFrontPage() {
-        TokenService.sharedInstance.withAccessToken {
-            let mainViewController = HomeViewController()
-            mainViewController.modalTransitionStyle = .CrossDissolve
-            
-            let navigationController = NavigationController(rootViewController: mainViewController)
-            self.presentViewController(navigationController, animated: true, completion: nil)
-        }
-    }
 }
 
 extension StartupViewController {
@@ -115,7 +105,7 @@ extension StartupViewController {
         if let number = notification.object as? NSNumber {
             switch number.intValue {
             case 1:
-                self.openFrontPage()
+                NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
             default:
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
                     let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .Alert)
@@ -126,6 +116,7 @@ extension StartupViewController {
                     
                     alertController.addAction(action)
                     self!.presentViewController(alertController, animated: true, completion: nil)
+                    alertController.view.tintColor = FlatOrange()
                 }
             }
         }

@@ -70,8 +70,6 @@ class HomeViewController: UIViewController {
         self.navigationItem.rightBarButtonItem  = rightBarButton
         self.navigationController?.navigationBar.translucent = true
         self.automaticallyAdjustsScrollViewInsets = true
-        
-        self.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Reddit, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
     }
 }
 
@@ -135,6 +133,7 @@ extension HomeViewController {
         alertController.addAction(okAction)
         alertController.addAction(cancelAction)
         
+        alertController.view.tintColor = FlatOrange()
         self.presentViewController(alertController, animated: true) {
         }
     }

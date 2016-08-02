@@ -37,34 +37,70 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(UIApplication.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
+        
         let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("FirstTime") as? Bool ?? true
+        
         if isFirstTime {
             NSUserDefaults().setObject(false, forKey: "FirstTime")
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
-            self.window?.rootViewController = startVC
-        } else {
-            TokenService.sharedInstance.withAccessToken {
-                let mainVC = HomeViewController()
-                mainVC.modalTransitionStyle = .CrossDissolve
-                let searchVC = SearchViewController()
-                searchVC.modalTransitionStyle = .CoverVertical
-                searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
-                
-                let tabBarController = UITabBarController()
-                tabBarController.viewControllers = [NavigationController(rootViewController: searchVC), NavigationController(rootViewController: mainVC)]
-                // Show the main view controller initially
-                tabBarController.selectedIndex = 1
-                tabBarController.tabBar.tintColor = FlatOrange()
-                
-                self.window?.rootViewController = tabBarController
-            }
-        }
-        self.window?.makeKeyAndVisible()
+            
+            self.presentVC(startVC, false)
+            
+            return true
+        } 
+
+        self.pushTabbar()
         
         return true
     }
     
+    func pushTabbar() {
+        let tabBarVC = UITabBarControllero()
+
+        func embedInNav(vc: UIViewController) {
+            return NavigationController(rootViewController: vc)
+        }
+
+        let searchVC = SearchViewController()
+        searchVC.modalTransitionStyle = .CoverVertical
+        searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
+        
+        let homeVC = HomeViewController()
+        homeVC.modalTransitionStyle = .CrossDissolve
+        homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 1)
+
+        let meVC = MeViewController()
+        meVC.modalTransitionSytle = .CrossDissolve
+        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Account, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2))
+
+        tabBarVC.viewControllers = [searchVC, homeVC, meVC].map { embedInNav($0) }
+        // Select Browse tab on starup
+        tabBarVC.selectedIndex = 1
+        tabBarVC.tabBar.tintColor = FlatOrange()
+
+        self.presentVC(tabBarVC, true)
+    }
+
+    /**
+     Present the view controller
+     
+     - parameter vc:        the view controller to present
+     - parameter withToken: if the presentation needs wrapped in token service
+     
+     */
+    func presentVC(vc: UIViewController, withToken: Bool) {
+        self.window?.rootViewController = vc
+        if withToken {
+            TokenService.sharedInstance.withAccessToken {
+                self.window?.makeKeyAndVisible()
+            }
+        } else {
+            self.window?.makeKeyAndVisible()
+        }   
+    }
+
 
     func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
