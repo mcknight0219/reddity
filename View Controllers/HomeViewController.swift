@@ -65,8 +65,10 @@ class HomeViewController: UIViewController {
         
         
         HUDManager.sharedInstance.showCentralActivityIndicator()
-        //self.topicController.reload()
-        NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: self.channel)
+        //NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: self.channel)
+        
+        // Trigger table reload by setting subreddit of topicController
+        self.topicController.subreddit = self.channel
     }
     
     deinit {
@@ -76,13 +78,16 @@ class HomeViewController: UIViewController {
     func setupUI() {
         self.navigationItem.title = self.channel.isEmpty ? "Front Page" : self.channel
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        if let _ = self.navigationItem.backBarButtonItem {
+          self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, target: nil)
+        }
         
         /*
         let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
         let rightBarButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Tag), style: .Plain, target: self, action: #selector(HomeViewController.changeSubreddit))
         rightBarButton.setTitleTextAttributes(attributes, forState: .Normal)
         self.navigationItem.rightBarButtonItem  = rightBarButton
- */
+        */
         
         self.automaticallyAdjustsScrollViewInsets = true
     }
