@@ -40,6 +40,7 @@ class SearchViewController: UITableViewController {
 
         self.tableView.tableHeaderView = self.searchController.searchBar
         self.searchController.searchResultsUpdater = self
+        self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
         //self.navigationController?.extendedLayoutIncludesOpaqueBars = true
@@ -88,6 +89,14 @@ class SearchViewController: UITableViewController {
         
         return cell
     }
+    
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let channel = self.results[indexPath.row]
+        let timelineVC = HomeViewController(channel: channel.displayName)
+        timelineVC.hidesBottomBarWhenPushed = true
+
+        self.navigationController?.pushViewController(timelineVC, animated: true)
+    }
 
     /*
     // Override to support conditional editing of the table view.
@@ -132,6 +141,7 @@ extension SearchViewController: UISearchResultsUpdating {
         }
         
         if let text = searchController.searchBar.text {
+            if text.isEmpty { return }
             // only trigger new search if searched text changes
             if text != self.prevText {
                 if let subs = self.cache[text] as? [Subreddit] {
@@ -166,6 +176,30 @@ extension SearchViewController: UISearchResultsUpdating {
                 }
             }
             
+        }
+    }
+}
+
+extension SearchViewController: UISearchBarDelegate {
+    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
+        UIView.animateWithDuration(0.4) {
+            self.results.removeAll()
+            self.tableView.reloadData()
+        }
+        self.searchController.active = false
+    }
+    
+    func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+        self.view.endEditing(true)
+    }
+    
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            UIView.animateWithDuration(0.4) {
+                self.results.removeAll()
+                self.tableView.reloadData()
+            }
         }
     }
 }

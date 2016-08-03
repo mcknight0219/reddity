@@ -32,10 +32,18 @@ class TopicController: NSObject {
             } else {
                 self.subredditPath = "/r/\(subreddit)"
             }
+            
+            self.reload()
         }
     }
     
     var subredditPath: String = "/"
+    
+    func changeSubreddit(notification: NSNotification) {
+        if let sub = notification.object as? String {
+            self.subreddit = sub
+        }
+    }
     
     func reload() {
         guard !busy else { return }
@@ -76,10 +84,6 @@ class TopicController: NSObject {
             
             self.busy = false
         }
-    }
-    
-    func changeSubreddit(aSubreddit: String) {
-        self.subreddit = aSubreddit
     }
     
 }

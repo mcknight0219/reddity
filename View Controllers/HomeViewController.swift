@@ -18,8 +18,21 @@ class HomeViewController: UIViewController {
     
     var topicController: TopicController!
     
+    var channel: String = ""
+    
+    init(channel: String) {
+        super.init(nibName: nil, bundle: nil)
+        
+        self.channel = channel
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.setupUI()
         
         self.topicDataSource = TopicDataSource()
@@ -47,12 +60,13 @@ class HomeViewController: UIViewController {
         self.topicTableViewController.refreshControl?.addTarget(self.topicController, action: #selector(TopicController.reload), forControlEvents: .ValueChanged)
         self.topicTableViewController.tableView.tableFooterView = UIView()
         
-        dispatch_async(dispatch_get_main_queue()) {
-            HUDManager.sharedInstance.showCentralActivityIndicator()
-            self.topicController.reload()
-        }
-        
         NSNotificationCenter.defaultCenter().addObserver(self.topicController, selector: #selector(TopicController.prefetch), name: "NeedTopicPrefetchNotification", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self.topicController, selector: #selector(TopicController.changeSubreddit), name: "NeedLoadSubreddit", object: nil)
+        
+        
+        HUDManager.sharedInstance.showCentralActivityIndicator()
+        //self.topicController.reload()
+        NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: self.channel)
     }
     
     deinit {
@@ -60,15 +74,16 @@ class HomeViewController: UIViewController {
     }
     
     func setupUI() {
-        self.navigationItem.title = "Front Page"
-        self.navigationItem.leftBarButtonItem   = UIBarButtonItem(barButtonSystemItem: .Add, target: self, action: nil)
+        self.navigationItem.title = self.channel.isEmpty ? "Front Page" : self.channel
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
         
+        /*
         let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
         let rightBarButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Tag), style: .Plain, target: self, action: #selector(HomeViewController.changeSubreddit))
         rightBarButton.setTitleTextAttributes(attributes, forState: .Normal)
         self.navigationItem.rightBarButtonItem  = rightBarButton
-        self.navigationController?.navigationBar.translucent = true
+ */
+        
         self.automaticallyAdjustsScrollViewInsets = true
     }
 }
@@ -118,14 +133,19 @@ extension HomeViewController {
         let okAction = UIAlertAction(title: "Go", style: .Default) { (_) in
             let textField = alertController.textFields![0] as UITextField
             
-            self.topicController.changeSubreddit(textField.text ?? "")
             HUDManager.sharedInstance.showCentralActivityIndicator()
+            NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: textField.text)
             self.topicTableViewController.tableView.userInteractionEnabled = true
             dispatch_async(dispatch_get_main_queue()) {
                 self.topicController.reload()
                 // Scroll to top after reload
-                self.topicTableViewController.tableView.setContentOffset(CGPointMake(0, -64), animated: true)
-                self.navigationItem.title = textField.text ?? "Front Page"
+                self.topicTableViewController.tableView.setContentOffset(CGPointMake(0, 0), animated: true)
+                
+                if textField.text!.isEmpty {
+                    self.navigationItem.title = "Front Page"
+                } else {
+                    self.navigationItem.title = textField.text
+                }
             }
         }
         

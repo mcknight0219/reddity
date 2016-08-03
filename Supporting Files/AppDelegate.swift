@@ -37,7 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(UIApplication.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
         let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("FirstTime") as? Bool ?? true
         
@@ -46,7 +46,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
             
-            self.presentVC(startVC, false)
+            self.presentVC(startVC, withToken: false)
             
             return true
         } 
@@ -56,10 +56,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    func pushTabbar() {
-        let tabBarVC = UITabBarControllero()
+    @objc func pushTabbar() {
+        let tabBarVC = UITabBarController()
 
-        func embedInNav(vc: UIViewController) {
+        func embedInNav(vc: UIViewController) -> UINavigationController {
             return NavigationController(rootViewController: vc)
         }
 
@@ -67,20 +67,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         searchVC.modalTransitionStyle = .CoverVertical
         searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
         
-        let homeVC = HomeViewController()
+        let homeVC = HomeViewController(channel: "")
         homeVC.modalTransitionStyle = .CrossDissolve
         homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 1)
 
         let meVC = MeViewController()
-        meVC.modalTransitionSytle = .CrossDissolve
-        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Account, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2))
+        meVC.modalTransitionStyle = .CrossDissolve
+        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2)
 
         tabBarVC.viewControllers = [searchVC, homeVC, meVC].map { embedInNav($0) }
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 1
         tabBarVC.tabBar.tintColor = FlatOrange()
 
-        self.presentVC(tabBarVC, true)
+        self.presentVC(tabBarVC, withToken: true)
     }
 
     /**

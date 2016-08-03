@@ -50,9 +50,23 @@ class NewsCell: UITableViewCell {
     
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
+        self.titleLabel.numberOfLines = 4
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         let downloadUrl = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) ?? aTopic.url
+        
+        if let cacheUrl = ImageDownloader.sharedInstance.cache.object(forKey: downloadUrl) as? NSURL {
+            ImageDownloader.sharedInstance.downloadImageAt(cacheUrl) { (image) -> Void in
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.picture.contentMode = .ScaleAspectFill
+                    self.picture.clipsToBounds = true
+                    self.picture.image = image
+                }
+            }
+            
+            return
+        }
+        
         
         if isImageFileUri(downloadUrl) {
             ImageDownloader.sharedInstance.downloadImageAt(downloadUrl) { (image) -> Void in
@@ -80,14 +94,16 @@ class NewsCell: UITableViewCell {
             return
         }
         
-        LightBox(withUrl: downloadUrl.absoluteString).load() { (_, desc, imageUrl) -> Void in
-            if let desc = desc { self.descriptionLabel.text = desc }
-            if let url = imageUrl {
-                if url.isEmpty {
+        LightBox(withUrl: downloadUrl.absoluteString).load() { (_, _, imageUrl) -> Void in
+            if let url = NSURL(string: imageUrl ?? "") {
+                if url.absoluteString.isEmpty {
                     return
                 }
                 
-                ImageDownloader.sharedInstance.downloadImageAt(NSURL(string: url)!) { (image) -> Void in
+                // Insignificant
+                ImageDownloader.sharedInstance.cache.setObject(url, forKey: downloadUrl, cost: 1)
+                
+                ImageDownloader.sharedInstance.downloadImageAt(url) { (image) -> Void in
                     dispatch_async(dispatch_get_main_queue()) {
                         self.picture.contentMode = .ScaleAspectFill
                         self.picture.clipsToBounds = true

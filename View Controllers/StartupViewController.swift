@@ -24,7 +24,7 @@ final class StartupViewController: UIViewController {
 
         self.makeUI()
         self.loginButton.addTarget(self, action: #selector(StartupViewController.login), forControlEvents: .TouchDown)
-        self.skipButton.addTarget(self, action: #selector(UIApplication.pushTabbar), forControlEvents: .TouchDown)
+        self.skipButton.addTarget(self, action: #selector(StartupViewController.skip), forControlEvents: .TouchDown)
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(StartupViewController.postOAuth(_:)), name: "OAuthFinishedNotification", object: nil)
     }
@@ -85,6 +85,10 @@ final class StartupViewController: UIViewController {
             make.height.equalTo(45)
         }
 
+    }
+    
+    func skip() {
+        NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
     }
     
     func login() {
