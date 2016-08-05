@@ -78,9 +78,9 @@ class HomeViewController: UIViewController {
     func setupUI() {
         self.navigationItem.title = self.channel.isEmpty ? "Front Page" : self.channel
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        if let _ = self.navigationItem.backBarButtonItem {
-          self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, target: nil)
-        }
+    
+        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        
         
         /*
         let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
@@ -121,7 +121,23 @@ extension HomeViewController: TopicControllerDelegate {
             HUDManager.sharedInstance.hideCentralActivityIndicator()
         }
         
-        // Notify user of bad connection
+        // Alert user bad response
+    }
+    
+    func topicControllerNoNetworkConnection() {
+        if self.topicTableViewController.refreshControl!.refreshing {
+            self.topicTableViewController.refreshControl?.endRefreshing()
+        }
+        
+        if HUDManager.sharedInstance.isShowing {
+            HUDManager.sharedInstance.hideCentralActivityIndicator()
+        }
+        
+        let label = UILabel()
+        label.text = "No Internet conneciton"
+        dispatch_async(dispatch_get_main_queue()) {
+            self.topicTableViewController.tableView.tableHeaderView = label
+        }
     }
 }
 

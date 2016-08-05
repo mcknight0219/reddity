@@ -49,7 +49,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             self.presentVC(startVC, withToken: false)
             
             return true
-        } 
+        }
+        ReachabilityManager.sharedInstance?.startMonitoring()
 
         self.pushTabbar()
         
