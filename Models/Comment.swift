@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 struct Comment: ResourceType {
     enum ParentType {
         case Comment
@@ -23,7 +24,7 @@ struct Comment: ResourceType {
     let createdAt: NSDate
     let score: Int
     
-    let replies = [Comment]()
+    var replies = [Comment]()
     
     init(id: String, parent: String, text: String, timestampString: String, score: Int) {
         self.id = id
@@ -49,4 +50,49 @@ struct Comment: ResourceType {
             return sum + comment.totalReplies()
         }
     }
+
+    mutating func addReply(aComment: Comment) {
+        if self.replies.filter { $0.id == aComment.id }.count > 0 { return }
+        self.replies.append(aComment)
+    }
+
+    /**
+     * The sorting occurs on flat level under the parent. The 
+     * popularity
+     */
+    mutating func sortByPopularity() {
+        if self.replies.count < 2 { return }
+        self.replies.sort { $0.score < $1.score }
+    }
+
+    mutating func sortByDate() {
+        if self.replies.count < 2 { return }
+        self.replies.sort { $0.createdAt < $1.createdAt }
+    }
+}
+
+func commentsParser(json: JSON) -> [Comment] {
+    let treeJson = json[1]["data"]["children"]
+
+    // The replies that direct to post
+    var tops = [Comment]()
+    for (_, commentJson):(String, JSON) in treeJson {
+        if let comment = commentParser(commentJson) {
+            top.append(comment)
+        }
+    }
+
+    return tops
+}
+
+internal func commentParser(json: JSON) -> Comment? {
+    var comment = Comment(json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"], timestamp: json["created"].stringBalue, score: json["ups"].intValue)
+    for (_, replyJson): (String, JSON) in json["replies"] {
+        var reply = commentParser(replyJson)
+        if let reply = reply {
+            comment.addReply(reply)
+        }
+    }
+
+    return comment
 }

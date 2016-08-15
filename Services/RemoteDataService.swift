@@ -52,7 +52,15 @@ func apiRequest<A>(base: NSURL, resource: Resource<A>, params: [String:String]?,
         if let response = response as? NSHTTPURLResponse {
             if 200..<300 ~= response.statusCode {
                 let json = JSON(data: data!)
-                let parsedResource = resource.parser(json["data"])
+                
+                var parsedResource: A?
+                switch json.type {
+                    // The comments api will return an array: 1st element is the post itself; 2nd is the comments tree itself
+                    case .Array:
+                    parsedResource = resource.parser(json)
+                    default:
+                    parsedResource = resource.parser(json["data"])
+                }
                 completion(parsedResource)
             }
             else {

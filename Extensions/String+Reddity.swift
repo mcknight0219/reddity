@@ -41,4 +41,11 @@ extension String {
         }
         
     }
+
+    func heightWithContrained(width: CGFloat, font: UIFont) -> CGFloat {
+        let maxRect = CGSize(width: width, height: CGFloat.max)
+        let boundingBox = self.boundingRectWithSize(maxRect, options: NSStringDrawingOptions.UsesLineFragmentOrigin, attributes: [NSFontAttributeName: font], context: nil)
+    
+        return boundingBox.height
+    }
 }
