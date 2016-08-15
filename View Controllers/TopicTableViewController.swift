@@ -49,6 +49,9 @@ extension TopicTableViewController {
 // MARK Table view delegate
 
 extension TopicTableViewController {
+    override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        
+    }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         let aLink = self.dataSource.topicAtIndexPath(indexPath)!

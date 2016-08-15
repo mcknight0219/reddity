@@ -55,28 +55,16 @@ class NewsCell: UITableViewCell {
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         let downloadUrl = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) ?? aTopic.url
         
-        if let cacheUrl = ImageDownloader.sharedInstance.cache.object(forKey: downloadUrl) as? NSURL {
-            ImageDownloader.sharedInstance.downloadImageAt(cacheUrl) { (image) -> Void in
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.picture.contentMode = .ScaleAspectFill
-                    self.picture.clipsToBounds = true
-                    self.picture.image = image
-                }
-            }
-            
-            return
-        }
-        
         
         if isImageFileUri(downloadUrl) {
-            ImageDownloader.sharedInstance.downloadImageAt(downloadUrl) { (image) -> Void in
+            self.picture.setImageWithURL(downloadUrl, placeholder: nil, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
                 dispatch_async(dispatch_get_main_queue()) {
                     self.picture.contentMode = .ScaleAspectFill
                     self.picture.clipsToBounds = true
                     self.picture.image = image
                 }
-            }
-            
+                }
+            )
             return
         }
         
@@ -100,16 +88,14 @@ class NewsCell: UITableViewCell {
                     return
                 }
                 
-                // Insignificant
-                ImageDownloader.sharedInstance.cache.setObject(url, forKey: downloadUrl, cost: 1)
-                
-                ImageDownloader.sharedInstance.downloadImageAt(url) { (image) -> Void in
+                self.picture.setImageWithURL(url, placeholder: nil, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
                     dispatch_async(dispatch_get_main_queue()) {
                         self.picture.contentMode = .ScaleAspectFill
                         self.picture.clipsToBounds = true
                         self.picture.image = image
                     }
-                }
+                    }
+                )
             }
         }
     }

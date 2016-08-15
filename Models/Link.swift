@@ -72,16 +72,14 @@ struct Link: ResourceType {
             return .Text
         default: break
         }
-
-        func isImageLink(url: String) -> Bool {
-            let pattern = try! NSRegularExpression(pattern: "^.+(imgur.com|redd.it)/[0-9a-zA-Z]+(\\.[a-zA-Z]+)?$", options: .CaseInsensitive)
-            return pattern.matchesInString(url, options: [], range: NSMakeRange(0, url.characters.count)).count > 0
-        }
         
-        if isImageLink(self.url.absoluteString) {
-            return .Image
-        } else {
+        switch self.url.absoluteString.isImageUrl() {
+        case .Unknown:
             return .News
+        case .Image:
+            return .Image
+        case .Imgur(_):
+            return .Image
         }
     }
     

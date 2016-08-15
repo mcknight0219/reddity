@@ -182,7 +182,7 @@ extension SearchViewController: UISearchResultsUpdating {
 
 extension SearchViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        UIView.animateWithDuration(0.4) {
+        UIView.animateWithDuration(0.1) {
             self.results.removeAll()
             self.tableView.reloadData()
         }
@@ -196,7 +196,7 @@ extension SearchViewController: UISearchBarDelegate {
     
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            UIView.animateWithDuration(0.4) {
+            UIView.animateWithDuration(0.1) {
                 self.results.removeAll()
                 self.tableView.reloadData()
             }

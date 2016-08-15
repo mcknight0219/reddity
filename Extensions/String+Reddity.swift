@@ -8,6 +8,15 @@
 
 import Foundation
 
+enum UrlType {
+    case Unknown
+    case Image
+    case Imgur(String)
+}
+
+let urlPattern = try! NSRegularExpression(pattern: "^(https?|ftp|file)://.+$", options: .CaseInsensitive)
+let imgurPattern = try! NSRegularExpression(pattern: "^.+(imgur.com)/[0-9a-zA-Z]+/?$", options: .CaseInsensitive)
+
 extension String {
     func startsWith(sub: String) -> Bool {
         guard self.characters.count >= sub.characters.count else {
@@ -15,5 +24,21 @@ extension String {
         }
         
         return self.characters.prefix(sub.characters.count).elementsEqual(sub.characters)
+    }
+    
+    func isImageUrl() -> UrlType {
+
+        guard !isEmpty else { return .Unknown }
+        guard urlPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0 else { return .Unknown }
+        
+        let ext = NSString(string: self).pathExtension
+        if ["bmp", "jpg", "jpeg", "gif", "png"].contains(ext.lowercaseString) {
+            return .Image
+        } else if imgurPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0 {
+            return .Imgur(self.stringByAppendingString(".png"))
+        } else {
+            return .Unknown
+        }
+        
     }
 }

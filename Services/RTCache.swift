@@ -99,7 +99,7 @@ public class RTCache: NSObject {
         
         self._lock.unlock()
         
-        print("[RTCache] set cache for \(key) cost: \(cost)")
+        //print("[RTCache] set cache for \(key) cost: \(cost)")
         
         self._removeIfNeeded()
     }
@@ -150,7 +150,7 @@ public class RTCache: NSObject {
             self.count = self.count - 1
             self._entries.removeValueForKey(key)
             
-            print("[RTCache] remove \(key) cost: \(e.cost)")
+            //print("[RTCache] remove \(key) cost: \(e.cost)")
             
             self._lock.unlock()
         }

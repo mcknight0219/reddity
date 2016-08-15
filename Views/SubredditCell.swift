@@ -40,16 +40,17 @@ class SubredditCell: UITableViewCell {
     }
     
     func loadCell(subreddit: Subreddit) {
-        self.picture.contentMode = .ScaleAspectFit
-        self.picture.clipsToBounds = true
-        self.picture.image = UIImage(named: "placeholder")
+        
         
         if let headerUrl = subreddit.headerImage {
-            ImageDownloader.sharedInstance.downloadImageAt(headerUrl) { (img) -> Void in
+            self.picture.setImageWithURL(headerUrl, placeholder: UIImage(named: "placeholder"), manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
+                self.picture.contentMode = .ScaleAspectFit
+                self.picture.clipsToBounds = true
+                
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.picture.image = img
+                    self.picture.image = image
                 }
-            }
+            })
         }
         
         self.titleLabel.text = subreddit.title
