@@ -37,6 +37,12 @@ extension UIImageView {
                 }
                 return
             }
+
+            if let placeholder = placeholder {
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.image = placeholder
+                }
+            }
             
             weak var task = manager.createImageDownloadTask(url, progress: progress, completion: completion)
             self.setter = task

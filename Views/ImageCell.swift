@@ -82,8 +82,10 @@ class ImageCell: UITableViewCell {
             if !isGif { downloadUrl = url }
         }
 
+        let placeholder = UIImage.imageFilledWithColor(FlatGray())
+
         if !isGif {
-            self.picture.setImageWithURL(downloadUrl, placeholder: nil, manager: RTWebImageManager.sharedManager, progress: { (recv, expected) in
+            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: { (recv, expected) in
                 if self.progressLayer.hidden {
                     self.progressLayer.hidden = false
                 }

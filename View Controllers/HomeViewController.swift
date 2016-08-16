@@ -108,7 +108,14 @@ extension HomeViewController: TopicControllerDelegate {
         
         self.topicDataSource.topics = self.topicController.topics
         dispatch_async(dispatch_get_main_queue()) {
-            self.topicTableViewController.tableView.reloadData()
+            //self.topicTableViewController.tableView.reloadData()
+            UIView.setAnimationEnabled(true)
+            self.topicTableViewController.tableView.beginUpdates()
+            if var visibleIndexs = self.topicTableViewController.tableView.indexPathsForVisibleRows {
+                self.topicTableViewController.tableView.reloadRowsAtIndexPaths(visibleCells, withRowAnimation: .None)
+            }
+            self.topicTableViewController.tableView.endUpdates()
+            UIView.setAnimationEnabled(false)
         }
     }
     

@@ -22,18 +22,34 @@ struct Comment: ResourceType {
     let parent: String
     let text: String
     let createdAt: NSDate
-    let score: Int
+    let ups: Int
+    let downs: Int
+    let score: Int {
+        get {
+            return ups - downs
+        }
+    }
     
     var replies = [Comment]()
+    // UI related property: whether to show the comment
+    var isShow: Bool {
+        didSet {
+            if !isShow {
+                replies.flatMap { $0.isShow = isShow }
+            } 
+        }
+    } 
     
-    init(id: String, parent: String, text: String, timestampString: String, score: Int) {
+    init(id: String, parent: String, text: String, timestampString: String, ups: Int, downs: Int) {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
         self.parentType = parent.startsWith(ListType.Link.description) ? .Link : .Comment
         self.parent = parent
         self.text = text
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
-        self.score = score
+        self.ups = ups
+        self.downs = downs
+        self.show = true
     }
     
     func hasReplies() -> Bool {
@@ -86,7 +102,7 @@ func commentsParser(json: JSON) -> [Comment] {
 }
 
 internal func commentParser(json: JSON) -> Comment? {
-    var comment = Comment(json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"], timestamp: json["created"].stringBalue, score: json["ups"].intValue)
+    var comment = Comment(json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"], timestamp: json["created"].stringBalue, ups: json["ups"].intValue, downs: json["downs"].intValue)
     for (_, replyJson): (String, JSON) in json["replies"] {
         var reply = commentParser(replyJson)
         if let reply = reply {

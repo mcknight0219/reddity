@@ -19,8 +19,8 @@ class CommentsViewController: UIViewController {
     init(aSubject: Link, comments: [Comment]) {
         super.init(nibName: nil, bundle: nil)
 
-        subject = aSubject
-        comments = comments
+        self.subject = aSubject
+        self.comments = comments
     }
 
     required init?(coder aCoder: NSCoder) {
@@ -30,9 +30,11 @@ class CommentsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        initCommentsShownStatus()
+
         headView = UIView()
-        let w = UIScreen.mainScreen().width
-        let h = UIScreen.mainScreen().height
+        let w = UIScreen.mainScreen().bounds.width
+        let h = UIScreen.mainScreen().bounds.height
         headView.frame = CGRectMake(0, 0, w, w * 0.7)
         let headImage = UIImage()
         headImage.frame = headView.bounds
@@ -54,5 +56,38 @@ class CommentsViewController: UIViewController {
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         commentsVC.automaticallyAdjustScrollViewInsects = false
     }
+
+    private func initCommentsShownStatus() {
+       guard commentsCount() > 15 else { return }
+
+       comments.flatMap { }
+    }
+
+    private func commentsCount() -> Int {
+        return self.comments.reduce(0) { $0 + $1.totalReplies() }
+    }
+}
+
+// MARK: - Table view data source
+
+extension CommentsViewController {
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 1
+    }
+
+    override func tableView(tableView: UITableView, heigthForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
     
+    }
+
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        
+    }
+
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    }
+
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
+    }
 }
