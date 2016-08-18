@@ -16,6 +16,14 @@ enum PlaybackDirection {
     case Backward
 }
 
+struct PlaybackOptions: OPtionSet {
+    let rawValue: Int
+
+    static let repeatOne = PlaybackOptions(rawValue: 1 << 0)
+    static let repeatAll = PlaybackOptions(rawValue: 1 << 1)
+
+    static let default = [.repeatOne]
+}
 
 /**
  A subclass of `AVPlayer` that supports playback in either forward and backward direction
@@ -36,12 +44,66 @@ class DequeuePlayer: AVPlayer {
     var playbackDirection: PlaybackDirection = .Forward
 
     /**
+     An array of `AVPlayerItem` that player uses for playback
+     */
+    private var playbackQueue = [AVPlayerItem]()
+
+    /**
+     The index in `playbackQueue` of currently playing item
+     */
+    private var currentPlayerItemIndex: Int = 0
+
+    /**
+     The lock for threadsafety
+     */
+    private let mutex = NSLock()
+
+    /**
+     Maximum number of player item the player could hold.
+
+     @discussion When maximum is reached, an item at the far end of the queue is removed to make place
+     for the new one.
+     */
+    let MaxPlaybackQueueItems = 30
+
+    /**
+     The playback options
+     */
+    private let options: PlaybackOptions
+
+    /**
      Initializes an instance of DequeuePlayer by enqueueing the player items from a given array.
 
      @param items An array of `AVPlayerItem` objects with which initially to populate the player's queue.
+     @param options Specify players behavior
      */
-    init(items items: [AVPlayerItem]) {
+    init(items: [AVPlayerItem], options: PlaybackOptions?) {
+        super.init()
+        playbackQueue.reserveCapacity(MaxPlaybackQueueItems)
+        playbackQueue += items[0..<items.count > MaxPlaybackQueueItems ? MaxPlaybackQueueItems : items.count]
 
+        self.options = options == nil ? .default : options
+        if self.options.contains(.repeatOne) {
+            actionAtItemEnd = .None
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DequeuePlayer.repeatTrack(_:)), name: AVPlayerItemDidPlayToEndTimeNotification, object: nil)
+        }
+    }
+
+    /**
+     Initializes an instnace of DequeuePlayer by enqueueing the player items created from urls
+     from a given array.
+
+     @param urls An array of `NSURL` objects with which initially to populate the player's queue.
+     */
+    convenience init(urls: [NSURL]) {
+        let items = urls.forEach { AVPlayerItem(asset: AVURLAsset(url: $0, options: nil)) }
+        self.init(items, nil)
+    }
+
+    deinit {
+        if self.options.contains(.repeatOne) {
+            NSNotificationCenter.defaultCenter().removeObserver(self, AVPlayerItemDidPlayToEndTimeNotification, object: nil)
+        }
     }
 
     /**
@@ -50,7 +112,7 @@ class DequeuePlayer: AVPlayer {
      @return An array of the currently enqueued items.
      */
     func items() -> [AVPlayerItem] {
-
+        return self.playbackQueue
     }
 
     /**
@@ -63,8 +125,16 @@ class DequeuePlayer: AVPlayer {
      can be appended to the queue.
      @return `true` if item can be appended to the queue, otherwise `false`.
      */
-    func canInsertItem(_ item: AVPlayerItem, afterItem afterItem: AVPlayerItem?) -> Bool {
-        
+    func canInsertItem(item: AVPlayerItem, afterItem: AVPlayerItem?) -> Bool {
+        guard self.playbackQueue.count <= self.MaxPlaybackQueueItems else { return false }
+
+        var sentinel: AVPlayerItem?
+        for i in self.playbackQueue {
+            if item == i { return false }
+            if i == afterItem { sentinel = i }
+        }  
+
+        return afterItem == nil ? true : (sentinel == nil ? true: false)
     }
 
     /**
@@ -74,8 +144,22 @@ class DequeuePlayer: AVPlayer {
      @param afterItem THe item that the newly inserted item should follow in the queue. Pass nil to append
      the item to the queue.
      */
-    func insertItem(_ item: AVPlayerItem, afterItem afterItem: AVPlayerItem?) {
-        
+    func insertItem(item: AVPlayerItem, afterItem: AVPlayerItem?) {
+        guard canInsertItem(item, afterItem) else { return }
+
+        // Remove the item at the other end because it's probably the LRU item
+        if playbackQueue.count == MaxPlaybackQueueItems {
+            
+        }
+
+        var sentinel: AVPlayerItem?
+        if let afterItem = afterItem {
+            sentinel = afterItem
+        } else {
+            sentinel = playbackQueue.last
+        }
+
+        playbackQueue.insert(item, at: self.playbackQueue.indexOf(sentinel) + 1)
     }
 
     /**
@@ -85,8 +169,12 @@ class DequeuePlayer: AVPlayer {
 
      @param item The item to be removed.
      */
-    func removeItem(_ item: AVPlayerItem) {
+    func removeItem(item: AVPlayerItem) {
+        if let playing = playbackQueue[currentPlayerItemIndex] {
+            if item == playing { advanceToNexItem() }
+        }
         
+        playbackQueue.remove(item)
     }
 
     /**
@@ -95,7 +183,10 @@ class DequeuePlayer: AVPlayer {
      @discussion This has the side-effect of stopping playback by the player
      */
     func removeAllItems() {
-        
+        self.pause()
+        self.replaceCurrentItemWithPlayerItem(item: nil)
+
+        playbackQueue.removeAll()
     }
 
     /**
@@ -106,6 +197,34 @@ class DequeuePlayer: AVPlayer {
      If it's already the last item, this has no effect to the player.
      */
     func advanceToNextItem() {
+        pause()
+        self.mutex.lock()
+        
 
+        self.mutex.unlock()
+    }
+
+    /**
+     Ends playback of the current item and initiates playback of the previous item in the play queue.
+
+     @discussion This method doesn't remove current item from the playqueue. It backs to previous item
+     if there is one available.
+     If it's the first item, this has to effect to the player.
+     */
+    func backToPrevItem() {
+        pause()
+        self.mutex.lock()
+        
+
+        self.mutex.lock()
+    }
+
+    /**
+     Repeat the current item if there is any.  
+     */
+    internal func repeatTrack() {
+        if let item = self.currentItem {
+            item.seekToTime(kCMTimeZero)
+        } 
     }
 }
