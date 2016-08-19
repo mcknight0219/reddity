@@ -76,7 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         meVC.modalTransitionStyle = .CrossDissolve
         meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2)
 
-        tabBarVC.viewControllers = [searchVC, homeVC, meVC].map { embedInNav($0) }
+        tabBarVC.viewControllers = [searchVC, embedInNav(homeVC), embedInNav(meVC)]
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 1
         tabBarVC.tabBar.tintColor = FlatOrange()

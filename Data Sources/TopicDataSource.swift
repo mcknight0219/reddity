@@ -52,20 +52,26 @@ extension TopicDataSource: UITableViewDataSource {
  
         let bg = UIView()
         bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-       
+
         switch type {
         case .Image:
             let cell = tableView.dequeueReusableCellWithIdentifier("ImageCell", forIndexPath: indexPath) as! ImageCell
             cell.loadTopic(self.topics![indexPath.row])
+            cell.selectedBackgroundView = bg
+            
+            return cell
         case .News:
             let cell = tableView.dequeueReusableCellWithIdentifier("NewsCell", forIndexPath: indexPath) as! NewsCell
             cell.loadTopic(self.topics![indexPath.row])
+            cell.selectedBackgroundView = bg
+            
+            return cell
         default:
             let cell = tableView.dequeueReusableCellWithIdentifier("TextCell", forIndexPath: indexPath) as! TextCell
             cell.loadTopic(self.topics![indexPath.row])
+            cell.selectedBackgroundView = bg
+            
+            return cell
         }
-
-        cell.selectedBackgroundView = bg
-        return cell
     }
 }

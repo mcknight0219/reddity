@@ -40,19 +40,6 @@ class ImageCell: UITableViewCell {
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         
-        let lineHeight: CGFloat = 4
-        progressLayer = CAShapeLayer()
-        progressLayer.frame.size = CGSizeMake(picture.frame.width, lineHeight)
-        let path = UIBezierPath()
-        path.moveToPoint(CGPointMake(0, lineHeight / 2))
-        path.addLineToPoint(CGPointMake(picture.frame.width, lineHeight / 2))
-        progressLayer.lineWidth = lineHeight
-        progressLayer.path = path.CGPath
-        progressLayer.strokeColor = FlatOrange().CGColor
-        progressLayer.lineCap = "butt"
-        progressLayer.strokeStart = 0
-        progressLayer.strokeEnd = 0
-        picture.layer.addSublayer(progressLayer)
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
@@ -70,32 +57,17 @@ class ImageCell: UITableViewCell {
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        progressLayer.hidden = true
-        progressLayer.strokeEnd = 0
-        CATransaction.commit()
-        
         let isGif = aTopic.isUrlGif()
         var downloadUrl: NSURL = aTopic.url
         if let url = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
             if !isGif { downloadUrl = url }
         }
 
-        let placeholder = UIImage.imageFilledWithColor(FlatGray())
+        let placeholder = UIImage.imageFilledWithColor(FlatWhite())
 
         if !isGif {
-            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: { (recv, expected) in
-                if self.progressLayer.hidden {
-                    self.progressLayer.hidden = false
-                }
-                let percentage = Float(recv) / Float(expected)
+            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, state) in
                 dispatch_async(dispatch_get_main_queue()) {
-                    self.progressLayer.strokeEnd = CGFloat(percentage)
-                }
-                }, completion: { (image, state) in
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.progressLayer.hidden = true
                     self.picture.contentMode = .ScaleAspectFill
                     self.picture.clipsToBounds = true
                     self.picture.image = image

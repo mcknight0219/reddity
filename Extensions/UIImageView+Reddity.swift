@@ -53,7 +53,6 @@ extension UIImageView {
     private func cancelCurrentTask() {
         if let task = self.setter {
             if task.state == .Running || task.state == .Suspended {
-                NetworkActivityIndicator.decreaseActivityCount()
                 print("A task is cancelled: \(task.taskDescription)")
                 task.cancel()
             }

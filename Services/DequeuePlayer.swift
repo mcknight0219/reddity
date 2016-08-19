@@ -6,6 +6,7 @@
 //  Copyright © 2016 Qiang Guo. All rights reserved.
 //
 
+import Foundation
 import AVFoundation
 
 /**
@@ -16,13 +17,11 @@ enum PlaybackDirection {
     case Backward
 }
 
-struct PlaybackOptions: OPtionSet {
+struct PlaybackOptions: OptionSetType {
     let rawValue: Int
 
     static let repeatOne = PlaybackOptions(rawValue: 1 << 0)
     static let repeatAll = PlaybackOptions(rawValue: 1 << 1)
-
-    static let default = [.repeatOne]
 }
 
 /**
@@ -80,7 +79,7 @@ class DequeuePlayer: AVPlayer {
     init(items: [AVPlayerItem], options: PlaybackOptions?) {
         super.init()
         playbackQueue.reserveCapacity(MaxPlaybackQueueItems)
-        playbackQueue += items[0..<items.count > MaxPlaybackQueueItems ? MaxPlaybackQueueItems : items.count]
+        playbackQueue += items[0..<(items.count > MaxPlaybackQueueItems ? MaxPlaybackQueueItems : items.count)]
 
         self.options = options == nil ? .default : options
         if self.options.contains(.repeatOne) {

@@ -6,7 +6,7 @@
 //  Copyright © 2016 Qiang Guo. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 enum UrlType {
     case Unknown

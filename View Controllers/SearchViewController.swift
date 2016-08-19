@@ -10,11 +10,13 @@ import UIKit
 import SwiftyJSON
 import ChameleonFramework
 
-class SearchViewController: UITableViewController {
+class SearchViewController: UIViewController {
 
     let searchController = UISearchController(searchResultsController: nil)
     
     var results = [Subreddit]()
+    
+    var tableView: UITableView!
     
     // Trigger a new search only after user pause for a while
     private var timer: NSTimer?
@@ -29,41 +31,58 @@ class SearchViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = UIColor.whiteColor()
+        tableView = UITableView(frame: CGRectMake(0, 20, view.bounds.width, view.bounds.height - 20))
+        tableView.delegate = self
+        tableView.dataSource = self
         
-        self.tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
-        self.setupUI()
+        definesPresentationContext = true
+        view.addSubview(tableView)
+        tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
+        setupUI()
     }
     
     func setupUI() {
         self.navigationItem.title = "Add Subreddits"
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        self.navigationController?.navigationBar.translucent = false
 
         self.tableView.tableHeaderView = self.searchController.searchBar
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
-        //self.navigationController?.extendedLayoutIncludesOpaqueBars = true
         self.searchController.searchBar.searchBarStyle = .Minimal
         self.searchController.searchBar.tintColor = FlatOrange()
         self.searchController.searchBar.sizeToFit()
         self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
-
-        definesPresentationContext = true
-        self.extendedLayoutIncludesOpaqueBars = true
-        
-        // Keep selected row between states
-        self.clearsSelectionOnViewWillAppear = false
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
+}
 
-    // MARK: - Table view data source
+extension SearchViewController: UITableViewDelegate {
+    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        return 110
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let channel = self.results[indexPath.row]
+        let timelineVC = HomeViewController(channel: channel.displayName)
+        timelineVC.hidesBottomBarWhenPushed = true
+        timelineVC.isFromSearch = true
+        
+        self.presentViewController(NavigationController(rootViewController: timelineVC), animated: true) {
+            
+        }
+    }
+}
 
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+extension SearchViewController: UITableViewDataSource {
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         if self.results.count == 0 {
             return 0
         } else {
@@ -71,17 +90,13 @@ class SearchViewController: UITableViewController {
         }
     }
     
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 120
-    }
-
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.results.count
     }
-
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
-
+        
         // Configure the cell...
         let sub = self.results[indexPath.row]
         
@@ -89,50 +104,9 @@ class SearchViewController: UITableViewController {
         
         return cell
     }
-    
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let channel = self.results[indexPath.row]
-        let timelineVC = HomeViewController(channel: channel.displayName)
-        timelineVC.hidesBottomBarWhenPushed = true
 
-        self.navigationController?.pushViewController(timelineVC, animated: true)
-    }
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if editingStyle == .Delete {
-            // Delete the row from the data source
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-        } else if editingStyle == .Insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
 }
+
 
 extension SearchViewController: UISearchResultsUpdating {
     func updateSearchResultsForSearchController(searchController: UISearchController) {
@@ -182,10 +156,8 @@ extension SearchViewController: UISearchResultsUpdating {
 
 extension SearchViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        UIView.animateWithDuration(0.1) {
-            self.results.removeAll()
-            self.tableView.reloadData()
-        }
+        self.results.removeAll()
+        self.tableView.reloadData()
         self.searchController.active = false
     }
     
@@ -196,10 +168,15 @@ extension SearchViewController: UISearchBarDelegate {
     
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            UIView.animateWithDuration(0.1) {
-                self.results.removeAll()
-                self.tableView.reloadData()
-            }
+            self.results.removeAll()
+            self.tableView.reloadData()
         }
+    }
+    
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
+        
+    }
+    
+    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
     }
 }

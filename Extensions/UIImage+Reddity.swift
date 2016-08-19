@@ -32,13 +32,4 @@ extension UIImage {
         
         return newImage ?? self
     }
-
-    func imageWithTitle(title: String, at: CGPoint) -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(size, false, UIScreen.mainScreen().scale)
-        let attributes = [NSFontAttributeName: UIFont(name: "Lato-Bold", size: 15)!, NSForegroundColorAttributeName: UIColor.whiteColor()]
-        self.drawInRect(CGRectMake(0, 0, size.width, size.heigth))
- 
-        height =
-        UIGraphicsEndImageContext()
-    }
 }

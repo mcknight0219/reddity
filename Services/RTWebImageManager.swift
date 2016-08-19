@@ -59,7 +59,6 @@ class RTWebImageManager: NSObject {
         let reporter = Reporter(url: url, task: task, progress: progress, completion: completion)
         tasks[task] = reporter
         
-        NetworkActivityIndicator.incrementActivityCount()
         return task
     }
 }
@@ -90,7 +89,6 @@ extension RTWebImageManager: NSURLSessionDataDelegate {
                 dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) { [weak self] in
                     self?.cache.setObject(img!, forKey:reporter.url, cost: reporter._tempData.length)
                     self?.tasks.removeValueForKey(reporter.task!)
-                    NetworkActivityIndicator.decreaseActivityCount()
                 }
             } else {
                 reporter.progress?(recevied: reporter._progress.completedUnitCount, expected: reporter._progress.totalUnitCount)

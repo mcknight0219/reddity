@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 class NewsCell: UITableViewCell {
 
@@ -55,9 +56,9 @@ class NewsCell: UITableViewCell {
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         let downloadUrl = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) ?? aTopic.url
         
-        
+        let placeholder = UIImage.imageFilledWithColor(FlatWhite())
         if isImageFileUri(downloadUrl) {
-            self.picture.setImageWithURL(downloadUrl, placeholder: nil, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
+            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
                 dispatch_async(dispatch_get_main_queue()) {
                     self.picture.contentMode = .ScaleAspectFill
                     self.picture.clipsToBounds = true
@@ -88,7 +89,7 @@ class NewsCell: UITableViewCell {
                     return
                 }
                 
-                self.picture.setImageWithURL(url, placeholder: nil, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
+                self.picture.setImageWithURL(url, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
                     dispatch_async(dispatch_get_main_queue()) {
                         self.picture.contentMode = .ScaleAspectFill
                         self.picture.clipsToBounds = true

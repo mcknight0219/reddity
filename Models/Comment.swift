@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import SwiftyJSON
 
 
 struct Comment: ResourceType {
@@ -24,7 +25,7 @@ struct Comment: ResourceType {
     let createdAt: NSDate
     let ups: Int
     let downs: Int
-    let score: Int {
+    var score: Int {
         get {
             return ups - downs
         }
@@ -35,7 +36,9 @@ struct Comment: ResourceType {
     var isShow: Bool {
         didSet {
             if !isShow {
-                replies.flatMap { $0.isShow = isShow }
+                for var child in replies {
+                    child.isShow = isShow
+                }
             } 
         }
     } 
@@ -49,7 +52,7 @@ struct Comment: ResourceType {
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
         self.ups = ups
         self.downs = downs
-        self.show = true
+        self.isShow = true
     }
     
     func hasReplies() -> Bool {
@@ -68,7 +71,7 @@ struct Comment: ResourceType {
     }
 
     mutating func addReply(aComment: Comment) {
-        if self.replies.filter { $0.id == aComment.id }.count > 0 { return }
+        if (self.replies.filter { $0.id == aComment.id }).count > 0 { return }
         self.replies.append(aComment)
     }
 
@@ -78,12 +81,12 @@ struct Comment: ResourceType {
      */
     mutating func sortByPopularity() {
         if self.replies.count < 2 { return }
-        self.replies.sort { $0.score < $1.score }
+        self.replies.sortInPlace { $0.score < $1.score }
     }
 
     mutating func sortByDate() {
         if self.replies.count < 2 { return }
-        self.replies.sort { $0.createdAt < $1.createdAt }
+        self.replies.sortInPlace { $0.createdAt.compare($1.createdAt) == .OrderedAscending }
     }
 }
 
@@ -94,7 +97,7 @@ func commentsParser(json: JSON) -> [Comment] {
     var tops = [Comment]()
     for (_, commentJson):(String, JSON) in treeJson {
         if let comment = commentParser(commentJson) {
-            top.append(comment)
+            tops.append(comment)
         }
     }
 
@@ -102,9 +105,9 @@ func commentsParser(json: JSON) -> [Comment] {
 }
 
 internal func commentParser(json: JSON) -> Comment? {
-    var comment = Comment(json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"], timestamp: json["created"].stringBalue, ups: json["ups"].intValue, downs: json["downs"].intValue)
+    var comment = Comment(id: json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue)
     for (_, replyJson): (String, JSON) in json["replies"] {
-        var reply = commentParser(replyJson)
+        let reply = commentParser(replyJson)
         if let reply = reply {
             comment.addReply(reply)
         }
