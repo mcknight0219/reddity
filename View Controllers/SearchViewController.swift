@@ -70,15 +70,13 @@ extension SearchViewController: UITableViewDelegate {
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let channel = self.results[indexPath.row]
-        let timelineVC = HomeViewController(channel: channel.displayName)
+        let subreddit = self.results[indexPath.row]
+        let timelineVC = HomeViewController(subredditName: subreddit.displayName)
         timelineVC.hidesBottomBarWhenPushed = true
         timelineVC.isFromSearch = true
+        timelineVC.subreddit = subreddit
         
-        self.presentViewController(NavigationController(rootViewController: timelineVC), animated: true) {
-            
-        }
-    }
+        self.presentViewController(NavigationController(rootViewController: timelineVC), animated: true, completion: nil)
 }
 
 extension SearchViewController: UITableViewDataSource {

@@ -18,14 +18,24 @@ class HomeViewController: UIViewController {
     
     var topicController: TopicController!
     
-    var channel: String = ""
+    /**
+     The subreddit name.
+
+     @discussion The empty channel means 
+     */
+    var subredditName: String = ""
+
+    /**
+
+     */
+    var subreddit: Subreddit?
     
     var isFromSearch: Bool = false
     
-    init(channel: String) {
+    init(subredditName: String) {
         super.init(nibName: nil, bundle: nil)
         
-        self.channel = channel
+        self.subredditName = subredditName
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -35,42 +45,33 @@ class HomeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.setupUI()
+        setupUI()
         
-        self.topicDataSource = TopicDataSource()
-        self.topicDataSource.cellIdentifier = "Cell"
+        topicDataSource = TopicDataSource()
+        topicDataSource.cellIdentifier = "Cell"
         
-        self.topicController = TopicController()
-        self.topicController.delegate = self
+        topicController = TopicController()
+        topicController.delegate = self
+        topicTableViewController = TopicTableViewController()
+        topicTableViewController.view.frame = view.bounds
+        topicTableViewController.dataSource = topicDataSource
         
-        self.topicTableViewController = TopicTableViewController()
+        addChildViewController(topicTableViewController)
+        view.addSubview(topicTableViewController.view)
+        topicTableViewController.didMoveToParentViewController(self)
         
-        self.addChildViewController(self.topicTableViewController)
+        topicTableViewController.tableView.registerNib(UINib(nibName: "NewsCell", bundle: nil),  forCellReuseIdentifier: "NewsCell")
+        topicTableViewController.tableView.registerNib(UINib(nibName: "ImageCell", bundle: nil), forCellReuseIdentifier: "ImageCell")
+        topicTableViewController.tableView.registerNib(UINib(nibName: "TextCell", bundle: nil),  forCellReuseIdentifier: "TextCell")
+        topicTableViewController.refreshControl?.addTarget(topicController, action: #selector(TopicController.reload), forControlEvents: .ValueChanged)
+        topicTableViewController.tableView.tableFooterView = UIView()
         
-        //self.topicTableViewController.view.translatesAutoresizingMaskIntoConstraints = false
-        self.topicTableViewController.view.frame = self.view.bounds
+        NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.prefetch), name: "NeedTopicPrefetchNotification", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.changeSubreddit), name: "NeedLoadSubreddit", object: nil)
         
-        self.view.addSubview(self.topicTableViewController.view)
-        
-        self.topicTableViewController.didMoveToParentViewController(self)
-        
-        self.topicTableViewController.dataSource = self.topicDataSource
-
-        self.topicTableViewController.tableView.registerNib(UINib(nibName: "NewsCell", bundle: nil),  forCellReuseIdentifier: "NewsCell")
-        self.topicTableViewController.tableView.registerNib(UINib(nibName: "ImageCell", bundle: nil), forCellReuseIdentifier: "ImageCell")
-        self.topicTableViewController.tableView.registerNib(UINib(nibName: "TextCell", bundle: nil),  forCellReuseIdentifier: "TextCell")
-        self.topicTableViewController.refreshControl?.addTarget(self.topicController, action: #selector(TopicController.reload), forControlEvents: .ValueChanged)
-        self.topicTableViewController.tableView.tableFooterView = UIView()
-        
-        NSNotificationCenter.defaultCenter().addObserver(self.topicController, selector: #selector(TopicController.prefetch), name: "NeedTopicPrefetchNotification", object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self.topicController, selector: #selector(TopicController.changeSubreddit), name: "NeedLoadSubreddit", object: nil)
-        
-        
+        // Assign to subreddit will trigger loading of data
         HUDManager.sharedInstance.showCentralActivityIndicator()
-        //NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: self.channel)
-        
-        // Trigger table reload by setting subreddit of topicController
-        self.topicController.subreddit = self.channel
+        topicController.subreddit = subredditName
     }
     
     deinit {
@@ -78,23 +79,17 @@ class HomeViewController: UIViewController {
     }
     
     func setupUI() {
-        self.navigationItem.title = self.channel.isEmpty ? "Front Page" : self.channel
-        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        navigationItem.title = channel.isEmpty ? "Front Page" : channel
+        navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
     
         if isFromSearch {
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .Done, target: self, action: #selector(HomeViewController.backToSearch))
+            navigationItem.leftBarButtonItem  = UIBarButtonItem(image: nil, style: .Plain, target: self, action: #selector())
         } else {
-            self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+            navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         }
         
-        /*
-        let attributes = [NSFontAttributeName: UIFont.fontAwesomeOfSize(20)] as Dictionary!
-        let rightBarButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Tag), style: .Plain, target: self, action: #selector(HomeViewController.changeSubreddit))
-        rightBarButton.setTitleTextAttributes(attributes, forState: .Normal)
-        self.navigationItem.rightBarButtonItem  = rightBarButton
-        */
-        
-        self.automaticallyAdjustsScrollViewInsets = true
+        automaticallyAdjustsScrollViewInsets = true
     }
     
     func backToSearch() {
@@ -140,7 +135,11 @@ extension HomeViewController: TopicControllerDelegate {
             HUDManager.sharedInstance.hideCentralActivityIndicator()
         }
         
-        // Alert user bad response
+        let badLoadingAlert = UIAlertController(title: "", message: "", preferredStyle: .Alert)
+        let okAction = UIAlertAction(title: "OK", style: .Cancel, handler: nil)
+        badLoadingAlert.addAction(okAction)
+        badLoadingAlert.view.tintColor = FlatOrange()
+        self.presentViewController(badLoadingAlert, animated: true, completion: nil)
     }
     
     func topicControllerNoNetworkConnection() {
@@ -160,43 +159,3 @@ extension HomeViewController: TopicControllerDelegate {
     }
 }
 
-extension HomeViewController {
-    func changeSubreddit() {
-        
-        let alertController = UIAlertController(title: "Change Subreddit", message: "", preferredStyle: .Alert)
-        
-        alertController.addTextFieldWithConfigurationHandler { (textField) -> Void in
-            textField.placeholder = self.topicController.subreddit
-        }
-        
-        
-        let okAction = UIAlertAction(title: "Go", style: .Default) { (_) in
-            let textField = alertController.textFields![0] as UITextField
-            
-            HUDManager.sharedInstance.showCentralActivityIndicator()
-            NSNotificationCenter.defaultCenter().postNotificationName("NeedLoadSubreddit", object: textField.text)
-            self.topicTableViewController.tableView.userInteractionEnabled = true
-            dispatch_async(dispatch_get_main_queue()) {
-                self.topicController.reload()
-                // Scroll to top after reload
-                self.topicTableViewController.tableView.setContentOffset(CGPointMake(0, 0), animated: true)
-                
-                if textField.text!.isEmpty {
-                    self.navigationItem.title = "Front Page"
-                } else {
-                    self.navigationItem.title = textField.text
-                }
-            }
-        }
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (_) in }
-        alertController.addAction(okAction)
-        alertController.addAction(cancelAction)
-        
-        alertController.view.tintColor = FlatOrange()
-        self.presentViewController(alertController, animated: true) {
-        }
-    }
-        
-    
-}
