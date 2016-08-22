@@ -27,7 +27,7 @@ extension UIImageView {
     
     func setImageWithURL(url: NSURL, placeholder: UIImage?, manager: RTWebImageManager, progress: ProgressHandler?, completion: CompletionHandler?) {
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-            self.cancelCurrentTask()
+            self.cancelCurrentTask(manager)
             
             if let cachedImage = manager.cache.object(forKey: url) as? UIImage {
                 if let completion = completion {
@@ -50,11 +50,11 @@ extension UIImageView {
         }
     }
     
-    private func cancelCurrentTask() {
+    private func cancelCurrentTask(manager: RTWebImageManager) {
         if let task = self.setter {
             if task.state == .Running || task.state == .Suspended {
                 print("A task is cancelled: \(task.taskDescription)")
-                task.cancel()
+                manager.cancelTask(task)
             }
             // clear the setter
             setter = nil

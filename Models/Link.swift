@@ -58,12 +58,20 @@ struct Link: ResourceType {
     }
 
     func isUrlGif() -> Bool {
-        if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false), 
+        if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false),
             let path = components.path {
                 return NSString(string: path).pathExtension == "gif"
             }
 
         return false
+    }
+
+    func isUrlVideo -> Bool {
+        if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false),
+        let path = components.path {
+            let ext = NSString(string: path).pathExtension
+            return ext == 'gifv' || ext == 'mp4'
+        }
     }
     
     func type() -> LinkType {
