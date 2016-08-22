@@ -19,7 +19,7 @@ class TopicController: NSObject {
     
     // MARK: Properties
     
-    var delegate: TopicControllerDelegate?
+    weak var delegate: TopicControllerDelegate?
     
     lazy var topics: [Link] = {
        return [Link]()

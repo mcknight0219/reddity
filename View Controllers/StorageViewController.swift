@@ -56,7 +56,7 @@ class StorageViewController: UITableViewController {
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             cell.detailTextLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             
-            let cachedSize = RTWebImageManager.sharedManager.cache.size / 1024 / 1024
+            let cachedSize = RTWebImageManager.sharedManager.cache.countLimit
             let storedSize = 0
             
             switch indexPath.row {
