@@ -11,7 +11,8 @@ import UIKit
 enum UrlType {
     case Unknown
     case Image
-    case Imgur(String)
+    case Imgur(String),
+    case Video
 }
 
 let urlPattern = try! NSRegularExpression(pattern: "^(https?|ftp|file)://.+$", options: .CaseInsensitive)
@@ -35,7 +36,7 @@ extension String {
         if ["bmp", "jpg", "jpeg", "gif", "png"].contains(ext.lowercaseString) {
             return .Image
         } else if imgurPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0 {
-            return .Imgur(self.stringByAppendingString(".png"))
+            return .Image
         } else {
             return .Unknown
         }

@@ -32,13 +32,19 @@ class CommentsViewController: UIViewController {
 
         initCommentsShownStatus()
 
-        headView = UIView()
+        headView = UIImageView()
         let w = UIScreen.mainScreen().bounds.width
         let h = UIScreen.mainScreen().bounds.height
         headView.frame = CGRectMake(0, 0, w, w * 0.7)
-        let headImage = UIImage()
-        headImage.frame = headView.bounds
-        headView.addSubview(headImage)
+        view.addSubview(headImage)
+        headView.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, transform: { image in
+            return image.resize(CGSizeMake(w, w * 0.7))
+            },completion: { (image, state) in
+                dispatch_async(dispatch_get_main_queue()) { [weak self] in
+                    headView.image = image
+                }
+            })
+
         
         commentsVC = UITableViewController()
         addChildViewController(commentsVC)

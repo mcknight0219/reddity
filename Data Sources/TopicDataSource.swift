@@ -66,6 +66,12 @@ extension TopicDataSource: UITableViewDataSource {
             cell.selectedBackgroundView = bg
             
             return cell
+        case .Video:
+            let cell = tableView.dequeueResusableCellWithIdentifier("VideoCell", forIndexPath: indexPath) as! VideoCell
+            cell.loadTopic(self.topics![indexPath.row])
+            cell.selectedBackgroundView = bg
+
+            return cell
         default:
             let cell = tableView.dequeueReusableCellWithIdentifier("TextCell", forIndexPath: indexPath) as! TextCell
             cell.loadTopic(self.topics![indexPath.row])

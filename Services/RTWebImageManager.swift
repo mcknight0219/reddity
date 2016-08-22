@@ -16,6 +16,7 @@ extension NSProgress {
 
 typealias ProgressHandler = (recevied: Int64, expected: Int64) -> Void
 typealias CompletionHandler = (image: UIImage?, result: Result) -> Void
+typealias TransformHandler = (image: UIImage?) -> UIImage?
 
 enum RTWebImageError: ErrorType {
     case NoNetworkConnection
@@ -35,6 +36,7 @@ class RTWebImageManager: NSObject {
         weak var task: NSURLSessionDataTask?
         let progress: ProgressHandler?
         let completion: CompletionHandler?
+        let transform: TransformHandler?
         
         let _progress = NSProgress()
         let _tempData = NSMutableData()
@@ -45,7 +47,7 @@ class RTWebImageManager: NSObject {
     var session: NSURLSession?
     //let cache = RTCache(name: "webimage.downloader", maxSizeInMb: 25)
     let cache = NSCache()
-    var tasks = [NSURLSessionDataTask: Reporter]()
+    var tasks = NSCache()
     
     override init() {
         super.init()
@@ -55,17 +57,17 @@ class RTWebImageManager: NSObject {
         session = NSURLSession(configuration: config, delegate: self, delegateQueue: nil)
     }
     
-    func createImageDownloadTask(url: NSURL, progress: ProgressHandler?, completion: CompletionHandler?) -> NSURLSessionDataTask {
+    func createImageDownloadTask(url: NSURL, progress: ProgressHandler?, transform: TransformHandler?, completion: CompletionHandler?) -> NSURLSessionDataTask {
         let task = self.session!.dataTaskWithURL(url)
-        let reporter = Reporter(url: url, task: task, progress: progress, completion: completion)
-        tasks[task] = reporter
+        let reporter = Reporter(url: url, task: task, progress: progress, transform: transform, completion: completion)
+        tasks.setObject(reporter, forKey: task, cost: 1)
         
         return task
     }
 
     func cancelTask(aTask: NSURLSessionDataTask?) {
         if let task = aTask {
-            self.tasks.removeValueForKey(task)
+            self.tasks.removeObjectForKey(task)
             task.cancel()
         }
     }
@@ -75,13 +77,13 @@ extension RTWebImageManager: NSURLSessionDelegate {}
 
 extension RTWebImageManager: NSURLSessionDataDelegate {
     func URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveResponse response: NSURLResponse, completionHandler: (NSURLSessionResponseDisposition) -> Void) {
-        if let reporter = self.tasks[dataTask] {
+        if let reporter = self.tasks.objectForKey(key: dataTask) as? Reporter {
             reporter._progress.totalUnitCount = response.expectedContentLength
             reporter.progress?(recevied: 0, expected: reporter._progress.totalUnitCount)
             
             completionHandler(.Allow)
         } else {
-            dataTask.cancel()
+            cancelTask(dataTask)
             completionHandler(.Cancel)
         }
     }
@@ -92,11 +94,13 @@ extension RTWebImageManager: NSURLSessionDataDelegate {
             reporter._tempData.appendData(data)
             
             if reporter._progress.finished() {
-                let img = UIImage(data: reporter._tempData)
+                var img = UIImage(data: reporter._tempData)
+                if let transform = reporter.transform { img = transform(img) }
                 reporter.completion?(image: img, result: .Success)
+
                 dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) { [weak self] in
                     self?.cache.setObject(img!, forKey:reporter.url, cost: reporter._tempData.length)
-                    self?.tasks.removeValueForKey(reporter.task!)
+                    self?.tasks.removeObjectForKey(reporter.task!)
                 }
             } else {
                 reporter.progress?(recevied: reporter._progress.completedUnitCount, expected: reporter._progress.totalUnitCount)

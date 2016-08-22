@@ -13,6 +13,7 @@ enum LinkType {
     case News
     case Image
     case Text
+    case Video
     case Unknown
 }
 
@@ -83,11 +84,12 @@ struct Link: ResourceType {
         
         switch self.url.absoluteString.isImageUrl() {
         case .Unknown:
-            return .News
+            if self.thumbnails.count > 0 { return .News }  // If there are thumbnails, display them at the right
+            else return .Text                              // If not, just display text.
         case .Image:
             return .Image
-        case .Imgur(_):
-            return .Image
+        case .Video:
+            return .Video
         }
     }
     
