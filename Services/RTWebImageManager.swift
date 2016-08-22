@@ -33,8 +33,8 @@ class RTWebImageManager: NSObject {
     struct Reporter {
         let url: NSURL
         weak var task: NSURLSessionDataTask?
-        var progress: ProgressHandler?
-        var completion: CompletionHandler?
+        let progress: ProgressHandler?
+        let completion: CompletionHandler?
         
         let _progress = NSProgress()
         let _tempData = NSMutableData()
@@ -43,7 +43,8 @@ class RTWebImageManager: NSObject {
     static let sharedManager = RTWebImageManager()
     
     var session: NSURLSession?
-    let cache = RTCache(name: "webimage.downloader", maxSizeInMb: 25)
+    //let cache = RTCache(name: "webimage.downloader", maxSizeInMb: 25)
+    let cache = NSCache()
     var tasks = [NSURLSessionDataTask: Reporter]()
     
     override init() {

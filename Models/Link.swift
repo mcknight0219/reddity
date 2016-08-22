@@ -114,7 +114,7 @@ func linkParser(json: JSON) -> [Link] {
     for (_, linkJSON):(String, JSON) in linksJSON {
         let content = linkJSON["data"]
         
-        var previews: [String: String] = [:]
+        var previews = [String: String]()
         var ratio: Float?
         if let dict = content["preview"]["images"][0].dictionary {
             if let source = dict["source"] {

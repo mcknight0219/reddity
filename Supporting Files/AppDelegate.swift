@@ -68,7 +68,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         searchVC.modalTransitionStyle = .CoverVertical
         searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 0)
         
-        let homeVC = HomeViewController(channel: "")
+        let homeVC = HomeViewController(subredditName: "")
         homeVC.modalTransitionStyle = .CrossDissolve
         homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 1)
 
@@ -76,7 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         meVC.modalTransitionStyle = .CrossDissolve
         meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2)
 
-        tabBarVC.viewControllers = [searchVC, embedInNav(homeVC), embedInNav(meVC)]
+        tabBarVC.viewControllers = [embedInNav(searchVC), embedInNav(homeVC), embedInNav(meVC)]
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 1
         tabBarVC.tabBar.tintColor = FlatOrange()
