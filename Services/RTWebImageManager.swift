@@ -61,13 +61,6 @@ class RTWebImageManager: NSObject {
         
         return task
     }
-
-    func cancelTask(aTask: NSURLSessionDataTask?) {
-        if let task = aTask {
-            self.tasks.removeValueForKey(task)
-            task.cancel()
-        }
-    }
 }
 
 extension RTWebImageManager: NSURLSessionDelegate {}
