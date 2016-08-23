@@ -66,7 +66,7 @@ class ImageCell: UITableViewCell {
         let placeholder = UIImage.imageFilledWithColor(FlatWhite())
 
         if !isGif {
-            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, transform: nil, completion: { (image, state) in
+            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, state) in
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
                     self?.picture.contentMode = .ScaleAspectFill
                     self?.picture.clipsToBounds = true

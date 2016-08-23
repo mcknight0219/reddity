@@ -20,7 +20,7 @@ extension UIImageView {
         
         set {
             if let task = newValue {
-                objc_setAssociatedObject(self, &AssoicatedKeys.imageSetterKey, task, .OBJC_ASSOCIATION_ASSIGN)
+                objc_setAssociatedObject(self, &AssoicatedKeys.imageSetterKey, task, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
             }
         }
     }
@@ -49,17 +49,16 @@ extension UIImageView {
             task?.resume()
         }
     }
-
+    
     private func cancelCurrentTask(manager: RTWebImageManager) {
         if let task = self.setter {
             if task.state == .Running || task.state == .Suspended {
                 print("A task is cancelled: \(task.taskDescription)")
                 manager.cancelTask(task)
             }
+            // clear the setter
             setter = nil
         }
-
-        print("Cancel task that doesn't belong to this imageview")
     }
 }
 

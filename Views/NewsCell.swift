@@ -71,6 +71,7 @@ class NewsCell: UITableViewCell {
         
         // If it's wikipedia, just show the logo as image.
         // TODO Create an 'exception class to handle such cases'
+        /*
         if isWikipedia(downloadUrl) {
             dispatch_async(dispatch_get_main_queue()) {
                 self.picture.contentMode = .ScaleAspectFill
@@ -99,6 +100,7 @@ class NewsCell: UITableViewCell {
                 )
             }
         }
+ */
     }
     
     func isWikipedia(url: NSURL) -> Bool {
