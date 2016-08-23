@@ -58,14 +58,7 @@ class NewsCell: UITableViewCell {
         
         let placeholder = UIImage.imageFilledWithColor(FlatWhite())
         if isImageFileUri(downloadUrl) {
-            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.picture.contentMode = .ScaleAspectFill
-                    self.picture.clipsToBounds = true
-                    self.picture.image = image
-                }
-                }
-            )
+            self.picture.sd_setImageWithURL(downloadUrl, placeholderImage: placeholder)
             return
         }
         

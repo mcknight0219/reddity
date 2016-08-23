@@ -7,13 +7,13 @@
 //
 
 import UIKit
-import Gifu
+import SDWebImage
 import ChameleonFramework
 
 class ImageCell: UITableViewCell {
     
-    lazy var picture: AnimatableImageView! = {
-        return self.viewWithTag(1) as! AnimatableImageView
+    lazy var picture: UIImageView! = {
+        return self.viewWithTag(1) as! UIImageView
     }()
     
     lazy var titleLabel: UILabel! = {
@@ -66,13 +66,7 @@ class ImageCell: UITableViewCell {
         let placeholder = UIImage.imageFilledWithColor(FlatWhite())
 
         if !isGif {
-            self.picture.setImageWithURL(downloadUrl, placeholder: placeholder, manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, state) in
-                dispatch_async(dispatch_get_main_queue()) { [weak self] in
-                    self?.picture.contentMode = .ScaleAspectFill
-                    self?.picture.clipsToBounds = true
-                    self?.picture.image = image
-                }
-            })
+            self.picture.sd_setImageWithURL(downloadUrl, placeholderImage: placeholder)
         } else {
             
         }
