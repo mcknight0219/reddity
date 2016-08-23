@@ -13,6 +13,7 @@ enum LinkType {
     case News
     case Image
     case Text
+    case Video
     case Unknown
 }
 
@@ -22,6 +23,7 @@ enum SelfType {
 }
 
 var afterName: String?
+
 
 struct Link: ResourceType {
     let title: String
@@ -44,7 +46,6 @@ struct Link: ResourceType {
     init(id: String, title: String, url: String, subreddit: String, ups: Int, downs: Int, numberOfComments: Int, timestamp: Double, selfType: SelfType = .NotSelf, previews: [Width:ThumbnailUrl], ratio: Float) {
         self.title = title
         self.id = id
-        self.url = NSURL(string: url.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)!
         self.subreddit = subreddit
         self.numberOfComments = numberOfComments
         self.ups = ups
@@ -53,11 +54,16 @@ struct Link: ResourceType {
         self.selfType = selfType
         self.thumbnails = previews
         self.ratio = ratio
-        
         self.name = "\(self.listType.description)\(self.id)"
+
+        var URL = url
+        if URL.isShortcutImgurURL() { URL = URL + ".png" }
+        if URL.isGifvURL() { URL.substringToIndex(URL.characters.count - 5) + ".mp4" }
+        
+        self.url = NSURL(string: URL.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)!
     }
 
-    func isUrlGif() -> Bool {
+    func isURLGif() -> Bool {
         if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false), 
             let path = components.path {
                 return NSString(string: path).pathExtension == "gif"
@@ -73,13 +79,13 @@ struct Link: ResourceType {
         default: break
         }
         
-        switch self.url.absoluteString.isImageUrl() {
+        switch self.url.absoluteString.mediaType() {
         case .Unknown:
             return .News
         case .Image:
             return .Image
-        case .Imgur(_):
-            return .Image
+        case .Video:
+            return .Video
         }
     }
     
