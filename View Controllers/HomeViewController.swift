@@ -75,24 +75,27 @@ class HomeViewController: UIViewController {
     }
     
     deinit {
-        print("Deallocating timeline view controller. ")
-        //NSNotificationCenter.defaultCenter().removeObserver(self.topicController)
+        NSNotificationCenter.defaultCenter().removeObserver(self.topicController)
     }
     
     func setupUI() {
-        navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
+        navigationItem.title = channel.isEmpty ? "Front Page" : channel
         navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
     
-        if !isFromSearch {
+        if isFromSearch {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .Done, target: self, action: #selector(HomeViewController.backToSearch))
+            navigationItem.leftBarButtonItem  = UIBarButtonItem(image: nil, style: .Plain, target: self, action: #selector())
+        } else {
             navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         }
         
         automaticallyAdjustsScrollViewInsets = true
     }
     
-    func subscribe() {
-        
+    func backToSearch() {
+        self.dismissViewControllerAnimated(true, completion: nil)
     }
+    
 }
 
 // MARK: TopicController delegate
@@ -109,8 +112,17 @@ extension HomeViewController: TopicControllerDelegate {
         }
         
         self.topicDataSource.topics = self.topicController.topics
-        dispatch_async(dispatch_get_main_queue()) { [unowned self] in
+        dispatch_async(dispatch_get_main_queue()) {
             self.topicTableViewController.tableView.reloadData()
+            /*
+            UIView.setAnimationsEnabled(true)
+            self.topicTableViewController.tableView.beginUpdates()
+            if let visibleIndexs = self.topicTableViewController.tableView.indexPathsForVisibleRows {
+                self.topicTableViewController.tableView.reloadRowsAtIndexPaths(visibleIndexs, withRowAnimation: .None)
+            }
+            self.topicTableViewController.tableView.endUpdates()
+            UIView.setAnimationsEnabled(false)
+             */
         }
     }
     

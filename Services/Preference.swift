@@ -18,7 +18,7 @@ class Preference {
      @param key The key 
      */
     class func valueForKey(key: String, completion: CompletionHandler) {
-        
+
     }
 
     class func setValueForKey(key: String, value: AnyObject?, completion: CompletionHandler) {

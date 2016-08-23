@@ -32,38 +32,30 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.whiteColor()
-        tableView = UITableView(frame: CGRectMake(0, 20, self.view.frame.width, self.view.frame.height-20))
+        tableView = UITableView(frame: CGRectMake(0, 20, view.bounds.width, view.bounds.height - 20))
         tableView.delegate = self
         tableView.dataSource = self
         
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        self.definesPresentationContext = true
+        definesPresentationContext = true
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
-        
         setupUI()
     }
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-    
     func setupUI() {
+        self.navigationItem.title = "Add Subreddits"
+        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        self.navigationController?.navigationBar.translucent = false
+
         self.tableView.tableHeaderView = self.searchController.searchBar
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
-        let footer = UIView()
-        footer.backgroundColor = UIColor.whiteColor()
-        self.tableView.tableFooterView = footer
+        self.tableView.tableFooterView = UIView()
         
-        edgesForExtendedLayout = .None
         self.searchController.searchBar.searchBarStyle = .Minimal
         self.searchController.searchBar.tintColor = FlatOrange()
         self.searchController.searchBar.sizeToFit()
         self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
-        self.searchController.dimsBackgroundDuringPresentation = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -84,9 +76,7 @@ extension SearchViewController: UITableViewDelegate {
         timelineVC.isFromSearch = true
         timelineVC.subreddit = subreddit
         
-        navigationController?.pushViewController(timelineVC, animated: true)
-        //self.presentViewController(UINavigationController(rootViewController: timelineVC), animated: true, completion: nil)
-    }
+        self.presentViewController(NavigationController(rootViewController: timelineVC), animated: true, completion: nil)
 }
 
 extension SearchViewController: UITableViewDataSource {
@@ -118,7 +108,10 @@ extension SearchViewController: UITableViewDataSource {
 
 extension SearchViewController: UISearchResultsUpdating {
     func updateSearchResultsForSearchController(searchController: UISearchController) {
-
+        if self.searchController.dimsBackgroundDuringPresentation {
+            self.searchController.dimsBackgroundDuringPresentation = false
+        }
+        
         if let text = searchController.searchBar.text {
             if text.isEmpty { return }
             // only trigger new search if searched text changes
