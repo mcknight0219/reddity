@@ -11,9 +11,11 @@ import UIKit
 class SubscriptionViewController: UITableViewController {
 
     var subscriptions = [Subreddit]()
+
+    var background: UIView?
     
     override func viewDidLoad() {
-        navigationItem.title = "SUbscription"
+        navigationItem.title = "Subscription"
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
         
         let footer = UIView()
@@ -24,12 +26,30 @@ class SubscriptionViewController: UITableViewController {
         tableView.separatorInset = UIEdgeInsetZero
         tableView.tableFooterView = footer
 
+        let background = UIView()
+        let label = UILabel()
+        label.text = "You don't have any subscription yet. Add some now !"
+        label.font = UIFont(name: "Lato-Regular", size: 17)!
+        label.numberOfLines = 0
+        background.addSubview(label)
+        label.snp_makeConstraints { make in
+            make.trailing.leading.equalTo(10)
+            make.top.equalTo(UIScreen.mainScreen().bounds.height / 2 - 100)
+        }
+
         Preference.valuesForKey("subscriptions") { subscriptions in
             if let subscriptions = subscriptions as? [Subreddit] {
                 subscriptions = subscriptions
-                dispatch_async(dispatch_get_main_queue()) { self.tableView.reloadData() }
+                dispatch_async(dispatch_get_main_queue()) { 
+                    self.subscriptions.count > 0 {
+                        tableView.backgroundView = background
+                    }
+                    self.tableView.reloadData() 
+                }
             } 
         }
+
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubscriptionViewController.showBackgroundView), name: "PreferenceChanged", object: nil)
     }
 
     // MARK: - Table view data source
@@ -47,7 +67,14 @@ class SubscriptionViewController: UITableViewController {
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCellWithIdentifier("SubscriptionCell")
+        if cell == nil {
+            cell = UITableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")    
+        }
 
+        let sub = self.subscriptions[indexPath.row]
+        cell.textLabel.text = sub.title
+        return cell
     }
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -72,5 +99,9 @@ class SubscriptionViewController: UITableViewController {
         }
 
         return [deleteAction]
+    }
+
+    func showBackgroundView() {
+        if self.subscriptions.count == 0 { self.backgroundView = self.background }
     }
 }
