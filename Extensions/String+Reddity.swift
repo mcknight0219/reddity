@@ -8,10 +8,10 @@
 
 import UIKit
 
-enum UrlType {
-    case Unknown
+enum MediaType {
     case Image
-    case Imgur(String)
+    case Video
+    case Unknown
 }
 
 let urlPattern = try! NSRegularExpression(pattern: "^(https?|ftp|file)://.+$", options: .CaseInsensitive)
@@ -26,20 +26,30 @@ extension String {
         return self.characters.prefix(sub.characters.count).elementsEqual(sub.characters)
     }
     
-    func isImageUrl() -> UrlType {
-
+    func mediaType() -> MediaType  {
         guard !isEmpty else { return .Unknown }
         guard urlPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0 else { return .Unknown }
         
         let ext = NSString(string: self).pathExtension
-        if ["bmp", "jpg", "jpeg", "gif", "png"].contains(ext.lowercaseString) {
+        if ["bmp", "jpg", "jpeg", "gif", "png"].contains(ext.lowercaseString) || isShortcutImgurURL() {
             return .Image
-        } else if imgurPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0 {
-            return .Imgur(self.stringByAppendingString(".png"))
+        } else if ["mp4", "gifv"].contains(ext.lowercaseString) {
+            return .Video  
         } else {
             return .Unknown
         }
-        
+    }
+
+    /**
+     Check if a url is of format `https://www.imgur.com/aXfgd`
+     */
+    func isShortcutImgurURL() -> Bool {
+        return imgurPattern.matchesInString(self, options: [], range: NSMakeRange(0, self.characters.count)).count > 0     
+    }
+
+    func isGifvURL() -> Bool {
+        let ext = NSString(string: self).pathExtension
+        return ext == "gifv"
     }
 
     func heightWithContrained(width: CGFloat, font: UIFont) -> CGFloat {

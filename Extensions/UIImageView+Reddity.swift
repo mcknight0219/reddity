@@ -29,7 +29,7 @@ extension UIImageView {
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
             self.cancelCurrentTask()
             
-            if let cachedImage = manager.cache.objectForKey(url) as? UIImage {
+            if let cachedImage = manager.cache.object(forKey: url) as? UIImage {
                 if let completion = completion {
                     dispatch_async(dispatch_get_main_queue()) {
                         completion(image: cachedImage, result: .Success)

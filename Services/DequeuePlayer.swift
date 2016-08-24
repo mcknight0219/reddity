@@ -9,6 +9,14 @@
 import Foundation
 import AVFoundation
 
+/**
+ The direction player proceeds with its queue.
+ */
+enum PlaybackDirection {
+    case Forward
+    case Backward
+}
+
 struct PlaybackOptions: OptionSetType {
     let rawValue: Int
 
@@ -26,18 +34,18 @@ struct PlaybackOptions: OptionSetType {
 
  */
 class DequeuePlayer: AVPlayer {
+    
+    /**
+     The direction player proceeds on its queue.
+
+     @discussion Setting this property will affect `advanceToNextItem` and queue management functions
+     */
+    var playbackDirection: PlaybackDirection = .Forward
 
     /**
      An array of `AVPlayerItem` that player uses for playback
      */
     private var playbackQueue = [AVPlayerItem]()
-    
-    /**
-     The size of playback queue
-     */
-    var count: Int {
-        return playbackQueue.count
-    }
 
     /**
      The index in `playbackQueue` of currently playing item
@@ -69,14 +77,14 @@ class DequeuePlayer: AVPlayer {
      @param options Specify players behavior
      */
     init(items: [AVPlayerItem], options: PlaybackOptions?) {
-        self.options = options == nil ? [.repeatOne] : options!
         super.init()
-        
         playbackQueue.reserveCapacity(MaxPlaybackQueueItems)
         playbackQueue += items[0..<(items.count > MaxPlaybackQueueItems ? MaxPlaybackQueueItems : items.count)]
+
+        self.options = options == nil ? .default : options
         if self.options.contains(.repeatOne) {
             actionAtItemEnd = .None
-            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DequeuePlayer.repeatTrack), name: AVPlayerItemDidPlayToEndTimeNotification, object: nil)
+            NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DequeuePlayer.repeatTrack(_:)), name: AVPlayerItemDidPlayToEndTimeNotification, object: nil)
         }
         
         replaceCurrentItemWithPlayerItem(playbackQueue.first)
@@ -95,7 +103,7 @@ class DequeuePlayer: AVPlayer {
 
     deinit {
         if self.options.contains(.repeatOne) {
-            NSNotificationCenter.defaultCenter().removeObserver(self, name: AVPlayerItemDidPlayToEndTimeNotification, object: nil)
+            NSNotificationCenter.defaultCenter().removeObserver(self, AVPlayerItemDidPlayToEndTimeNotification, object: nil)
         }
     }
 
@@ -145,7 +153,7 @@ class DequeuePlayer: AVPlayer {
      the item to the queue.
      */
     func insertItem(item: AVPlayerItem, afterItem: AVPlayerItem?) {
-        guard canInsertItem(item, afterItem: afterItem) else { return }
+        guard canInsertItem(item, afterItem) else { return }
 
         // Remove the item at the other end because it's probably the LRU item
         if playbackQueue.count == MaxPlaybackQueueItems {
@@ -163,7 +171,7 @@ class DequeuePlayer: AVPlayer {
             sentinel = playbackQueue.last
         }
 
-        playbackQueue.insert(item, atIndex: self.playbackQueue.indexOf(sentinel!)! + 1)
+        playbackQueue.insert(item, at: self.playbackQueue.indexOf(sentinel) + 1)
     }
 
     /**
@@ -174,13 +182,11 @@ class DequeuePlayer: AVPlayer {
      @param item The item to be removed.
      */
     func removeItem(item: AVPlayerItem) {
-        if let i = playbackQueue.indexOf(item) {
-            if i == currentPlayerItemIndex {
-                
-                advanceToNextItem()
-            }
-            playbackQueue.removeAtIndex(i)
+        if let playing = playbackQueue[currentPlayerItemIndex] {
+            if item == playing { advanceToNexItem() }
         }
+        
+        playbackQueue.remove(item)
     }
 
     /**
@@ -190,7 +196,7 @@ class DequeuePlayer: AVPlayer {
      */
     func removeAllItems() {
         self.pause()
-        self.replaceCurrentItemWithPlayerItem(nil)
+        self.replaceCurrentItemWithPlayerItem(item: nil)
 
         playbackQueue.removeAll()
     }
@@ -203,10 +209,6 @@ class DequeuePlayer: AVPlayer {
      If it's already the last item, this has no effect to the player.
      */
     func advanceToNextItem() {
-        guard playbackQueue.count > 0 else {
-            return
-        }
-        
         pause()
         if currentPlayerItemIndex + 1 == count && !self.options.contains(.repeatAll) {
             return
@@ -226,10 +228,6 @@ class DequeuePlayer: AVPlayer {
      If it's the first item, this has to effect to the player.
      */
     func backToPrevItem() {
-        guard playbackQueue.count > 0 else {
-            return
-        }
-        
         pause()
         if currentPlayerItemIndex == 0 && !self.options.contains(.repeatAll) {
             return

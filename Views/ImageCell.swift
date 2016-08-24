@@ -28,7 +28,7 @@ class ImageCell: UITableViewCell {
         return self.viewWithTag(4) as! UILabel
     }()
     
-    var progressLayer: CAShapeLayer!
+    var progressView: ProgressPieView!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -57,23 +57,30 @@ class ImageCell: UITableViewCell {
         self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
         self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
         
-        let isGif = aTopic.isUrlGif()
-        var downloadUrl: NSURL = aTopic.url
-        if let url = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) {
-            if !isGif { downloadUrl = url }
-        }
-
         let placeholder = UIImage.imageFilledWithColor(FlatWhite())
+        var url: NSURL = aTopic.url
+        
+        var _progress: ((Int, Int) -> Void)?
+        var _completion: ((UIImage, NSError, SDImageCacheType, NSURL) -> Void)
+        var _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) 
+        
+        if aTopic.isURLGif() {
+            if let thumbnail = _thumbnail { placeholder = thumbnail }
+            self.progressView = ProgressPieView(frame: CGRectMake(0, 0, 35, 35))
+            self.picture.addSubview(self.progressView)
+            self.progressView.center = self.picture.center
 
-        if !isGif {
-            self.picture.sd_setImageWithURL(downloadUrl, placeholderImage: placeholder)
+            _progress = (received, expected) { [weak self] in
+                self.progressView?.progress = Double(received) / Double(expected)
+            }
+
+            _completion = (_, error, _, _) { [weak self] in
+                self.progressView?.removeFromSuperview()
+            }
         } else {
-            
+            if let thumbnail = _thumbnail { url = thumbnail }
         }
-    }
-    
-    // MARK: Theme
-    
-    func applyTheme() {
+
+        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: nil, progress: _progress, completed: _completion)
     }
 }
