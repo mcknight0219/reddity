@@ -78,6 +78,8 @@ class DequeuePlayer: AVPlayer {
             actionAtItemEnd = .None
             NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DequeuePlayer.repeatTrack), name: AVPlayerItemDidPlayToEndTimeNotification, object: nil)
         }
+        
+        replaceCurrentItemWithPlayerItem(playbackQueue.first)
     }
 
     /**
@@ -86,9 +88,9 @@ class DequeuePlayer: AVPlayer {
 
      @param urls An array of `NSURL` objects with which initially to populate the player's queue.
      */
-    convenience init(urls: [NSURL]) {
+    convenience init(urls: [NSURL], options: PlaybackOptions) {
         let items = urls.flatMap { AVPlayerItem(asset: AVURLAsset(URL: $0, options: nil)) }
-        self.init(items: items, options: nil)
+        self.init(items: items, options: options)
     }
 
     deinit {
@@ -104,6 +106,13 @@ class DequeuePlayer: AVPlayer {
      */
     func items() -> [AVPlayerItem] {
         return self.playbackQueue
+    }
+    
+    override func play() {
+        let asset = playbackQueue[currentPlayerItemIndex].asset
+        asset.loadValuesAsynchronouslyForKeys(["tracks"]) {
+            super.play()
+        }
     }
 
     /**
@@ -140,7 +149,11 @@ class DequeuePlayer: AVPlayer {
 
         // Remove the item at the other end because it's probably the LRU item
         if playbackQueue.count == MaxPlaybackQueueItems {
-            
+            if currentPlayerItemIndex > count / 2 {
+                playbackQueue.removeAtIndex(0)
+            } else {
+                playbackQueue.removeLast()
+            }
         }
 
         var sentinel: AVPlayerItem?
@@ -195,10 +208,14 @@ class DequeuePlayer: AVPlayer {
         }
         
         pause()
-        self.mutex.lock()
+        if currentPlayerItemIndex + 1 == count && !self.options.contains(.repeatAll) {
+            return
+        }
         
-
-        self.mutex.unlock()
+        currentPlayerItemIndex = (currentPlayerItemIndex + 1) % count
+        self.replaceCurrentItemWithPlayerItem(playbackQueue[currentPlayerItemIndex])
+        
+        play()
     }
 
     /**
@@ -214,10 +231,12 @@ class DequeuePlayer: AVPlayer {
         }
         
         pause()
-        self.mutex.lock()
-        
-
-        self.mutex.lock()
+        if currentPlayerItemIndex == 0 && !self.options.contains(.repeatAll) {
+            return
+        }
+        currentPlayerItemIndex = (currentPlayerItemIndex - 1 + count) % count
+        self.replaceCurrentItemWithPlayerItem(playbackQueue[currentPlayerItemIndex])
+        play()
     }
 
     /**
