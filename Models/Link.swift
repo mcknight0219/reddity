@@ -58,7 +58,9 @@ struct Link: ResourceType {
 
         var URL = url
         if URL.isShortcutImgurURL() { URL = URL + ".png" }
-        if URL.isGifvURL() { URL.substringToIndex(URL.characters.count - 5) + ".mp4" }
+        if URL.isGifvURL() {
+            URL = URL.substringToIndex(URL.endIndex.advancedBy(-5)) + ".mp4"
+        }
         
         self.url = NSURL(string: URL.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)!
     }

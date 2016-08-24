@@ -32,7 +32,7 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.whiteColor()
-        tableView = UITableView(frame: CGRectMake(0, 20, view.bounds.width, view.bounds.height - 20))
+        tableView = UITableView(frame: CGRectMake(0, 0, view.bounds.width, view.bounds.height))
         tableView.delegate = self
         tableView.dataSource = self
         
@@ -40,6 +40,11 @@ class SearchViewController: UIViewController {
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
         setupUI()
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     func setupUI() {
@@ -56,6 +61,7 @@ class SearchViewController: UIViewController {
         self.searchController.searchBar.tintColor = FlatOrange()
         self.searchController.searchBar.sizeToFit()
         self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
+        self.searchController.dimsBackgroundDuringPresentation = true
     }
 
     override func didReceiveMemoryWarning() {
@@ -76,7 +82,8 @@ extension SearchViewController: UITableViewDelegate {
         timelineVC.isFromSearch = true
         timelineVC.subreddit = subreddit
         
-        self.presentViewController(NavigationController(rootViewController: timelineVC), animated: true, completion: nil)
+        navigationController?.pushViewController(timelineVC, animated: true)
+    }
 }
 
 extension SearchViewController: UITableViewDataSource {

@@ -32,9 +32,6 @@ class ImageCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        
-        self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ImageCell.applyTheme), name: "ThemeManagerDidChangeThemeNotification", object: nil)
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -61,26 +58,25 @@ class ImageCell: UITableViewCell {
         var url: NSURL = aTopic.url
         
         var _progress: ((Int, Int) -> Void)?
-        var _completion: ((UIImage, NSError, SDImageCacheType, NSURL) -> Void)
-        var _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) 
+        var _completion: SDWebImageCompletionBlock?
+        let _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) 
         
         if aTopic.isURLGif() {
-            if let thumbnail = _thumbnail { placeholder = thumbnail }
             self.progressView = ProgressPieView(frame: CGRectMake(0, 0, 35, 35))
             self.picture.addSubview(self.progressView)
             self.progressView.center = self.picture.center
 
-            _progress = (received, expected) { [weak self] in
-                self.progressView?.progress = Double(received) / Double(expected)
+            _progress = { [weak self] (received, expected) in
+                self?.progressView?.progress = Float(received) / Float(expected)
             }
 
-            _completion = (_, error, _, _) { [weak self] in
-                self.progressView?.removeFromSuperview()
+            _completion = { [weak self] (_, error, _, _)  in
+                self?.progressView?.removeFromSuperview()
             }
         } else {
             if let thumbnail = _thumbnail { url = thumbnail }
         }
 
-        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: nil, progress: _progress, completed: _completion)
+        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: [], progress: _progress, completed: _completion)
     }
 }

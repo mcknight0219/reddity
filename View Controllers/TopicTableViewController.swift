@@ -69,6 +69,8 @@ extension TopicTableViewController {
             return 180
         case .Text:
             return 160
+        case .Video:
+            return 270
         default:
             print("Unknown type of cell")
             return 0

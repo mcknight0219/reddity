@@ -79,13 +79,10 @@ class HomeViewController: UIViewController {
     }
     
     func setupUI() {
-        navigationItem.title = channel.isEmpty ? "Front Page" : channel
+        navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
         navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
     
-        if isFromSearch {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .Done, target: self, action: #selector(HomeViewController.backToSearch))
-            navigationItem.leftBarButtonItem  = UIBarButtonItem(image: nil, style: .Plain, target: self, action: #selector())
-        } else {
+        if !isFromSearch {
             navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         }
         

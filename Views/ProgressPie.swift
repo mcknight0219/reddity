@@ -14,13 +14,13 @@ class ProgressPieView: UIView {
 
      @discussion this value is between `0.0` and `1.0` inclusive
      */
-     var progress: CGFloat = 0.0 {
+     var progress: Float {
          get {
-             return progress
+             return self.progress
          }
 
          set {
-             progress = newValue < 0 ? 0 : (newValue > 1 ? 1 : newValue)
+             self.progress = newValue < 0 ? 0 : (newValue > 1 ? 1 : newValue)
              self.setNeedsDisplay()
          }
      }
@@ -42,14 +42,14 @@ class ProgressPieView: UIView {
     /**
      The innser border width
      */
-     var innnerBorderWidth: CGFloat = 2.0 {
+     var innerBorderWidth: CGFloat = 2.0 {
          didSet { self.setNeedsDisplay() }
      }
 
     /**
      The inner border color.
      */
-     var innderBorderColor: UIColor(red: 0.612, green: 0.710, blue: 0.839, alpha: 1.0) {
+     var innerBorderColor = UIColor(red: 0.612, green: 0.710, blue: 0.839, alpha: 1.0) {
          didSet { self.setNeedsDisplay() }
      }
 
@@ -67,7 +67,7 @@ class ProgressPieView: UIView {
          didSet { self.setNeedsDisplay() }
      }
 
-    override init(coder: NSCoder) {
+    required init?(coder: NSCoder) {
         super.init(coder: coder)
     } 
 
@@ -76,6 +76,7 @@ class ProgressPieView: UIView {
     }
 
     func commonInitialize() {
+        self.progress = 0
         self.backgroundColor = UIColor.clearColor()
     }
 
@@ -87,24 +88,24 @@ class ProgressPieView: UIView {
         pieBackgroundColor.set() 
         CGContextFillEllipseInRect(context, rect)
         
-        func degreeToRadians(aDegree: Double) -> Double {
-            return aDegree * M_PI / 180
+        func degreeToRadians(aDegree: Float) -> Float {
+            return aDegree * Float(M_PI) / 180.0
         }
 
         let center = CGPointMake(CGRectGetMidX(rect), CGRectGetMidY(rect))
         let radius = center.y
         let angle = degreeToRadians((360.0 * self.progress) - 90.0)
         let points = [
-            CGPointMake(center.x, 0.0)
+            CGPointMake(center.x, 0.0),
             center,
-            CGPointMake(center.x + radius * cosf(angle), center.y + radius * sinf(angle))
+            CGPointMake(center.x + radius * CGFloat(cosf(angle)), center.y + radius * CGFloat(sinf(angle)))
         ]
 
         // Fill the finished portion, namely the pie
         self.fillColor.set()
         if (self.progress > 0) {
             CGContextAddLines(context, points, points.count)
-            CGContextAddArc(context, center.x, center.y, radius, degreeToRadians(-90), angle, false)
+            CGContextAddArc(context, center.x, center.y, radius, CGFloat(degreeToRadians(-90.0)), CGFloat(angle), 0)
             CGContextDrawPath(context, .EOFill)
         }
 

@@ -41,16 +41,8 @@ class SubredditCell: UITableViewCell {
     
     func loadCell(subreddit: Subreddit) {
         
-        
         if let headerUrl = subreddit.headerImage {
-            self.picture.setImageWithURL(headerUrl, placeholder: UIImage(named: "placeholder"), manager: RTWebImageManager.sharedManager, progress: nil, completion: { (image, _) in
-                self.picture.contentMode = .ScaleAspectFit
-                self.picture.clipsToBounds = true
-                
-                dispatch_async(dispatch_get_main_queue()) {
-                    self.picture.image = image
-                }
-            })
+            self.picture.sd_setImageWithURL(headerUrl, placeholderImage: UIImage(named: "placeholder"))
         }
         
         self.titleLabel.text = subreddit.title
