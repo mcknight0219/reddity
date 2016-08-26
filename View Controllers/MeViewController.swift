@@ -104,11 +104,18 @@ class MeViewController: UITableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let row = indexPath.row
         
+        if row == 1 {
+            let accountVC = AccountViewController()
+            accountVC.hidesBottomBarWhenPushed = true
+            accountVC.modalPresentationStyle = .FullScreen
+            navigationController?.pushViewController(accountVC, animated: true)
+        }
+
         if row == 2 {
             let storageVC = StorageViewController()
             storageVC.hidesBottomBarWhenPushed = true
             storageVC.modalPresentationStyle = .FullScreen
-            self.navigationController?.pushViewController(storageVC, animated: true)
+            navigationController?.pushViewController(storageVC, animated: true)
         }
     }
 }

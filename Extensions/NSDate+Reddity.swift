@@ -25,4 +25,13 @@ extension NSDate {
             return "One year ago"
         }
     }
+
+    /**
+     Return the date string in sqlite format  
+     */
+    class func sqliteDate(aDate: NSDate = NSDate()) -> String {
+        let formatter = NSDateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return formatter.stringFromDate(aDate)
+    }
 }

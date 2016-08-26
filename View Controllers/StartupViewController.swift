@@ -92,7 +92,7 @@ final class StartupViewController: UIViewController {
     }
     
     func login() {
-        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=read")!
+        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=read identity subscribe")!
         let safariViewController = SFSafariViewController(URL: authUrl)
         self.presentViewController(safariViewController, animated: true, completion: nil)
         
@@ -110,6 +110,7 @@ extension StartupViewController {
             switch number.intValue {
             case 1:
                 NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
+                NSUserDefaults.standardUserDefaults().setObject(true, forKey: "isLoggedIn")
             default:
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
                     let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .Alert)

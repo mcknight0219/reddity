@@ -8,11 +8,24 @@
 
 import UIKit
 import ChameleonFramework
+import FMDB
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+
+    /**
+     The global database handler
+     */
+    var database: FMDatabase?
+
+    /**
+     Current user.
+     
+     @discussion The `guest` is the user without logging into reddit.com
+     */
+    var user: String = 'guest'
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
         let result = url.query?.componentsSeparatedByString("&").reduce([:]) { (result: [String: String], q: String) in
@@ -37,23 +50,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
+        let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("isFirstTime") as? Bool ?? true
+        let isLoggedin = NSUserDefaults.standardUserDefaults().objectForKey("isLoggedin") as? Bool ?? false
+        self.openDB(isFirstTime)
         
-        let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("FirstTime") as? Bool ?? true
-        
-        if isFirstTime {
-            NSUserDefaults().setObject(false, forKey: "FirstTime")
+        if isFirstTime || !isLoggedin {
+            if isFirstTime { NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isFirstTime") }
+            
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
-            
-            self.presentVC(startVC, withToken: false)
+            presentVC(startVC, withToken: false)
             
             return true
         }
         ReachabilityManager.sharedInstance?.startMonitoring()
-
-        self.pushTabbar()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
+        self.pushTabbar()
         return true
     }
     
@@ -106,6 +119,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }   
     }
 
+    /**
+     Open database and create necessary table if first time run.
+
+     - parameter createTables:   Whether to create the scheme.
+     */
+    func openDB(createTables: Bool) {
+        let fileURL = try! FileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: false).URLByAppendingPathComponent("app.sqlite")
+        database = FMDatabase(path: fileURL.path)
+        if !database.open() {
+            print("Unable to open database")
+            return
+        }
+
+        if createTables {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {        
+                do {
+                    try self.database.executeUpdate("CREATE TABLE users(id TEXT PRIMARY KEY, timestamp TEXT)")
+                    try self.database.executeUpdate("CREATE TABLE search_history(term TEXT, timestamp TEXT, FOREIGN KEY(user) REFERENCES users(id))", values: nil)
+                    try self.database.executeUpdate("CREATE TABLE subscriptions(id INTEGER PRIMARY KEY, FOREIGN KEY(user) REFERENCES users(id), FOREIGN KEY(subreddit) REFERENCES subreddits(id), timestamp TEXT)", values: nil)
+                    try self.database.executeUpdate("CREATE TABLE subreddits(id PRIMARY KEY TEXT, name TEXT, title TEXT, displayName TEXT, subscribers INT, imageURL: TEXT)", values: nil)
+
+                    // Always create `guest` user.
+                    try self.database.executeUpdate("INSERT INTO users (id, timestamp) values (?, ?)", values: ["guest", NSDate.sqliteDate()])
+                } catch let error as NSError {
+                    print("failed: \(error.localizedDescription)")
+                }
+            }
+        }
+    }
 
     func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
@@ -126,7 +168,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(application: UIApplication) {
-        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        database?.close()
     }
 
 
