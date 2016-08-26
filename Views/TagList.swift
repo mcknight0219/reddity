@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 struct TagAppearance {
     let foregroundColor: UIColor?
     let backgroundColor: UIColor?
-    let borderWidth: Int?
-    let borderRadius: Int?
+    let borderWidth: CGFloat?
+    let borderRadius: CGFloat?
 }
 
 /**
@@ -29,17 +30,17 @@ class TagList: UIView {
     /**
      An array of width corresponding to tags
      */
-    var tagsWidth = [Int]()
+    var tagsWidth = [CGFloat]()
 
     /**
      The spacing between two rows of tags.
      */
-    let rowPadding: Int = 5
+    let rowPadding: CGFloat = 5
 
     /**
      The spacing between two tags.
      */
-    let tagPadding: Int = 3
+    let tagPadding: CGFloat = 3
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
@@ -49,34 +50,15 @@ class TagList: UIView {
         super.init(frame: frame)
     }
 
-    func addTag(tag: UIButton?) {
+    func addTag(tag: UIButton) {
         // Don't add already existing tags
         guard (self.tags.filter { $0 == tag }).count == 0 else { return }
         self.tags.append(tag)
 
         // Calculate the width of the button
-        let width = tag.currentTitle.sizeWithAttributes([NSFontAttributeName: tag.titleLabel?.font]).width + tag.contentEdgeInsects.left + tag.contentEdgeInsects.right + tag.layer.borderWidth * 2
+        let width = (tag.currentTitle?.sizeWithAttributes([NSFontAttributeName: (tag.titleLabel?.font)!]).width)! + tag.contentEdgeInsets.left + tag.contentEdgeInsets.right + tag.layer.borderWidth * 2
         self.tagsWidth.append(width)
         addSubview(tag)
-    }
-
-    func addTagTitle(title: String, action: (UIButton) -> Void, appearance: TagAppearance?) {
-        let tag =                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              UIButton(type: Custom)
-        tag.setTitle(title, forState: .Normal)
-        tag.addTarget(nil, action: action, forControlEvents: UIControlEvents.TouchUpInside)
-        if let appearance = appearance {
-            tag.tintColor = appearance.foregroundColor ?? FlatOrangeDark()
-            tag.backgroundColor = appearance.backgroundColor ?? UIColor.clearColor()
-            tag.layer.borderWidth = appearance.borderWidth ?? 1 
-            tag.layer.borderRadius = appearance.borderRadiu ?? 3
-        } else {
-            tag.tintColor = FlatOrangeDark()
-            tag.backgroundColor = UIColor.clearColor()
-            tag.layer.borderWidth = 1
-            tag.layer.borderRadius = 3
-        }
-        
-        self.tagTag(tag)
     }
 
     /**
@@ -86,16 +68,16 @@ class TagList: UIView {
      */
     override func layoutSubviews() {
         super.layoutSubviews()
-        guard self.tags.count > 0 { return }
+        guard self.tags.count > 0 else { return }
         
         let maxW = frame.width
-        let maxH - frame.heigth
-        var l = 0 // The current line
+        let maxH = frame.height
+        var l: CGFloat = 0 // The current line
         var i = 0 // the index of current tag
-        var w = 0 // the cumulative width of current line 
+        var w: CGFloat = 0 // the cumulative width of current line
         while i < tags.count {
             if w < maxW - 25 {
-                tags[i].origin = CGPointMake(w + tagPadding, l * 40)
+                tags[i].setOrigin(CGPointMake(w + tagPadding, l * 40))
                 w += tagsWidth[i]
             } else {
                 l += 1
@@ -112,7 +94,6 @@ extension UIView {
     }
 
     func setOrigin(origin: CGPoint) {
-        var oldFrame = frame
         self.frame = CGRectMake(origin.x, origin.y, frame.width, frame.height) 
     } 
 }

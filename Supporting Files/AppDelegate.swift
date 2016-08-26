@@ -72,11 +72,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         homeVC.modalTransitionStyle = .CrossDissolve
         homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 1)
 
+        let subscriptionVC = SubscriptionViewController()
+        subscriptionVC.modalTransitionStyle = .CrossDissolve
+        subscriptionVC.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2)
+        
         let meVC = MeViewController()
         meVC.modalTransitionStyle = .CrossDissolve
-        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 2)
+        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 3)
 
-        tabBarVC.viewControllers = [embedInNav(searchVC), embedInNav(homeVC), embedInNav(meVC)]
+        tabBarVC.viewControllers = [embedInNav(searchVC), embedInNav(homeVC), embedInNav(subscriptionVC), embedInNav(meVC)]
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 1
         tabBarVC.tabBar.tintColor = FlatOrange()

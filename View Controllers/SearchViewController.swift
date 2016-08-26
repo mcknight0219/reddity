@@ -32,10 +32,11 @@ class SearchViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor.whiteColor()
-        tableView = UITableView(frame: CGRectMake(0, 0, view.bounds.width, view.bounds.height))
+        tableView = UITableView(frame: CGRectMake(0, 20, view.frame.width, view.frame.height-20))
         tableView.delegate = self
         tableView.dataSource = self
         
+        navigationController?.setNavigationBarHidden(true, animated: false)
         definesPresentationContext = true
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
@@ -48,20 +49,17 @@ class SearchViewController: UIViewController {
     }
     
     func setupUI() {
-        self.navigationItem.title = "Add Subreddits"
-        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        self.navigationController?.navigationBar.translucent = false
-
         self.tableView.tableHeaderView = self.searchController.searchBar
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
+        edgesForExtendedLayout = .None
         self.searchController.searchBar.searchBarStyle = .Minimal
         self.searchController.searchBar.tintColor = FlatOrange()
         self.searchController.searchBar.sizeToFit()
         self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
-        self.searchController.dimsBackgroundDuringPresentation = true
+        self.searchController.dimsBackgroundDuringPresentation = false
     }
 
     override func didReceiveMemoryWarning() {
@@ -72,7 +70,7 @@ class SearchViewController: UIViewController {
 
 extension SearchViewController: UITableViewDelegate {
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 110
+        return 100
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -108,6 +106,15 @@ extension SearchViewController: UITableViewDataSource {
         cell.loadCell(sub)
         
         return cell
+    }
+    
+    func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
+        let addAction = UITableViewRowAction(style: .Default, title: "Subscribe") {action in
+            tableView.setEditing(false, animated: true)
+        }
+        addAction.backgroundColor = FlatGreen()
+        
+        return [addAction]
     }
 
 }

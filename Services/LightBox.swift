@@ -32,12 +32,14 @@ class LightBox {
         NSURLSession.sharedSession().dataTaskWithURL(URL) { (data, response, error) in
             if let response = response  where 200..<300 ~= (response as! NSHTTPURLResponse).statusCode {
                 if let html = String(data: data!, encoding: NSUTF8StringEncoding), let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
-                    let url = doc.at_xpath("//meta[@property='og:image']/@content")?.text ?? doc.at_xpath("//meta[@name=\"thumbnail\"]/@content")?.text
+                    let url = doc.at_xpath("//meta[@property='og:image']/@content")?.text ?? doc.at_xpath("//meta[@name=\"thumbnail\"]/@content")?.text ?? ""
                     let title = doc.title ?? ""
                     let description = doc.at_xpath("//meta[@name=\"description\"]/@content")?.text ?? ""
-                    completion(title: title, description: description, imageURL: NSURL(string: url!))
+                    completion(title: title, description: description, imageURL: NSURL(string: url))
                     
-                    self.cache.setObject(NSURL(string: url!)!, forKey: URL, cost: 1)
+                    if !url.isEmpty {
+                        self.cache.setObject(NSURL(string: url)!, forKey: URL, cost: 1)
+                    }
                     return
                 }
             } else {  
