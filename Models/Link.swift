@@ -113,11 +113,11 @@ struct Link: ResourceType {
 
 func linkParser(json: JSON) -> [Link] {
     var result = [Link]()
-    let linksJSON = json["children"]
     
-    if let after = json["after"].string {
+    if let after = json["data"]["after"].string {
         afterName = after
     }
+    let linksJSON = json["data"]["children"]
     
     for (_, linkJSON):(String, JSON) in linksJSON {
         let content = linkJSON["data"]

@@ -65,6 +65,11 @@ class SearchViewController: UIViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
+    
+    deinit {
+        self.searchController.view.removeFromSuperview()
+        self.searchController.removeFromParentViewController()
+    }
 }
 
 extension SearchViewController: UITableViewDelegate {
@@ -100,6 +105,9 @@ extension SearchViewController: UITableViewDataSource {
         let cell = self.tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
         
         // Configure the cell...
+        let bg = UIView()
+        bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
+        cell.selectedBackgroundView = bg
         let sub = self.results[indexPath.row]
         
         cell.loadCell(sub)

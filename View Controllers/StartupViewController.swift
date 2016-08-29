@@ -33,6 +33,10 @@ final class StartupViewController: UIViewController {
         return true
     }
     
+    deinit {
+        print("Deallocating startup view controller")
+    }
+    
     func makeUI() {
         self.view.backgroundColor = UIColor.whiteColor()
         
@@ -92,8 +96,8 @@ final class StartupViewController: UIViewController {
     }
     
     func login() {
-        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=read identity subscribe")!
-        let safariViewController = SFSafariViewController(URL: authUrl)
+        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet())!)
+        let safariViewController = SFSafariViewController(URL: authUrl!)
         self.presentViewController(safariViewController, animated: true, completion: nil)
         
         self.oAuthCompleteAction = {
@@ -109,8 +113,22 @@ extension StartupViewController {
         if let number = notification.object as? NSNumber {
             switch number.intValue {
             case 1:
+                TokenService.sharedInstance.invalidateAccessToken()
                 NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
-                NSUserDefaults.standardUserDefaults().setObject(true, forKey: "isLoggedIn")
+                // Remember the user after logged in
+                dispatch_async(dispatch_get_main_queue()) {
+                    let app = UIApplication.sharedApplication().delegate as! AppDelegate
+                    
+                    let user = Resource(url: "/api/v1/me", method: .GET) { (json) -> String? in
+                        return json["name"].stringValue
+                    }
+                    
+                    apiRequest(Config.ApiBaseURL, resource: user, params: nil) { user in
+                        if let user = user {
+                            app.user = user
+                        }
+                    }
+                }
             default:
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
                     let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .Alert)

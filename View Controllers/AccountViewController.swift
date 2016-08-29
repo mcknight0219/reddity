@@ -14,17 +14,13 @@ class AccountViewController: UITableViewController {
     lazy var app: AppDelegate = {
         return UIApplication.sharedApplication().delegate as! AppDelegate
     }()
-
-    lazy var user: String = { 
-        return app.user
-    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         navigationItem.title = "Account"
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        view.backgroundColor = UIColor.whiteColor()
+        view.backgroundColor = FlatWhite()
 
         tableView.layoutMargins =  UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
@@ -44,7 +40,7 @@ class AccountViewController: UITableViewController {
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return user == 'guest' ? 2 : 4
+        return app.user == "guest" ? 2 : 4
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -56,7 +52,7 @@ class AccountViewController: UITableViewController {
         if let cell = cell {
             let bg = UIView()
             bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-            cell.selectedBackgroundVoew = bg
+            cell.selectedBackgroundView = bg
 
             cell.layoutMargins = UIEdgeInsetsZero
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
@@ -68,11 +64,11 @@ class AccountViewController: UITableViewController {
                 cell.selectionStyle = .None
 
             case 1:
-                if self.user == 'guest' {
+                if app.user == "guest" {
                     cell.textLabel?.text = "Log In"
                 } else {
                     cell.textLabel?.text = "Log Out"
-                    cell.detailTextLabel?.text = self.user
+                    cell.detailTextLabel?.text = app.user
                 }
             case 2:
                 cell.backgroundColor = FlatWhite()
@@ -84,6 +80,8 @@ class AccountViewController: UITableViewController {
             default:    break
             }
         }
+        
+        return cell!
     }
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -91,10 +89,10 @@ class AccountViewController: UITableViewController {
         guard row == 1 else { return }
 
         // Guest out. Remove all search histories for `guest`.
-        if self.user == "guest" {
+        if app.user == "guest" {
             dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
                 do {
-                    app.database.executeUpdate("DELETE FROM search_history WHERE user = ?", values: [user])    
+                    try self.app.database?.executeUpdate("DELETE FROM search_history WHERE user = ?", values: [self.app.user])
                 } catch let error as NSError {
                     print("failed: \(error.localizedDescription)")
                 }
@@ -108,10 +106,10 @@ class AccountViewController: UITableViewController {
         }
         logoutController.addAction(cancelAction)
 
-        let logoutAction = UIAlertAction(title: "Log Out", style: .Default) { (action) in
-            app.user = 'guest'      // reset current user to `guest`
+        let logoutAction = UIAlertAction(title: "Log Out", style: .Default) { [unowned self] (action) in
+            self.app.user = "guest"      // reset current user to `guest`
             NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isLoggedIn")
-            gotoLogin()
+            self.gotoLogin()
         }
         logoutController.addAction(logoutAction)
 
@@ -121,6 +119,7 @@ class AccountViewController: UITableViewController {
     func gotoLogin() {
         let vc = StartupViewController()
         vc.modalTransitionStyle = .FlipHorizontal
-        app.presentVC(vc, withToken: false)
+        
+        app.presentVC(vc, withToken: true)
     }
 }

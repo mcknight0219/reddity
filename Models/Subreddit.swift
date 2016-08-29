@@ -60,7 +60,7 @@ func subredditParser(json: JSON) -> Subreddit? {
 }
 
 func subredditsParser(json: JSON) -> [Subreddit] {
-    let subsJson = json["children"]
+    let subsJson = json["data"]["children"]
     
     var subreddits = [Subreddit]()
     for (_, subJson):(String, JSON) in subsJson {

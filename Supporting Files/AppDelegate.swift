@@ -25,7 +25,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      
      @discussion The `guest` is the user without logging into reddit.com
      */
-    var user: String = 'guest'
+    var user: String {
+        get {
+            return self.user ?? "guest"
+        }
+        
+        set {
+            if newValue == self.user { return }
+            NSUserDefaults.standardUserDefaults().setObject(user, forKey: "User")
+        }
+    }
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
         let result = url.query?.componentsSeparatedByString("&").reduce([:]) { (result: [String: String], q: String) in
@@ -49,12 +58,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
         let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("isFirstTime") as? Bool ?? true
-        let isLoggedin = NSUserDefaults.standardUserDefaults().objectForKey("isLoggedin") as? Bool ?? false
         self.openDB(isFirstTime)
         
-        if isFirstTime || !isLoggedin {
+        if isFirstTime {
             if isFirstTime { NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isFirstTime") }
             
             let startVC = StartupViewController()
@@ -64,7 +73,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return true
         }
         ReachabilityManager.sharedInstance?.startMonitoring()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
         self.pushTabbar()
         return true
@@ -125,9 +133,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      - parameter createTables:   Whether to create the scheme.
      */
     func openDB(createTables: Bool) {
-        let fileURL = try! FileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: false).URLByAppendingPathComponent("app.sqlite")
+        let fileURL = try! NSFileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: false).URLByAppendingPathComponent("app.sqlite")
         database = FMDatabase(path: fileURL.path)
-        if !database.open() {
+        if !database!.open() {
             print("Unable to open database")
             return
         }
@@ -135,13 +143,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if createTables {
             dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {        
                 do {
-                    try self.database.executeUpdate("CREATE TABLE users(id TEXT PRIMARY KEY, timestamp TEXT)")
-                    try self.database.executeUpdate("CREATE TABLE search_history(term TEXT, timestamp TEXT, FOREIGN KEY(user) REFERENCES users(id))", values: nil)
-                    try self.database.executeUpdate("CREATE TABLE subscriptions(id INTEGER PRIMARY KEY, FOREIGN KEY(user) REFERENCES users(id), FOREIGN KEY(subreddit) REFERENCES subreddits(id), timestamp TEXT)", values: nil)
-                    try self.database.executeUpdate("CREATE TABLE subreddits(id PRIMARY KEY TEXT, name TEXT, title TEXT, displayName TEXT, subscribers INT, imageURL: TEXT)", values: nil)
+                    try self.database!.executeUpdate("CREATE TABLE users(id TEXT PRIMARY KEY, timestamp TEXT)", values: nil)
+                    try self.database!.executeUpdate("CREATE TABLE search_history(term TEXT, timestamp TEXT, user TEXT, FOREIGN KEY(user) REFERENCES users(id))", values: nil)
+                    try self.database!.executeUpdate("CREATE TABLE subreddits(id TEXT PRIMARY KEY, name TEXT, title TEXT, displayName TEXT, subscribers INT, imageURL TEXT)", values: nil)
+                    try self.database!.executeUpdate("CREATE TABLE subscriptions(id INTEGER PRIMARY KEY, user TEXT, subreddit TEXT, timestamp TEXT, FOREIGN KEY(user) REFERENCES users(id), FOREIGN KEY(subreddit) REFERENCES subreddits(id))", values: nil)
 
                     // Always create `guest` user.
-                    try self.database.executeUpdate("INSERT INTO users (id, timestamp) values (?, ?)", values: ["guest", NSDate.sqliteDate()])
+                    try self.database!.executeUpdate("INSERT INTO users (id, timestamp) values (?, ?)", values: ["guest", NSDate.sqliteDate()])
                 } catch let error as NSError {
                     print("failed: \(error.localizedDescription)")
                 }

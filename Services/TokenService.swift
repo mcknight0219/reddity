@@ -49,6 +49,8 @@ final class TokenService {
                 timer.invalidate()
             }
             
+            if token == "" { return }
+            
             timer = NSTimer.scheduledTimerWithTimeInterval(60 * 59 + 58 , target: self, selector: #selector(TokenService.refresh), userInfo: nil, repeats: true)
         }
     }
@@ -67,8 +69,16 @@ final class TokenService {
         return "Basic \(base64EncodedCredential!)"
     }
     
+    /**
+     When user logouts, we need new set of access token and refresh token
+     */
+    func invalidateAccessToken() {
+        self.token = ""
+        self.cache.removeObjectForKey("RefreshToken")
+        NSUserDefaults.standardUserDefaults().removeObjectForKey("RefreshToken")
+    }
+    
     func withAccessToken(completion: () -> Void) {
-        //let key = self.grantType == .Code ? CodeTokenCacheKey : InstalledTokenCacheKey
         if !self.token.isEmpty {
             completion()
             return

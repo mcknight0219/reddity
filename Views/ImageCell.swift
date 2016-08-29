@@ -61,7 +61,9 @@ class ImageCell: UITableViewCell {
         var _completion: SDWebImageCompletionBlock?
         let _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) 
         
+        
         if aTopic.isURLGif() {
+            /*
             self.progressView = ProgressPieView(frame: CGRectMake(0, 0, 35, 35))
             self.picture.addSubview(self.progressView)
             self.progressView.center = self.picture.center
@@ -73,6 +75,7 @@ class ImageCell: UITableViewCell {
             _completion = { [weak self] (_, error, _, _)  in
                 self?.progressView?.removeFromSuperview()
             }
+            */
         } else {
             if let thumbnail = _thumbnail { url = thumbnail }
         }
