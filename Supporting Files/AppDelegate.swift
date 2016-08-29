@@ -79,11 +79,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     @objc func pushTabbar() {
-        let tabBarVC = UITabBarController()
-
-        func embedInNav(vc: UIViewController) -> UINavigationController {
-            return NavigationController(rootViewController: vc)
-        }
+        let tabBarVC = TabBarController()
 
         let searchVC = SearchViewController()
         searchVC.modalTransitionStyle = .CoverVertical
@@ -101,7 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         meVC.modalTransitionStyle = .CrossDissolve
         meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 3)
 
-        tabBarVC.viewControllers = [embedInNav(searchVC), embedInNav(homeVC), embedInNav(subscriptionVC), embedInNav(meVC)]
+        tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController($0) }
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 1
         tabBarVC.tabBar.tintColor = FlatOrange()

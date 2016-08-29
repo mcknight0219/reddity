@@ -11,21 +11,24 @@ import SwiftyJSON
 import ChameleonFramework
 import SnapKit
 
-class MeViewController: UITableViewController {
+class MeViewController: BaseTableViewController {
     
+    let themeSwitch = UISwitch()
+
     override func viewDidLoad() {
-        
         self.navigationItem.title = "Settings"
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
         
-        self.tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "SettingCell")
-        self.tableView.backgroundColor = FlatWhite()
+        self.tableView.registerClass(BaseTableViewCell.self, forCellReuseIdentifier: "SettingCell")
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         
         let footer = UIView()
         footer.backgroundColor = FlatWhite()
         self.tableView.tableFooterView = footer
+
+        themeSwitch.on = ThemeManager.defaultManager().currentTheme == "Dark"
+        themeSwitch.addTarget(self, #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
     }
     
     // MARK: - Table view data source
@@ -40,10 +43,6 @@ class MeViewController: UITableViewController {
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCellWithIdentifier("SettingCell", forIndexPath: indexPath)
-        
-        let bg = UIView()
-        bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-        cell.selectedBackgroundView = bg
         
         let r = indexPath.row
         if r == 0 {
@@ -72,10 +71,10 @@ class MeViewController: UITableViewController {
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 17)
         } else if r == 5 {
             cell.textLabel?.text = "Dark Theme"
-            cell.accessoryView = UISwitch()
+            cell.accessoryView = themeSwitch
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
         } else if r == 6 {
-            cell.textLabel?.text = "Play Gif Automatically"
+            cell.textLabel?.text = "Play Video Automatically"
             cell.accessoryView = UISwitch()
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
         } else if r == 7 {
@@ -116,6 +115,12 @@ class MeViewController: UITableViewController {
             storageVC.hidesBottomBarWhenPushed = true
             storageVC.modalPresentationStyle = .FullScreen
             navigationController?.pushViewController(storageVC, animated: true)
+        }
+    }
+
+    func toggleTheme() {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue) {
+            ThemeManager.defaultManager().setTheme(self.themeSwitch.on ? "Dark" : "Default")
         }
     }
 }

@@ -9,7 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-class NewsCell: UITableViewCell {
+class NewsCell: BaseTableViewCell {
 
     lazy var titleLabel: UILabel! = {
        return self.viewWithTag(1) as! UILabel

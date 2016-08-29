@@ -8,6 +8,8 @@
 
 import UIKit
 
+let kThemeManagerDidChangeThemeNotification = "ThemeManagerDidChangeThemeNotification"
+
 final class ThemeManager: NSObject {
     
     static let sharedInstance = ThemeManager()
@@ -28,7 +30,7 @@ final class ThemeManager: NSObject {
         
         NSUserDefaults.standardUserDefaults().setObject(newTheme, forKey: "AppTheme")
         
-        NSNotificationCenter.defaultCenter().postNotificationName("ThemeManagerDidChangeThemeNotification", object: nil)
+        NSNotificationCenter.defaultCenter().postNotificationName(kThemeManagerDidChangeThemeNotification, object: nil)
     
         UIView.transitionWithView(UIApplication.sharedApplication().keyWindow!, duration: 0.5, options: .TransitionCrossDissolve, animations: nil, completion: nil)
     }

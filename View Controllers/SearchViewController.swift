@@ -40,7 +40,9 @@ class SearchViewController: UIViewController {
         definesPresentationContext = true
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
+
         setupUI()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -56,10 +58,11 @@ class SearchViewController: UIViewController {
         
         edgesForExtendedLayout = .None
         self.searchController.searchBar.searchBarStyle = .Minimal
-        self.searchController.searchBar.tintColor = FlatOrange()
         self.searchController.searchBar.sizeToFit()
         self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
         self.searchController.dimsBackgroundDuringPresentation = false
+
+        self.applyTheme()
     }
 
     override func didReceiveMemoryWarning() {
@@ -69,6 +72,16 @@ class SearchViewController: UIViewController {
     deinit {
         self.searchController.view.removeFromSuperview()
         self.searchController.removeFromParentViewController()
+    }
+
+    func applyTheme() {
+        if ThemeManager.defaultManager().currentTheme == "Dark" {
+            self.searchController.searchBar.barTintColor = FlatBlackDark()
+            self.searchController.searchBar.tintColor = FlatWhite()
+        } else {
+            self.searchController.searchBar.barTintColor = FlatWhiteDark()
+            self.searchController.searchBar.tintColor = FlatOrange()
+        }
     }
 }
 
@@ -103,13 +116,7 @@ extension SearchViewController: UITableViewDataSource {
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
-        
-        // Configure the cell...
-        let bg = UIView()
-        bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-        cell.selectedBackgroundView = bg
         let sub = self.results[indexPath.row]
-        
         cell.loadCell(sub)
         
         return cell

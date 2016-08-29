@@ -10,7 +10,7 @@ import UIKit
 import SDWebImage
 import ChameleonFramework
 
-class ImageCell: UITableViewCell {
+class ImageCell: BaseTableViewCell {
     
     lazy var picture: UIImageView! = {
         return self.viewWithTag(1) as! UIImageView

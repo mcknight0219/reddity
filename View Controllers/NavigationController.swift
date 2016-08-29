@@ -17,7 +17,6 @@ class NavigationController: UINavigationController {
         applyTheme()
     
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(NavigationController.applyTheme), name: "ThemeManagerDidChangeThemeNotification", object: nil)
-    
     }
 
     override func preferredStatusBarStyle() -> UIStatusBarStyle {

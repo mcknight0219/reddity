@@ -9,7 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-class SubscriptionViewController: UITableViewController {
+class SubscriptionViewController: BaseTableViewController {
 
     var subscriptions = [Subreddit]()
 
@@ -79,7 +79,7 @@ class SubscriptionViewController: UITableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCellWithIdentifier("SubscriptionCell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")    
+            cell = BaseTableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")    
         }
 
         let sub = self.subscriptions[indexPath.row]

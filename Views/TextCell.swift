@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TextCell: UITableViewCell {
+class TextCell: BaseTableViewCell {
     
     lazy var titleLabel: UILabel! = {
         return self.viewWithTag(1) as! UILabel
