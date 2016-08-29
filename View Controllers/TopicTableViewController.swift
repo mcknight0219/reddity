@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TopicTableViewController: UITableViewController {
+class TopicTableViewController: BaseTableViewController {
 
     var dataSource: TopicDataSource!
 
