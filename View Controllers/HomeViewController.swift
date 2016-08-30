@@ -123,7 +123,7 @@ extension HomeViewController: TopicControllerDelegate {
             HUDManager.sharedInstance.hideCentralActivityIndicator()
         }
         
-        let badLoadingAlert = UIAlertController(title: "", message: "", preferredStyle: .Alert)
+        let badLoadingAlert = UIAlertController(title: "Server Error", message: "Reddit returns malform response", preferredStyle: .Alert)
         let okAction = UIAlertAction(title: "OK", style: .Cancel, handler: nil)
         badLoadingAlert.addAction(okAction)
         badLoadingAlert.view.tintColor = FlatOrange()

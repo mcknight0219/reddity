@@ -48,8 +48,11 @@ class SubscriptionViewController: BaseTableViewController {
         apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { (subs) -> Void in
         
         }
-        
-        self.tableView.reloadData()
+
+        dispatch_async(dispatch_get_main_queue()) {
+            self.subscriptions = PreferenceManager.sharedManager.subscriptions
+            self.tableView.reloadData()
+        }
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubscriptionViewController.showBackgroundView), name: "PreferenceChanged", object: nil)
     }
@@ -95,11 +98,9 @@ class SubscriptionViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let deleteAction = UITableViewRowAction(style: .Normal, title: "Unsubscribe") {action in
             self.subscriptions.removeAtIndex(indexPath.row)
-            /*
-            Preference.setValueForKey(key: "subscriptions", value: subscriptions) {
-                NSNotificationCenter.defaultCenter().postNotificationName("PreferenceChanged", object: "subscriptions")
+            dispatch_async(dispatch_get_main_queue()) {
+                self.tableView.reloadData()
             }
-             */
         }
         
         return [deleteAction]

@@ -10,11 +10,31 @@ import UIKit
 import SwiftyJSON
 import ChameleonFramework
 
+let kFetchMoreResultsNotification = "FetchMoreResultsNotification"
+let kDisplaySearchHistoryNotification = "DisplaySearchHistoryNotification"
+
+/**
+ This multi-purpose tableview will handle thress kinds of content.
+ */
+enum TableContent {
+    case .History
+    case .Subreddit
+    case .Link
+}
+
 class SearchViewController: UIViewController {
 
     let searchController = UISearchController(searchResultsController: nil)
     
-    var results = [Subreddit]()
+    /**
+     Holds the results for subreddits search
+     */
+    var subreddits = [Subreddit]()
+
+    /**
+     Holds the results for title search
+     */
+    var links = [Link]()
     
     var tableView: UITableView!
     
@@ -42,6 +62,7 @@ class SearchViewController: UIViewController {
 
         setupUI()
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.showHistory), name: kDisplaySearchHistoryNotification, object: nil)
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -67,6 +88,8 @@ class SearchViewController: UIViewController {
         self.searchController.searchBar.searchBarStyle = .Minimal
         self.searchController.searchBar.sizeToFit()
         self.searchController.dimsBackgroundDuringPresentation = false
+        self.searchController.searchBar.scopeButtonTitles = ["Title", "Subreddit"]
+        self.searchController.searchBar.selectedScopeButtonIndex = 0
 
         self.applyTheme()
     }
@@ -101,6 +124,10 @@ class SearchViewController: UIViewController {
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
         }
     }
+
+    func showHistory() {
+        
+    }
 }
 
 extension SearchViewController: UITableViewDelegate {
@@ -109,7 +136,7 @@ extension SearchViewController: UITableViewDelegate {
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let subreddit = self.results[indexPath.row]
+        let subreddit = self.subreddits[indexPath.row]
         let timelineVC = HomeViewController(subredditName: subreddit.displayName)
         timelineVC.hidesBottomBarWhenPushed = true
         timelineVC.isFromSearch = true
@@ -117,11 +144,17 @@ extension SearchViewController: UITableViewDelegate {
         
         navigationController?.pushViewController(timelineVC, animated: true)
     }
+
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        if  scrollView.contentOffset.y > scrollView.contentSize.height - scrollView.frame.size.height - 350 {
+            NSNotificationCenter.defaultCenter().postNotificationName("NeedTopicPrefetchNotification", object: nil)
+        }
+    }
 }
 
 extension SearchViewController: UITableViewDataSource {
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        if self.results.count == 0 {
+        if self.subreddits.count == 0 {
             return 0
         } else {
             return 1
@@ -129,12 +162,12 @@ extension SearchViewController: UITableViewDataSource {
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.results.count
+        return self.subreddits.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = self.tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
-        let sub = self.results[indexPath.row]
+        let sub = self.subreddits[indexPath.row]
         cell.loadCell(sub)
         
         return cell
@@ -163,7 +196,7 @@ extension SearchViewController: UISearchResultsUpdating {
             // only trigger new search if searched text changes
             if text != self.prevText {
                 if let subs = self.cache[text] as? [Subreddit] {
-                    self.results = subs
+                    self.subreddits = subs
                     dispatch_async(dispatch_get_main_queue()) {
                         self.tableView.reloadData()
                     }
@@ -188,19 +221,28 @@ extension SearchViewController: UISearchResultsUpdating {
             NetworkActivityIndicator.decreaseActivityCount()
             
             if let subs = subs {
-                self.results = subs
+                self.subreddits = subs
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
                 }
             }
-            
+
+            // Remember the searched text only on success.
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+                let app = UIApplication.sharedApplication().delegate as! AppDelegate
+                do {
+                    try app.database.executeUpdate("INSERT INTO search_history(term, timestamp, user) values(?, ?, ?)", values: [text, NSDate.sqliteDate(), app.user])
+                } catch let err as NSError {
+                    print("failed: \(err.localizedDescription)")
+                }
+            }
         }
     }
 }
 
 extension SearchViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        self.results.removeAll()
+        self.subreddits.removeAll()
         self.tableView.reloadData()
         self.searchController.active = false
     }
@@ -212,15 +254,16 @@ extension SearchViewController: UISearchBarDelegate {
     
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
-            self.results.removeAll()
+            self.subreddits.removeAll()
             self.tableView.reloadData()
         }
     }
     
-    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
-        
+    func searchBarShouldBeginEditing(searchBar: UISearchBar) {
+        searchBar.showsScopeBar = true
     }
     
-    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
+    func searchBarShouldEndEditing(searchBar: UISearchBar) {
+        searchBar.showsScopeBar = false
     }
 }
