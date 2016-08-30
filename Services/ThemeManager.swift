@@ -12,7 +12,7 @@ let kThemeManagerDidChangeThemeNotification = "ThemeManagerDidChangeThemeNotific
 
 final class ThemeManager: NSObject {
     
-    static let sharedInstance = ThemeManager()
+    static let defaultManager = ThemeManager()
     
     var currentTheme: String  {
         

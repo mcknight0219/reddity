@@ -9,7 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-class AccountViewController: UITableViewController {
+class AccountViewController: BaseTableViewController {
 
     lazy var app: AppDelegate = {
         return UIApplication.sharedApplication().delegate as! AppDelegate
@@ -19,14 +19,12 @@ class AccountViewController: UITableViewController {
         super.viewDidLoad()
 
         navigationItem.title = "Account"
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        view.backgroundColor = FlatWhite()
+        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
 
         tableView.layoutMargins =  UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
 
         let footer = UIView()
-        footer.backgroundColor = FlatWhite()
         tableView.tableFooterView = footer
     }
 
@@ -46,12 +44,11 @@ class AccountViewController: UITableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCellWithIdentifier("Cell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "Cell")
+            cell = BaseTableViewCell(style: .Value1, reuseIdentifier: "Cell")
         }
 
         if let cell = cell {
             let bg = UIView()
-            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
             cell.selectedBackgroundView = bg
 
             cell.layoutMargins = UIEdgeInsetsZero
@@ -60,7 +57,7 @@ class AccountViewController: UITableViewController {
 
             switch indexPath.row {
             case 0:
-                cell.backgroundColor = FlatWhite()
+                cell.backgroundColor = UIColor.clearColor()
                 cell.selectionStyle = .None
 
             case 1:
@@ -71,7 +68,7 @@ class AccountViewController: UITableViewController {
                     cell.detailTextLabel?.text = app.user
                 }
             case 2:
-                cell.backgroundColor = FlatWhite()
+                cell.backgroundColor = UIColor.clearColor()
                 cell.selectionStyle  = .None
 
             case 3:

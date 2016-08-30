@@ -16,13 +16,12 @@ class SubscriptionViewController: BaseTableViewController {
     var background: UIView?
     
     override func viewDidLoad() {
+        super.viewDidLoad()
         navigationItem.title = "Subscription"
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
         
         let footer = UIView()
-        footer.backgroundColor = UIColor.whiteColor()
-        
-        tableView.backgroundColor = UIColor.whiteColor()
+
         tableView.layoutMargins = UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
         tableView.tableFooterView = footer
@@ -41,22 +40,15 @@ class SubscriptionViewController: BaseTableViewController {
             make.top.equalTo(UIScreen.mainScreen().bounds.height / 2 - 150)
         }
 
-        /*
-        Preference.valuesForKey("subscriptions") { subscriptions in
-            if let subscriptions = subscriptions as? [Subreddit] {
-                subscriptions = subscriptions
-                dispatch_async(dispatch_get_main_queue()) { 
-                    self.subscriptions.count > 0 {
-                        tableView.backgroundView = background
-                    }
-                    self.tableView.reloadData() 
-                }
-            } 
-        }
-         */
         if subscriptions.count == 0 {
             tableView.backgroundView = background
         }
+        
+        let subscriptionResource = Resource(url: "/subreddits/mine/subscriber", method: .GET, parser: subredditsParser)
+        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { (subs) -> Void in
+        
+        }
+        
         self.tableView.reloadData()
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubscriptionViewController.showBackgroundView), name: "PreferenceChanged", object: nil)

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 class TabBarController: UITabBarController {
 
@@ -18,10 +19,10 @@ class TabBarController: UITabBarController {
     }
 
     func applyTheme() {
-        if ThemeManager.defaultManager().currentTheme == "Dark" {
-            
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.tabBar.barTintColor = FlatBlackDark()
         } else {
-
+            self.tabBar.barTintColor = UIColor.whiteColor()
         }
     }
 }

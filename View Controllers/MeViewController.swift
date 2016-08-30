@@ -16,19 +16,20 @@ class MeViewController: BaseTableViewController {
     let themeSwitch = UISwitch()
 
     override func viewDidLoad() {
+        super.viewDidLoad()
         self.navigationItem.title = "Settings"
-        self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        self.navigationController?.navigationBar.titleTextAttributes![ NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
         
         self.tableView.registerClass(BaseTableViewCell.self, forCellReuseIdentifier: "SettingCell")
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
+        self.clearsSelectionOnViewWillAppear = true
         
         let footer = UIView()
-        footer.backgroundColor = FlatWhite()
         self.tableView.tableFooterView = footer
 
-        themeSwitch.on = ThemeManager.defaultManager().currentTheme == "Dark"
-        themeSwitch.addTarget(self, #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
+        themeSwitch.on = ThemeManager.defaultManager.currentTheme == "Dark"
+        themeSwitch.addTarget(self, action: #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
     }
     
     // MARK: - Table view data source
@@ -46,7 +47,7 @@ class MeViewController: BaseTableViewController {
         
         let r = indexPath.row
         if r == 0 {
-            cell.backgroundColor = FlatWhite()
+            cell.backgroundColor = UIColor.clearColor()
             cell.selectionStyle = .None
             cell.layoutMargins = UIEdgeInsetsZero
         } else if r == 1 {
@@ -59,13 +60,13 @@ class MeViewController: BaseTableViewController {
             cell.accessoryType = .DisclosureIndicator
             cell.layoutMargins = UIEdgeInsetsZero
         } else if r == 3 {
-            cell.backgroundColor = FlatWhite()
+            cell.backgroundColor = UIColor.clearColor()
             cell.selectionStyle = .None
             cell.separatorInset = UIEdgeInsetsMake(0, 1000, 0, 0)
         } else if r == 4 {
             cell.textLabel?.text = "BEHAVIOR"
-            cell.backgroundColor = FlatWhite()
-            cell.textLabel?.textColor = FlatWhiteDark()
+            cell.backgroundColor = UIColor.clearColor()
+            //cell.textLabel?.textColor = FlatWhiteDark()
             cell.selectionStyle = .None
             cell.layoutMargins = UIEdgeInsetsZero
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 17)
@@ -83,7 +84,7 @@ class MeViewController: BaseTableViewController {
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             cell.layoutMargins = UIEdgeInsetsZero
         } else if r == 8 {
-            cell.backgroundColor = FlatWhite()
+            cell.backgroundColor = UIColor.clearColor()
             cell.selectionStyle = .None
             cell.layoutMargins = UIEdgeInsetsZero
         } else if r == 9 {
@@ -119,8 +120,8 @@ class MeViewController: BaseTableViewController {
     }
 
     func toggleTheme() {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue) {
-            ThemeManager.defaultManager().setTheme(self.themeSwitch.on ? "Dark" : "Default")
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.3 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
+            ThemeManager.defaultManager.setTheme(self.themeSwitch.on ? "Dark" : "Default")
         }
     }
 }

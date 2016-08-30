@@ -80,7 +80,7 @@ class HomeViewController: UIViewController {
     
     func setupUI() {
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
-        navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
+        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
     
         if !isFromSearch {
             navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
@@ -111,15 +111,6 @@ extension HomeViewController: TopicControllerDelegate {
         self.topicDataSource.topics = self.topicController.topics
         dispatch_async(dispatch_get_main_queue()) {
             self.topicTableViewController.tableView.reloadData()
-            /*
-            UIView.setAnimationsEnabled(true)
-            self.topicTableViewController.tableView.beginUpdates()
-            if let visibleIndexs = self.topicTableViewController.tableView.indexPathsForVisibleRows {
-                self.topicTableViewController.tableView.reloadRowsAtIndexPaths(visibleIndexs, withRowAnimation: .None)
-            }
-            self.topicTableViewController.tableView.endUpdates()
-            UIView.setAnimationsEnabled(false)
-             */
         }
     }
     

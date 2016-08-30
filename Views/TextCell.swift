@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import ChameleonFramework
 
-class TextCell: BaseTableViewCell {
+class TextCell: UITableViewCell {
     
     lazy var titleLabel: UILabel! = {
         return self.viewWithTag(1) as! UILabel
@@ -29,7 +30,8 @@ class TextCell: BaseTableViewCell {
 
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        self.applyTheme()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TextCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
@@ -56,4 +58,27 @@ class TextCell: BaseTableViewCell {
         }
     }
     
+    func applyTheme() {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.backgroundColor = FlatBlack()
+            self.titleLabel?.textColor = UIColor(colorLiteralRed: 0.62, green: 0.65, blue: 0.72, alpha: 1.0)
+            self.descLabel?.textColor = FlatWhiteDark()
+            self.infoLabel?.textColor = FlatWhite()
+            self.dateLabel?.textColor = FlatWhite()
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
+            self.selectedBackgroundView = bg
+        } else {
+            self.backgroundColor = UIColor.whiteColor()
+            self.titleLabel?.textColor = UIColor.blackColor()
+            self.descLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
+            self.infoLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
+            self.dateLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
+            self.selectedBackgroundView = bg
+        }
+    }
 }

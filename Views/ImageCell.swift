@@ -10,7 +10,7 @@ import UIKit
 import SDWebImage
 import ChameleonFramework
 
-class ImageCell: BaseTableViewCell {
+class ImageCell: UITableViewCell {
     
     lazy var picture: UIImageView! = {
         return self.viewWithTag(1) as! UIImageView
@@ -32,11 +32,8 @@ class ImageCell: BaseTableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        
+        self.applyTheme()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ImageCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
@@ -81,5 +78,27 @@ class ImageCell: BaseTableViewCell {
         }
 
         self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: [], progress: _progress, completed: _completion)
+    }
+    
+    func applyTheme() {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.backgroundColor = FlatBlack()
+            self.titleLabel?.textColor = UIColor(colorLiteralRed: 0.62, green: 0.65, blue: 0.72, alpha: 1.0)
+            self.infoLabel?.textColor = FlatWhite()
+            self.dateLabel?.textColor = FlatWhite()
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
+            self.selectedBackgroundView = bg
+        } else {
+            self.backgroundColor = UIColor.whiteColor()
+            self.titleLabel?.textColor = UIColor.blackColor()
+            self.infoLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
+            self.dateLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
+            self.selectedBackgroundView = bg
+        }
     }
 }

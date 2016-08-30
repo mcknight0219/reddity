@@ -25,13 +25,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      
      @discussion The `guest` is the user without logging into reddit.com
      */
-    var user: String {
-        get {
-            return self.user ?? "guest"
-        }
-        
-        set {
-            if newValue == self.user { return }
+    var user: String = "guest" {
+        didSet {
+            if self.user == oldValue { return }
             NSUserDefaults.standardUserDefaults().setObject(user, forKey: "User")
         }
     }
@@ -97,9 +93,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         meVC.modalTransitionStyle = .CrossDissolve
         meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: FlatOrange(), size: CGSizeMake(37, 37)), tag: 3)
 
-        tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController($0) }
+        tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController(rootViewController: $0) }
         // Select Browse tab on starup
-        tabBarVC.selectedIndex = 1
+        tabBarVC.selectedIndex = 0
         tabBarVC.tabBar.tintColor = FlatOrange()
 
         self.presentVC(tabBarVC, withToken: true)
