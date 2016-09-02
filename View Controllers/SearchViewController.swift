@@ -65,12 +65,10 @@ class SearchViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView = UITableView(frame: CGRectMake(0, 20, view.frame.width, view.frame.height-20))
+        tableView = UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
         tableView.delegate = self
         tableView.dataSource = self
         
-        navigationController?.setNavigationBarHidden(true, animated: false)
-        definesPresentationContext = true
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
         tableView.registerNib(UINib(nibName: "LinkCell", bundle: nil), forCellReuseIdentifier: "LinkCell")
@@ -84,39 +82,27 @@ class SearchViewController: UIViewController {
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(true, animated: false)
-    }
-    
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            return .LightContent
-        } else {
-            return .Default
-        }
+        //navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     func setupUI() {
-        self.tableView.tableHeaderView = self.searchController.searchBar
+        definesPresentationContext = true
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
-        edgesForExtendedLayout = .None
+        //edgesForExtendedLayout = .None
+        automaticallyAdjustsScrollViewInsets = true
         self.searchController.searchBar.searchBarStyle = .Minimal
-        self.searchController.searchBar.sizeToFit()
-        self.searchController.dimsBackgroundDuringPresentation = false
-        self.searchController.searchBar.showsScopeBar = false
+        navigationItem.titleView = self.searchController.searchBar
+        
+        searchController.hidesNavigationBarDuringPresentation = false
     
         self.applyTheme()
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-    }
-    
-    override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        self.searchController.searchBar.sizeToFit()
     }
     
     deinit {
@@ -143,6 +129,12 @@ class SearchViewController: UIViewController {
             self.searchController.searchBar.tintColor = FlatOrange()
             self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
+        }
+        
+        for subView in searchController.searchBar.subviews {
+            if let scopeBar = subView as? UISegmentedControl {
+                scopeBar.backgroundColor = ThemeManager.defaultManager.currentTheme == "Dark" ? FlatBlackDark() : UIColor.whiteColor()
+            }
         }
     }
 
@@ -175,7 +167,11 @@ class SearchViewController: UIViewController {
 
 extension SearchViewController: UITableViewDelegate {
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 44
+        if currentTableContent == .History {
+            return 44
+        } else  {
+            return 100
+        }
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
@@ -325,11 +321,10 @@ extension SearchViewController: UISearchResultsUpdating {
 
 extension SearchViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        self.searchController.active = false
-
-        searchBar.scopeButtonTitles = nil
+        searchBar.resignFirstResponder()
+        //self.searchController.active = false
         // On cancel, show search history 
-        NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
+        //NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
     }
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
@@ -354,9 +349,7 @@ extension SearchViewController: UISearchBarDelegate {
     
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool {
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Subreddit.rawValue)
-        searchBar.scopeButtonTitles = ["Title", "Subreddit"]
-        searchBar.selectedScopeButtonIndex = 0
-        
+    
         return true
     }
 }
