@@ -6,7 +6,7 @@
 //  Copyright © 2016 Qiang Guo. All rights reserved.
 //
 
-
+import UIKit
 /**
  This class implements the interface to reddit settings.
  */
@@ -23,7 +23,7 @@ class PreferenceManager {
     @discussion The updates will be written to remote API only once before application resigns. 
     */
     lazy var subscriptions: [Subreddit] = {
-
+        return [Subreddit]()
     }()
 
     init() {
@@ -33,7 +33,7 @@ class PreferenceManager {
     func syncSubscription() {
         let subscriptionResource = Resource(url: "/subreddits/mine/subscriber", method: .GET, parser: subredditsParser)
         apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { [weak self]  (subs) -> Void in
-            self?.subscriptions = subs
+            self?.subscriptions = subs!
         }
     }
 }
