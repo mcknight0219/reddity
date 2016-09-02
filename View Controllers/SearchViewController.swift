@@ -51,6 +51,8 @@ class SearchViewController: UIViewController {
     var currentTableContent: TableContent = .History
     
     var tableView: UITableView!
+
+    var scopeBar: UISegmentedControl!
     
     // Trigger a new search only after user pause for a while
     private var timer: NSTimer?
@@ -68,6 +70,15 @@ class SearchViewController: UIViewController {
         tableView = UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
         tableView.delegate = self
         tableView.dataSource = self
+
+        let headerView = UIView(frame: CGRectMake(0, 0, view.frame.width, 44))
+        scopeBar = UISegmentedControl(items: ["Title", "Subreddit"])
+        scopeBar.selectedSegmentIndex = 0
+        scopeBar.addTarget(self, action: #selector(SearchViewcontroller.scopeBarDidChange(_:)), forControlEvents: UIControlEvents.ValueChanged)
+        headerView.addSubview(scopeBar)
+        headerView.layer.cornerRadius = CGRectGetHeight(headerView.bounds) / 2
+        headerView.borderWidth = 1
+        tableView.tableHeaderView = headerView
         
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
@@ -91,7 +102,7 @@ class SearchViewController: UIViewController {
         self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
-        //edgesForExtendedLayout = .None
+        edgesForExtendedLayout = .None
         automaticallyAdjustsScrollViewInsets = true
         self.searchController.searchBar.searchBarStyle = .Minimal
         navigationItem.titleView = self.searchController.searchBar
@@ -117,8 +128,9 @@ class SearchViewController: UIViewController {
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
             self.tableView.indicatorStyle = .White
             self.searchController.searchBar.barTintColor = FlatBlackDark()
-            self.searchController.searchBar.tintColor = FlatOrange()
+            self.searchController.searchBar.tintColor = FlatBlueDark()
             self.searchController.searchBar.backgroundColor = FlatBlackDark()
+            self.scopeBar.tintColor = FlatBlueDark()
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = FlatOrange()
         } else {
             view.backgroundColor = UIColor.whiteColor()
@@ -128,6 +140,7 @@ class SearchViewController: UIViewController {
             self.searchController.searchBar.barTintColor = FlatWhiteDark()
             self.searchController.searchBar.tintColor = FlatOrange()
             self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
+            self.scopeBar.tintColor = FlatOrange()
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
         }
         
@@ -136,6 +149,10 @@ class SearchViewController: UIViewController {
                 scopeBar.backgroundColor = ThemeManager.defaultManager.currentTheme == "Dark" ? FlatBlackDark() : UIColor.whiteColor()
             }
         }
+    }
+
+    func scopeBarDidChange(scopeBar: UISegmentedControl) {
+            NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: currentTableContent.rawValue)
     }
 
     func onContextSwitch(notification: NSNotification) {
@@ -339,14 +356,6 @@ extension SearchViewController: UISearchBarDelegate {
         }
     }
 
-    func searchBar(searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
-        if selectedScope == 0 {
-            NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Subreddit.rawValue)
-        } else {
-            NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Link.rawValue)
-        }
-    }
-    
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool {
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Subreddit.rawValue)
     

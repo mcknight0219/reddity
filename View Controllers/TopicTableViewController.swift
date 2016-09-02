@@ -78,7 +78,9 @@ extension TopicTableViewController {
     }
     
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        // Goto story screen
+        let aLink = self.dataSource.topicAtIndexPath(indexPath)!
+
+        let detailsVC = DetailsViewController()
     }
     
     override func scrollViewDidScroll(scrollView: UIScrollView) {
