@@ -136,7 +136,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {        
                 do {
                     try self.database!.executeUpdate("CREATE TABLE users(id TEXT PRIMARY KEY, timestamp TEXT)", values: nil)
-                    try self.database!.executeUpdate("CREATE TABLE search_history(term TEXT, timestamp TEXT, user TEXT, FOREIGN KEY(user) REFERENCES users(id))", values: nil)
+                    try self.database!.executeUpdate("CREATE TABLE search_history(term TEXT, timestamp TEXT, scope INT, ser TEXT, FOREIGN KEY(user) REFERENCES users(id))", values: nil)
                     try self.database!.executeUpdate("CREATE TABLE subreddits(id TEXT PRIMARY KEY, name TEXT, title TEXT, displayName TEXT, subscribers INT, imageURL TEXT)", values: nil)
                     try self.database!.executeUpdate("CREATE TABLE subscriptions(id INTEGER PRIMARY KEY, user TEXT, subreddit TEXT, timestamp TEXT, FOREIGN KEY(user) REFERENCES users(id), FOREIGN KEY(subreddit) REFERENCES subreddits(id))", values: nil)
 
@@ -147,6 +147,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 }
             }
         }
+    }
+
+    /**
+     *  Clean up the database. This is mostly for debugging purpose
+     *  
+     * @parameter  deleteTables     Whether to delete tables when cleaning up
+     */
+    private func cleanUpDB(deleteTables: Bool = false) {
+        if let db = self.database {
+            ["users", "search_history", "subreddits", "subscriptions"].flatMap { tn in
+                do {
+                    if deleteTables { db.executeUpdate("DROP TABLE ") } 
+                    else { try db.executeUpdate("TRUNCATE TABLE \(tn)") }
+                } catch let error as NSError {
+                        print("failed: \(error.localizedDescription)")
+                }
+            }
+            return
+        }
+        print("failed: database is not opened.")
     }
 
     func applicationWillResignActive(application: UIApplication) {
@@ -170,7 +190,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(application: UIApplication) {
         database?.close()
     }
-
-
 }
 

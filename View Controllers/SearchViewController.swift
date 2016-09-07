@@ -12,6 +12,8 @@ import ChameleonFramework
 
 let kFetchMoreResultsNotification = "FetchMoreResultsNotification"
 let kChangeSearchResultsContext = "ChangeSearchResultsContext"
+let kTriggerSearchWithTerm = "TriggerSearchWithTerm"
+let kLoadMoreSearchResults = "LoadMoreSearchResults"
 
 /**
  This multi-purpose tableview will handle thress kinds of content.
@@ -46,6 +48,11 @@ class SearchViewController: UIViewController {
     var history = [String]()
 
     /**
+     Holds the scope information for search history item
+     */
+    var historyScope = [Int]()
+
+    /**
      The current displaying content of `tableView`
      */
     var currentTableContent: TableContent = .History
@@ -53,6 +60,11 @@ class SearchViewController: UIViewController {
     var tableView: UITableView!
 
     var scopeBar: UISegmentedControl!
+
+    /**
+     * @discussion We put it here because it needs change according to theme
+     */
+    var separatorView: UIView!
     
     // Trigger a new search only after user pause for a while
     private var timer: NSTimer?
@@ -60,9 +72,39 @@ class SearchViewController: UIViewController {
     // Record the text in search bar from lastest state
     private var prevText: String = ""
     
-    /// Cache the searched results so we don't make redundant api calls
+    // Cache the searched results so we don't make redundant api calls
     private var cache = [String:AnyObject]()
+
+    // The `after` flag in search api call for title search
+    private var afterTitle: String = ""
+
+    // The `after` flag in search api call for subreddit search
+    private var afterSubreddit: String = ""
     
+    // For placeholder view when history is empty
+    lazy var backgroundView: UIView = {
+        let background = UIView()
+        
+        let image = UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50)))        
+        background.addSubview(image)
+        image.center = CGSizeMake(UIScreen.mainScreen().bounds.width / 2, UIScreen.mainScreen().bounds.height / 2 - 150)
+
+        let label = UILabel()
+        label.text = "You can search subreddits name and title"
+        label.font = UIFont(name: "Lato-Regular", size: 18)!
+        label.textColor = FlatWhiteDark()
+        label.numberOfLines = 0
+        label.textAlignment = .Center
+        background.addSubview(label)
+        label.snp_makeConstraints { make in
+            make.leading.equalTo(background).offset(25)
+            make.trailing.equalTo(background).offset(-25)
+            make.top.equalTo(image.snp_bottom).offset(5)
+        }
+
+        return background
+    }()
+
     // MARK: - Life Cycle
     
     override func viewDidLoad() {
@@ -70,6 +112,8 @@ class SearchViewController: UIViewController {
         tableView = UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
         tableView.delegate = self
         tableView.dataSource = self
+        // The tabbar height is always 49
+        tableView.contentInset = UIEdgeInsetsMake(0, 0, 49,0)
 
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 44))
         headerView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
@@ -86,26 +130,24 @@ class SearchViewController: UIViewController {
         let wrapper = UIView(frame: headerView.bounds)
         wrapper.addSubview(headerView)
         
-        let separatorView = UIView(frame: CGRectMake(0, headerView.frame.height-1, headerView.frame.width, 1))
-        separatorView.backgroundColor = UIColor(white: 224/255, alpha: 1.0)
-        headerView.addSubview(separatorView)
+        self.separatorView = UIView(frame: CGRectMake(0, headerView.frame.height-1, headerView.frame.width, 1))
+        headerView.addSubview(self.separatorView)
         
         tableView.tableHeaderView = wrapper
-        
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
         tableView.registerNib(UINib(nibName: "LinkCell", bundle: nil), forCellReuseIdentifier: "LinkCell")
 
-        setupUI()
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.onContextSwitch), name: kChangeSearchResultsContext, object: nil)
-
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.loadMoreContent), name: kLoadMoreSearchResults, object: nil)
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
+
+        setupUI()
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
-        //navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
     func setupUI() {
@@ -118,8 +160,10 @@ class SearchViewController: UIViewController {
         automaticallyAdjustsScrollViewInsets = false
         self.searchController.searchBar.searchBarStyle = .Minimal
         navigationItem.titleView = self.searchController.searchBar
-        
         searchController.hidesNavigationBarDuringPresentation = false
+        // remove the bottom 1x border
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarPosition: .Any, barMetrics: .Default)
+        navigationController?.navigationBar.shadowImage = UIImage()
     
         self.applyTheme()
     }
@@ -131,6 +175,7 @@ class SearchViewController: UIViewController {
     deinit {
         self.searchController.view.removeFromSuperview()
         self.searchController.removeFromParentViewController()
+        if let timer = self.timer { timer.invalidate() }
     }
 
     func applyTheme() {
@@ -140,12 +185,13 @@ class SearchViewController: UIViewController {
             self.tableView.tableHeaderView?.backgroundColor = FlatBlackDark()
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
             self.tableView.indicatorStyle = .White
-            self.searchController.searchBar.barTintColor = FlatBlackDark()
-            self.searchController.searchBar.tintColor = FlatBlueDark()
+            self.searchController.searchBar.barTintColor = FlatDark()
+            self.searchController.searchBar.tintColor = FlatOrange()
             self.searchController.searchBar.backgroundColor = FlatBlackDark()
-            self.scopeBar.tintColor = FlatBlueDark()
-            self.scopeBar.layer.borderColor = FlatBlueDark().CGColor
-            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = FlatOrange()
+            self.scopeBar.tintColor = FlatOrange()
+            self.scopeBar.layer.borderColor = FlatOrange().CGColor
+            self.separatorView.backgroundColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
+            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = FlatWhite()
         } else {
             view.backgroundColor = UIColor.whiteColor()
             self.tableView.backgroundColor = UIColor.whiteColor()
@@ -157,6 +203,7 @@ class SearchViewController: UIViewController {
             self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
             self.scopeBar.tintColor = FlatOrange()
             self.scopeBar.layer.borderColor = FlatOrange().CGColor
+            self.separatorView.backgroundColor = UIColor(white: 224/255, alpha: 1.0)
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
         }
         
@@ -168,36 +215,50 @@ class SearchViewController: UIViewController {
     }
 
     func scopeBarDidChange(scopeBar: UISegmentedControl) {
-            NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: currentTableContent.rawValue)
+        NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: currentTableContent.rawValue)
     }
 
+    
     func onContextSwitch(notification: NSNotification) {
         self.currentTableContent = TableContent(rawValue: notification.object as! String)!
         
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-            self.history = []
-            self.links = []
-            self.subreddits = []
+            self.history.removeAll()
+            self.links.removeAll()
+            self.subreddits.removeAll()
             
             switch self.currentTableContent {
             case .History:
                     let app = UIApplication.sharedApplication().delegate as! AppDelegate
-                    let rs = try! app.database!.executeQuery("SELECT term FROM search_history WHERE user = ?", values: [app.user])
+                    let rs = try! app.database!.executeQuery("SELECT term, scope FROM search_history WHERE user = ?", values: [app.user])
                     while rs.next() {
                         let term = rs.stringForColumn("term")    
                         self.history.append(term)
                     }
+
                     dispatch_async(dispatch_get_main_queue()) {
+                        if self.history.count == 0 { 
+                            self.tableView.backgroundView = self.backgroundView
+                            return
+                        }
                         self.tableView.reloadData()
                     }
                 break
             default:
+                // If the search field is not empty, the context switch will trigger search
+                // of the term within new scope
+                let text = self.searchController.searchBar.text
+                if !text.isEmpty {
+                    self.emulateTriggerSearchWith(text)    
+                }
+
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
                 }
             }   
         }
     }
+
 }
 
 extension SearchViewController: UITableViewDelegate {
@@ -205,15 +266,29 @@ extension SearchViewController: UITableViewDelegate {
         if currentTableContent == .History {
             return 44
         } else  {
-            return 100
+            return 88
         }
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let row = indexPath.row
+
         if currentTableContent == .History {
-            
+            if row == self.history.count {
+                // Delete all history for this user
+                let app = UIApplication.sharedApplication().delegate as! AppDelegate
+                do {
+                    try app.database!.executeUpdate("DELETE FROM search_history WHERE user = ?", values: [app.user])
+                } catch let error as NSError {
+                    print("failed: \(error.localizedDescription)")
+                }
+
+                NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
+                return  
+            }                    
+            self.emulateTriggerSearchWith(self.history[row])
         } else if currentTableContent == .Subreddit {
-            let subreddit = self.subreddits[indexPath.row]
+            let subreddit = self.subreddits[row]
             let timelineVC = HomeViewController(subredditName: subreddit.displayName)
             timelineVC.hidesBottomBarWhenPushed = true
             timelineVC.isFromSearch = true
@@ -221,7 +296,11 @@ extension SearchViewController: UITableViewDelegate {
             
             navigationController?.pushViewController(timelineVC, animated: true)
         } else {
-            
+           let link = self.links[row] 
+           let detailVC = DetailsViewController()
+           detailVC.hidesBottomBarWhenPushed = true
+
+           navigationController?.pushViewController(detailVC, animated: true)
         }
     }
 
@@ -230,6 +309,10 @@ extension SearchViewController: UITableViewDelegate {
         let headerView = self.tableView.tableHeaderView?.subviews[0]
         // Always keep scope bar at the top when pulling down.
         headerView?.transform = CGAffineTransformMakeTranslation(0, min(0, offsetY))
+
+        if offsetY > scrollView.contentSize.height - scrollView.frame.size.height {
+            NSNotificationCenter.defaultCenter().postNotificationName(kLoadMoreSearchResults)
+        }
     }
 }
 
@@ -241,6 +324,7 @@ extension SearchViewController: UITableViewDataSource {
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch currentTableContent {
         case .History:
+            // The plus one is for "Clear the recent search" item
             return self.history.count + 1
         case .Link:
             return self.links.count
@@ -255,14 +339,14 @@ extension SearchViewController: UITableViewDataSource {
      */
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         if currentTableContent == .Subreddit {
-            let cell = self.tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
+            let cell = tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
             let sub = self.subreddits[indexPath.row]
             cell.loadCell(sub)
 
             return cell
 
         } else if currentTableContent == .Link {
-            var cell = self.tableView.dequeueReusableCellWithIdentifier("LinkCell")
+            var cell = tableView.dequeueReusableCellWithIdentifier("LinkCell")
             if cell == nil {
                 cell = BaseTableViewCell(style: .Default, reuseIdentifier: "LinkCell")
             }
@@ -273,7 +357,7 @@ extension SearchViewController: UITableViewDataSource {
 
             return cell!
         } else {
-            var cell = self.tableView.dequeueReusableCellWithIdentifier("HistoryCell")
+            var cell = tableView.dequeueReusableCellWithIdentifier("HistoryCell")
             if cell == nil {
                 cell = BaseTableViewCell(style: .Default, reuseIdentifier: "HistoryCell")
             }
@@ -282,7 +366,6 @@ extension SearchViewController: UITableViewDataSource {
             } else {
                 cell!.textLabel?.text = "Clear recent search"
             }
-            
 
             return cell!
         }
@@ -303,12 +386,10 @@ extension SearchViewController: UITableViewDataSource {
 
 }
 
+// MARK: - UISearchResultUpdating
 
 extension SearchViewController: UISearchResultsUpdating {
     func updateSearchResultsForSearchController(searchController: UISearchController) {
-        if self.searchController.dimsBackgroundDuringPresentation {
-            self.searchController.dimsBackgroundDuringPresentation = false
-        }
         
         if let text = searchController.searchBar.text {
             if text.isEmpty { return }
@@ -319,7 +400,6 @@ extension SearchViewController: UISearchResultsUpdating {
                     dispatch_async(dispatch_get_main_queue()) {
                         self.tableView.reloadData()
                     }
-                    
                     return
                 }
                 
@@ -332,46 +412,102 @@ extension SearchViewController: UISearchResultsUpdating {
         }
     }
     
+    /**
+     @discussion Underlying we rely on timer-based mechanisim to perform searching.
+     This function will re-schdule a dummy timer.   
+     */
+    func emulateTriggerSearchWith(text: String) {
+        if let timer = self.timer { timer.invalidate() }
+        self.timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: #selector(SearchViewController.triggerSearchWith(_:)), userInfo: text, repeats: false)
+    }
+
     func triggerSearchWith(timer: NSTimer) {
-        var resource: Resource<Any>
-        if self.currentTableContent == .Subreddit {
-            resource = Resource(url: "/subreddits/search", method: .GET, parser: subredditsParser)
-        } else {
-            resource =  Resource(url: "/search", method: .GET, parser: linkParser)
+        guard self.currentTableContent != .History {
+            return
+        } 
+
+        let text = timer.userInfo as! String
+        (self.currentTableContent == .Subreddit) ? searchSubredditAndUpdate(text) : searchTitleAndUpdate(text)
+    }
+
+    func loadMoreContent() {
+        guard self.currentTableContent != TableContent.History {
+            return
         }
         
-        var text = timer.userInfo as! String
-        if self.currentTableContent == .Link { text = "title:\(text)" }
+        let text = self.searchController?.searchBar.text
+        (self.currentTableContent == .Subreddit) ? searchSubredditAndUpdate(text, after: afterSubreddit) : searchTitleAndUpdate(text, after: afterTitle)
+    }
 
-        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q" : text, "limit" : "45"]) { [unowned self] (subs) -> Void in
+    private func searchTitleAndUpdate(title: String, after: String = "") {
+        var resource =  Resource(url: "/search", method: .GET, parser: linkParser)
+        let text = "title:\(title)"
+
+        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q": text, "limit": "100", "after": after]) { [unowned self] (links) -> Void in
             NetworkActivityIndicator.decreaseActivityCount()
-            
-            if let subs = subs as? [Subreddit]{
-                self.subreddits = subs
+
+            if let links = links {
+                self.links.append(links)
+                self.afterTitle =  links.last.name
+
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.tableView.reloadData()
+                }
+            }
+        }
+    }
+
+    private func searchSubredditAndUpdate(subreddit: String, after: String = "") {
+        var resource = Resource(url: "/subreddits/search", method: .GET, parser: subredditsParser)
+        
+        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q" : text, "limit" : "45", after: after]) { [unowned self] (subs) -> Void in
+            NetworkActivityIndicator.decreaseActivityCount()
+
+            if let subs = subs {
+                self.subreddits.append(subs)
+                self.afterSubreddit = subs.last.name
+
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
                 }
             }
 
-            // Remember the searched text only on success.
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-                let app = UIApplication.sharedApplication().delegate as! AppDelegate
-                do {
-                    try app.database!.executeUpdate("INSERT INTO search_history(term, timestamp, user) values(?, ?, ?)", values: [text, NSDate.sqliteDate(), app.user])
-                } catch let err as NSError {
-                    print("failed: \(err.localizedDescription)")
-                }
+            // Remember the searched text only on successi and the term is more than a word.
+            if text.characters.count > 3 { 
+                self.recordSeachHistory() 
             }
+
         }
     }
+
+    private func recordSeachHistory() {
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+            let app = UIApplication.sharedApplication().delegate as! AppDelegate
+            do {
+                // update the timestamp of history term
+                let rs = try app.database!.executeQuery("SELECT * FROM search_history WHERE term = ? AND user = ?", values: [text, app.user])
+                if rs.next() {
+                    try app.database!.executeUpdate("UPDATE search_history SET timestamp = ? WHERE term = ? AND user = ?", values: [ NSDate.sqliteDate(), text, app.user])
+                    return
+                }
+
+                try app.database!.executeUpdate("INSERT INTO search_history(term, timestamp, scope, user) values(?, ?, ?, ?)", values: [text, NSDate.sqliteDate(), scopeBar. app.user])
+            } catch let err as NSError {
+                print("failed: \(err.localizedDescription)")
+            }
+        }
+
+    }
 }
+
+// MARK: - UISearchBarDelegate
 
 extension SearchViewController: UISearchBarDelegate {
     func searchBarCancelButtonClicked(searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
         //self.searchController.active = false
         // On cancel, show search history 
-        //NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
+        NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
     }
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
