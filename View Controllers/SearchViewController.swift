@@ -71,14 +71,26 @@ class SearchViewController: UIViewController {
         tableView.delegate = self
         tableView.dataSource = self
 
-        let headerView = UIView(frame: CGRectMake(0, 0, view.frame.width, 44))
+        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 44))
+        headerView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
         scopeBar = UISegmentedControl(items: ["Title", "Subreddit"])
+        scopeBar.frame = CGRectMake(0, 0, headerView.frame.width - 120, headerView.frame.height - 13)
+        scopeBar.center = headerView.center
         scopeBar.selectedSegmentIndex = 0
-        scopeBar.addTarget(self, action: #selector(SearchViewcontroller.scopeBarDidChange(_:)), forControlEvents: UIControlEvents.ValueChanged)
+        scopeBar.addTarget(self, action: #selector(SearchViewController.scopeBarDidChange(_:)), forControlEvents: UIControlEvents.ValueChanged)
         headerView.addSubview(scopeBar)
-        headerView.layer.cornerRadius = CGRectGetHeight(headerView.bounds) / 2
-        headerView.borderWidth = 1
-        tableView.tableHeaderView = headerView
+        scopeBar.clipsToBounds = true
+        scopeBar.layer.cornerRadius = CGRectGetHeight(scopeBar.bounds) / 2
+        scopeBar.layer.borderWidth = 1
+        
+        let wrapper = UIView(frame: headerView.bounds)
+        wrapper.addSubview(headerView)
+        
+        let separatorView = UIView(frame: CGRectMake(0, headerView.frame.height-1, headerView.frame.width, 1))
+        separatorView.backgroundColor = UIColor(white: 224/255, alpha: 1.0)
+        headerView.addSubview(separatorView)
+        
+        tableView.tableHeaderView = wrapper
         
         view.addSubview(tableView)
         tableView.registerNib(UINib(nibName: "SubredditCell", bundle: nil), forCellReuseIdentifier: "SubredditCell")
@@ -103,7 +115,7 @@ class SearchViewController: UIViewController {
         self.tableView.tableFooterView = UIView()
         
         edgesForExtendedLayout = .None
-        automaticallyAdjustsScrollViewInsets = true
+        automaticallyAdjustsScrollViewInsets = false
         self.searchController.searchBar.searchBarStyle = .Minimal
         navigationItem.titleView = self.searchController.searchBar
         
@@ -125,22 +137,26 @@ class SearchViewController: UIViewController {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             view.backgroundColor = FlatBlackDark()
             self.tableView.backgroundColor = FlatBlackDark()
+            self.tableView.tableHeaderView?.backgroundColor = FlatBlackDark()
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
             self.tableView.indicatorStyle = .White
             self.searchController.searchBar.barTintColor = FlatBlackDark()
             self.searchController.searchBar.tintColor = FlatBlueDark()
             self.searchController.searchBar.backgroundColor = FlatBlackDark()
             self.scopeBar.tintColor = FlatBlueDark()
+            self.scopeBar.layer.borderColor = FlatBlueDark().CGColor
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = FlatOrange()
         } else {
             view.backgroundColor = UIColor.whiteColor()
-            self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
+            self.tableView.backgroundColor = UIColor.whiteColor()
+            self.tableView.tableHeaderView?.backgroundColor = UIColor.whiteColor()
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.tableView.indicatorStyle = .Default
             self.searchController.searchBar.barTintColor = FlatWhiteDark()
             self.searchController.searchBar.tintColor = FlatOrange()
             self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
             self.scopeBar.tintColor = FlatOrange()
+            self.scopeBar.layer.borderColor = FlatOrange().CGColor
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
         }
         
@@ -159,6 +175,10 @@ class SearchViewController: UIViewController {
         self.currentTableContent = TableContent(rawValue: notification.object as! String)!
         
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+            self.history = []
+            self.links = []
+            self.subreddits = []
+            
             switch self.currentTableContent {
             case .History:
                     let app = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -172,8 +192,6 @@ class SearchViewController: UIViewController {
                     }
                 break
             default:
-                self.links = []
-                self.subreddits = []
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
                 }
@@ -192,19 +210,26 @@ extension SearchViewController: UITableViewDelegate {
     }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let subreddit = self.subreddits[indexPath.row]
-        let timelineVC = HomeViewController(subredditName: subreddit.displayName)
-        timelineVC.hidesBottomBarWhenPushed = true
-        timelineVC.isFromSearch = true
-        timelineVC.subreddit = subreddit
-        
-        navigationController?.pushViewController(timelineVC, animated: true)
+        if currentTableContent == .History {
+            
+        } else if currentTableContent == .Subreddit {
+            let subreddit = self.subreddits[indexPath.row]
+            let timelineVC = HomeViewController(subredditName: subreddit.displayName)
+            timelineVC.hidesBottomBarWhenPushed = true
+            timelineVC.isFromSearch = true
+            timelineVC.subreddit = subreddit
+            
+            navigationController?.pushViewController(timelineVC, animated: true)
+        } else {
+            
+        }
     }
 
     func scrollViewDidScroll(scrollView: UIScrollView) {
-        if  scrollView.contentOffset.y > scrollView.contentSize.height - scrollView.frame.size.height - 350 {
-            NSNotificationCenter.defaultCenter().postNotificationName("NeedTopicPrefetchNotification", object: nil)
-        }
+        let offsetY = scrollView.contentOffset.y
+        let headerView = self.tableView.tableHeaderView?.subviews[0]
+        // Always keep scope bar at the top when pulling down.
+        headerView?.transform = CGAffineTransformMakeTranslation(0, min(0, offsetY))
     }
 }
 
@@ -216,7 +241,7 @@ extension SearchViewController: UITableViewDataSource {
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch currentTableContent {
         case .History:
-            return self.history.count
+            return self.history.count + 1
         case .Link:
             return self.links.count
         case .Subreddit:
@@ -252,7 +277,12 @@ extension SearchViewController: UITableViewDataSource {
             if cell == nil {
                 cell = BaseTableViewCell(style: .Default, reuseIdentifier: "HistoryCell")
             }
-            cell!.textLabel?.text = self.history[indexPath.row]
+            if indexPath.row < self.history.count {
+                cell!.textLabel?.text = self.history[indexPath.row]
+            } else {
+                cell!.textLabel?.text = "Clear recent search"
+            }
+            
 
             return cell!
         }
