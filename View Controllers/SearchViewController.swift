@@ -221,6 +221,7 @@ class SearchViewController: UIViewController {
     
     func onContextSwitch(notification: NSNotification) {
         self.currentTableContent = TableContent(rawValue: notification.object as! String)!
+        self.tableView.backgroundView = nil
         
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
             self.history.removeAll()
@@ -338,9 +339,10 @@ extension SearchViewController: UITableViewDataSource {
      However, these three cells are so different that it's not intuitive to abstract them.
      */
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let row = indexPath.row
         if currentTableContent == .Subreddit {
             let cell = tableView.dequeueReusableCellWithIdentifier("SubredditCell", forIndexPath: indexPath) as! SubredditCell
-            let sub = self.subreddits[indexPath.row]
+            let sub = self.subreddits[row]
             cell.loadCell(sub)
 
             return cell
@@ -351,7 +353,7 @@ extension SearchViewController: UITableViewDataSource {
                 cell = BaseTableViewCell(style: .Default, reuseIdentifier: "LinkCell")
             }
 
-            let link = self.links[indexPath.row]
+            let link = self.links[row]
             cell!.imageView?.sd_setImageWithURL(link.url, placeholderImage: UIImage.imageFilledWithColor(FlatWhite()))
             cell!.textLabel?.text = link.title
 
@@ -362,7 +364,7 @@ extension SearchViewController: UITableViewDataSource {
                 cell = BaseTableViewCell(style: .Default, reuseIdentifier: "HistoryCell")
             }
             if indexPath.row < self.history.count {
-                cell!.textLabel?.text = self.history[indexPath.row]
+                cell!.textLabel?.text = self.history[row]
             } else {
                 cell!.textLabel?.text = "Clear recent search"
             }

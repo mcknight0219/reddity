@@ -59,6 +59,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("isFirstTime") as? Bool ?? true
         self.openDB(isFirstTime)
         
+        Reachability.sharedInstance.startNotifier()
         if isFirstTime {
             if isFirstTime { NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isFirstTime") }
             
@@ -68,7 +69,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             return true
         }
-        ReachabilityManager.sharedInstance?.startMonitoring()
         
         self.pushTabbar()
         return true

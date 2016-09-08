@@ -1,5 +1,5 @@
 //
-//  Reachability.swift
+//  ReachabilityManager.swift
 //  Reddity
 //
 //  Created by Qiang Guo on 2016-08-04.
@@ -9,14 +9,12 @@
 import UIKit
 import SystemConfiguration
 
-/*
- The network reachability manager class notifies about changes of networking
- condition. Call startMonitoring() when app starts and then rest of the app
- could access the reachability by checking status ivar
-*/
-public class ReachabilityManager {
-    
-    public static var sharedInstance = ReachabilityManager()
+
+let kNetworkReachabilityChanged = "NetworkReachabilityChanged"
+
+public class Reachability {
+
+    public static let sharedInsatance = Reachability()
     
     public enum ReachabilityStatus {
         case Unknown
@@ -29,56 +27,70 @@ public class ReachabilityManager {
         case WWAN
     }
     
-    let reachability: SCNetworkReachabilityRef
-    var flags = SCNetworkReachabilityFlags() {
-        didSet {
-            status = self.reachabilityStatusFromFlags(flags)
+    let reachabilityRef: SCNetworkReachabilityRef
+        
+    var status: ReachabilityStatus {
+        get {
+            var flags: SCNetworkReachabilityFlags = []
+            if SCNetworkReachabilityGetFlags(self.reachabilityRef, &flags) {
+                return reachabilityStatusFromFlags(flags)
+            }
+            return .Unknown
         }
     }
     
-    var status: ReachabilityStatus = .Unknown
-    
-    lazy var sharedQueue: dispatch_queue_t = {
-        dispatch_queue_create("reddity.reachability", DISPATCH_QUEUE_SERIAL)
-    }()
-    
-    private init?() {
+    init?() {
         var address = sockaddr_in()
         address.sin_len = UInt8(sizeofValue(address))
         address.sin_family = sa_family_t(AF_INET)
         
-        guard let reachability = withUnsafePointer(&address, {
+        guard let reachabilityRef = withUnsafePointer(&address, {
             SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
         }) else { return nil }
         
-        self.reachability = reachability
+        self.reachabilityRef = reachabilityRef
     }
-    
-    public func startMonitoring() {
-        var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
-        context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
-        
-        SCNetworkReachabilitySetCallback(reachability, { (_, flags, info) in
-            let reachability = Unmanaged<ReachabilityManager>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
-            reachability.flags = flags
-            },
-                                         &context
-        )
-        
-        SCNetworkReachabilitySetDispatchQueue(reachability, sharedQueue)
-        
-        var flags: SCNetworkReachabilityFlags = []
-        if SCNetworkReachabilityGetFlags(self.reachability, &flags) {
-            self.flags = flags
+
+    deinit() {
+        stopNotifier()
+        if reachability != nil {
+           CFRelease(reachability)
         }
     }
     
+    public func startNotifier() {
+        var context = SCNetworkReachabilityContext(version: 0, info: nil, retain: nil, release: nil, copyDescription: nil)
+        context.info = UnsafeMutablePointer(Unmanaged.passUnretained(self).toOpaque())
+
+        guard SCNetworkReachabilitySetCallback(reachabilityRef, { (_, flags, info) in
+            let reachability = Unmanaged<Reachability>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
+            NSNotificationCenter.defaultCenter().postNotficationName(kNetworkReachabilityChanged, object: reachability)
+        },
+        &context
+        ) else { 
+            print("failed: SCNetworkReachabilitySetCallback")
+            return
+        }
+
+        guard SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode) else {
+            print("failed: SCNetworkReachabilityScheduleWithRunLoop")
+        }
+    }
+
+    /**
+     No need to explicityly call this, it will be called upon desctruction of `defaultManager`, which
+     is also the end of app life-cycle.
+     */
+    public func stopNotifier() {
+        if reachabilityRef != nil {
+            SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)   
+        }
+    }
     
     func reachabilityStatusFromFlags(flags: SCNetworkReachabilityFlags) -> ReachabilityStatus {
         guard flags.contains(.Reachable) else { return .NotReachable }
         
         var status: ReachabilityStatus = .NotReachable
-        
         if !flags.contains(.ConnectionRequired) {
             status = .Reachable(.WiFi)
         }
@@ -94,16 +106,5 @@ public class ReachabilityManager {
         }
         
         return status
-    }
-    
-    public func connected() -> Bool {
-        switch self.status {
-        case .NotReachable:
-            return false
-        case .Unknown:
-            return false
-        case .Reachable(_):
-            return true
-        }
     }
 }
