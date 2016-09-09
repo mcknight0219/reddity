@@ -12,7 +12,6 @@ import SwiftyJSON
 @objc protocol TopicControllerDelegate {
     optional func topicControllerDidFinishLoading(topicController: TopicController)
     optional func topicControllerDidFailedLoading(topicController: TopicController)
-    optional func topicControllerNoNetworkConnection()
 }
 
 class TopicController: NSObject {
@@ -48,10 +47,6 @@ class TopicController: NSObject {
     
     func reload() {
         guard !busy else { return }
-        
-        if !ReachabilityManager.sharedInstance!.connected() {
-            self.delegate?.topicControllerNoNetworkConnection?()
-        }
         self.busy = true
         
         let linksResource = Resource(url: self.subredditPath, method: .GET, parser: linkParser)

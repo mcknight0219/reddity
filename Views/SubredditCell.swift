@@ -24,7 +24,8 @@ class SubredditCell: BaseTableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
+        self.applyTheme()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ImageCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
@@ -42,11 +43,16 @@ class SubredditCell: BaseTableViewCell {
     func loadCell(subreddit: Subreddit) {
         
         if let headerUrl = subreddit.headerImage {
+            self.picture.contentMode = .ScaleAspectFit
             self.picture.sd_setImageWithURL(headerUrl, placeholderImage: UIImage(named: "placeholder"))
         }
         
         self.titleLabel.text = subreddit.title
         self.descLabel.text = "\(subreddit.description)"
+    }
+    
+    override func applyTheme() {
+        
     }
     
 }

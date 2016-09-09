@@ -13,7 +13,7 @@ protocol ReachabilityUpdateProtocol {
     func updateUIWithReachability()
 }
 
-class BaseTableViewController: UITableViewController, ReachabilityUpdateProtocol {
+class BaseTableViewController: UITableViewController {
 
     private var internalReachabilityStatus = Reachability.sharedInstance.status
 
@@ -53,7 +53,7 @@ class BaseTableViewController: UITableViewController, ReachabilityUpdateProtocol
 
        
     func reachabilityChanged(notification: NSNotification) {
-        let reachability = notification as! Reachability
+        let reachability = notification.object as! Reachability
         if reachability.status == internalReachabilityStatus {
             return
         }

@@ -12,20 +12,35 @@ import SystemConfiguration
 
 let kNetworkReachabilityChanged = "NetworkReachabilityChanged"
 
+public enum ReachabilityStatus: Equatable {
+    case Unknown
+    case NotReachable
+    case Reachable(ConnectionType)
+}
+
+public enum ConnectionType {
+    case WiFi
+    case WWAN
+}
+
+public func ==(lhs: ReachabilityStatus, rhs: ReachabilityStatus) -> Bool {
+    switch (lhs, rhs) {
+    case (.Unknown, .Unknown):
+        return true
+    case (.NotReachable, .NotReachable):
+        return true
+    case (.Reachable(.WiFi), .Reachable(.WiFi)):
+        return true
+    case (.Reachable(.WWAN), .Reachable(.WWAN)):
+        return true
+    default:
+        return false
+    }
+}
+
 public class Reachability {
 
-    public static let sharedInsatance = Reachability()
-    
-    public enum ReachabilityStatus {
-        case Unknown
-        case NotReachable
-        case Reachable(ConnectionType)
-    }
-    
-    public enum ConnectionType {
-        case WiFi
-        case WWAN
-    }
+    public static let sharedInstance = Reachability()
     
     let reachabilityRef: SCNetworkReachabilityRef
         
@@ -39,23 +54,18 @@ public class Reachability {
         }
     }
     
-    init?() {
+    init() {
         var address = sockaddr_in()
         address.sin_len = UInt8(sizeofValue(address))
         address.sin_family = sa_family_t(AF_INET)
         
-        guard let reachabilityRef = withUnsafePointer(&address, {
-            SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))
-        }) else { return nil }
-        
-        self.reachabilityRef = reachabilityRef
+        self.reachabilityRef = withUnsafePointer(&address, {
+            SCNetworkReachabilityCreateWithAddress(nil, UnsafePointer($0))!
+        })
     }
 
-    deinit() {
+    deinit {
         stopNotifier()
-        if reachability != nil {
-           CFRelease(reachability)
-        }
     }
     
     public func startNotifier() {
@@ -64,7 +74,7 @@ public class Reachability {
 
         guard SCNetworkReachabilitySetCallback(reachabilityRef, { (_, flags, info) in
             let reachability = Unmanaged<Reachability>.fromOpaque(COpaquePointer(info)).takeUnretainedValue()
-            NSNotificationCenter.defaultCenter().postNotficationName(kNetworkReachabilityChanged, object: reachability)
+            NSNotificationCenter.defaultCenter().postNotificationName(kNetworkReachabilityChanged, object: reachability)
         },
         &context
         ) else { 
@@ -72,7 +82,7 @@ public class Reachability {
             return
         }
 
-        guard SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode) else {
+        if !SCNetworkReachabilityScheduleWithRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode) {
             print("failed: SCNetworkReachabilityScheduleWithRunLoop")
         }
     }
@@ -82,9 +92,7 @@ public class Reachability {
      is also the end of app life-cycle.
      */
     public func stopNotifier() {
-        if reachabilityRef != nil {
-            SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)   
-        }
+        SCNetworkReachabilityUnscheduleFromRunLoop(reachabilityRef, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode)
     }
     
     func reachabilityStatusFromFlags(flags: SCNetworkReachabilityFlags) -> ReachabilityStatus {
