@@ -73,3 +73,18 @@ func subredditsParser(json: JSON) -> [Subreddit] {
     
     return subreddits
 }
+
+/**
+ @parameter rs The current cursor of query results
+
+ @discussion use this function in caution because it doesn't check validity 
+ of `rs`
+ */
+func createSubredditFromQueryResult(rs: FMResultSet) {
+    return Subreddit(id: rs.stringForColumn("id"), 
+                displayName: rs.stringForColumn("displayName"),
+                description: "",
+                title: rs.stringForColumn("title"),
+                subscribers: rs.integerForColumn("subscribers"),
+                headerImageUrl: rs.stringForColumn("imageURL"))
+}

@@ -29,6 +29,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         didSet {
             if self.user == oldValue { return }
             NSUserDefaults.standardUserDefaults().setObject(user, forKey: "User")
+            NSNotificationCenter.defaultCenter().postNotificationName(kUserChangedNotification, object: self.user)
         }
     }
 
@@ -150,9 +151,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     /**
-     *  Clean up the database. This is mostly for debugging purpose
+     *  Clean up the database. 
      *  
      * @parameter  deleteTables     Whether to delete tables when cleaning up
+     * @discussion This is mostly for debugging purpose.
      */
     private func cleanUpDB(deleteTables: Bool = false) {
         if let db = self.database {
@@ -167,6 +169,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return
         }
         print("failed: database is not opened.")
+    }
+
+    /**
+     * Add or remove database tables in development. 
+     *
+     * @discussion this is for debugging purpose.
+     */
+    private func migrateDB() {
+        if let db = self.database {
+            try self.database!.executeUpdate("", values: nil)
+        }
     }
 
     func applicationWillResignActive(application: UIApplication) {

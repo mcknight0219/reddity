@@ -31,9 +31,5 @@ class PreferenceManager {
     }
 
     func syncSubscription() {
-        let subscriptionResource = Resource(url: "/subreddits/mine/subscriber", method: .GET, parser: subredditsParser)
-        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { [weak self]  (subs) -> Void in
-            self?.subscriptions = subs!
-        }
-    }
+            }
 }
