@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import FMDB
 
 let kUserChangedNotification  = "UserChangedNotification"
 let kSubscriptionsChangedNotification = "SubscriptionsChangedNotification"
@@ -33,61 +34,151 @@ class SubSync {
     /**
      The list of subscribed subreddit for current user
      */
-     var subs = [Subreddit]() {
-         didSet {
-             if oldValue != subs {
-                 NSNotificationCenter.defaultCenter().postNotificationName(kSubscriptionsChangedNotification, object: subs)
-             }
-         }
-     }
+    var subs = [Subreddit]() {
+        didSet {
+            if oldValue.elementsEqual(subs, isEquivalent: { $0 == $1 }) {
+                 NSNotificationCenter.defaultCenter().postNotificationName(kSubscriptionsChangedNotification, object: nil)
+            }
+            
+            self.flags.removeAll()
+            for sub in subs { self.flags[sub.id] = .Normal }
+        }
+    }
 
+    /**
+     The status of a subscribed item
+     */
+    enum SubStatus {
+        case New        // newly subscribed, need to be synchronized to local storage and remote
+        case Deleted    // deleted, need to be synchronized to local storage
+        case Normal     // no need to be synchronized
+    }
+    
+    /**
+     An dictionary of statuses for subscribed items in`sub`
+     */
+    var flags = [String:SubStatus]()
+
+    
+    // MARK: - Initializer
+    
     init() {
-        self.user = app.user 
+        self.user = app.user
 
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubSync.userDidChange(:), name: kUserChangedNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubSync.userDidChange(_:)), name: kUserChangedNotification, object: nil)
     }
 
     
-    func userDidChange(note: NSNotification) {
+    @objc func userDidChange(note: NSNotification) {
         let newUser = note.object as! String
         guard newUser != user else {
             return
         }
     }
+    
+    
+    // MARK: - Public functions
+    
+    func subscribeTo(subreddit subr: Subreddit) -> Bool {
+        // Check if subscribing to an existing element
+        for sub in subs {
+            if sub == subr {
+                let id = subr.id
+                if flags[id]! == .Deleted {
+                    flags[id] = .Normal
+                }
+                return true
+            }
+        }
+        self.subs.append(subr)
+        self.flags[subr.id] = .New
+        
+        return true
+    }
+    
+    func unsubscribe(subreddit subr: Subreddit) -> Bool {
+        for sub in subs {
+            if sub == subr {
+                if flags[sub.id]! == .New {
+                    // remove an unsynchronized item, so just remove it entirely
+                    flags.removeValueForKey(sub.id)
+                    subs.removeAtIndex(subs.indexOf(sub)!)
+                } else {
+                    flags[sub.id]! = .New
+                }
+                
+                return true
+            }
+        }
+        print("failed: \(subr.displayName) is not subscribed")
+        
+        return false
+    }
+    
+    
+    // MARK: - Implementation
+    
 
     private func findSubscriptionsFor(user user: String) {
         if user == "guest" {
-            self.loadSubscriptionsFromDB("guest")
+            self.subs = self.unserializeFromDB("guest")
             return
         }
 
         let subscriptionResource = Resource(url: "/subreddits/mine/subscriber", method: .GET, parser: subredditsParser)
-        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { [weak self]  (subs) -> Void in
+        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { (subs) -> Void in
+            if let subs = subs {
+                
+                self.serializeToDB(subs, user: user)
+            }
             
+            // If sync fails, fallback to database
+            self.subs = self.unserializeFromDB(user)
         }
 
     }
 
-    private func loadSubscriptionsFromDB(user: String) {
-        guard !user.isEmpty else {
-            return
-        }
-        // Get a clean state
-        subs.removeAll()
-
-        if let db = app.database {
-            try {
-                let rs = db.executeQuery("SELECT * FROM subreddits AS sr " +
-                    "JOIN subscriptions AS sp ON sp.subreddit = sr.id " +
-                    "WHERE sp.user = ?", values: [self.user])
-
-        while rs.next() {
-            self.subs.append(createSubredditFromQueryResult(rs))           
-        }
-            } catch let err as! NSError {
-                print("failed: \(err.localizedDescrition)")
+    private func unserializeFromDB(user: String) -> [Subreddit] {
+        var ret = [Subreddit]()
+        executeInDatabase { db in
+            let rs = try db.executeQuery("SELECT * FROM subreddits AS sr " +
+                "JOIN subscriptions AS sp ON sp.subreddit = sr.id " +
+                "WHERE sp.user = ?", values: [self.user])
+            
+            while rs.next() {
+                ret.append(createSubredditFromQueryResult(rs))
             }
         }
+        
+        return ret
+    }
+    
+    private func serializeToDB(data: [Subreddit], user: String) {
+        
+    }
+    
+    private func isSubscribedTo(subreddit: String, user: String) -> Bool {
+        var ret = false
+        executeInDatabase { db in
+            let rs = try db.executeQuery("SELECT id FROM subscriptions WHERE subreddit = ? AND user = ?", values: [subreddit, user])
+            ret = rs.next()
+        }
+        
+        return ret
+    }
+    
+    private func executeInDatabase(queryClosure: (FMDatabase) throws -> Void) -> Bool {
+        if let db = app.database {
+            do {
+                try queryClosure(db)
+                return true
+            } catch let err as NSError {
+                print("failed: \(err.localizedDescription)")
+            }
+            return false
+        }
+        
+        return false
     }
    
 }

@@ -178,7 +178,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      */
     private func migrateDB() {
         if let db = self.database {
-            try self.database!.executeUpdate("", values: nil)
+            do {
+                try db.executeUpdate("", values: nil)
+            } catch let err as NSError {
+                print("failed: \(err.localizedDescription)")
+            }
         }
     }
 

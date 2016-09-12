@@ -8,9 +8,10 @@
 
 import Foundation
 import SwiftyJSON
+import FMDB
 
 
-struct Subreddit: ResourceType {
+struct Subreddit: ResourceType, Equatable {
     enum SortOrder: String, CustomStringConvertible {
         case Popular = "popular"
         case New = "new"
@@ -50,6 +51,10 @@ struct Subreddit: ResourceType {
     }
 }
 
+func ==(lhs: Subreddit, rhs: Subreddit) -> Bool {
+    return lhs.id == rhs.id
+}
+
 func subredditParser(json: JSON) -> Subreddit? {
     return Subreddit(id: json["id"].stringValue,
                               displayName: json["display_name"].stringValue,
@@ -80,11 +85,11 @@ func subredditsParser(json: JSON) -> [Subreddit] {
  @discussion use this function in caution because it doesn't check validity 
  of `rs`
  */
-func createSubredditFromQueryResult(rs: FMResultSet) {
+func createSubredditFromQueryResult(rs: FMResultSet) -> Subreddit {
     return Subreddit(id: rs.stringForColumn("id"), 
                 displayName: rs.stringForColumn("displayName"),
                 description: "",
                 title: rs.stringForColumn("title"),
-                subscribers: rs.integerForColumn("subscribers"),
+                subscribers: Int(rs.intForColumn("subscribers")),
                 headerImageUrl: rs.stringForColumn("imageURL"))
 }
