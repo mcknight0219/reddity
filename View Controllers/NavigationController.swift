@@ -40,9 +40,9 @@ class NavigationController: UINavigationController {
             self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(FlatBlack()), forBarMetrics: .Default)
             self.navigationBar.tintColor = UIColor(colorLiteralRed: 0.38, green: 0.38, blue: 0.44, alpha: 1.0)
             if let _ = self.navigationBar.titleTextAttributes {
-                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor(colorLiteralRed: 0.74, green: 0.77, blue: 0.82, alpha: 1.0)
+                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = FlatBlue()
             } else {
-                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor(colorLiteralRed: 0.74, green: 0.77, blue: 0.82, alpha: 1.0)]
+                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatBlue()]
             }
         }
         

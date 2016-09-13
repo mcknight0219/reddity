@@ -80,7 +80,9 @@ extension TopicTableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let aLink = self.dataSource.topicAtIndexPath(indexPath)!
 
-        //let detailsVC = DetailsViewController()
+        let detailsVC = DetailsViewController(aSubject: aLink)
+        detailsVC.hidesBottomBarWhenPushed = true
+        self.navigationController?.pushViewController(detailsVC, animated: true)
     }
     
     override func scrollViewDidScroll(scrollView: UIScrollView) {

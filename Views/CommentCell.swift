@@ -2,32 +2,75 @@
 //  CommentCell.swift
 //  Reddity
 //
-//  Created by Qiang Guo on 2016-09-12.
-//  Copyright © 2016 Qiang Guo. All rights reserved.
+//  Created by Qiang Guo on 16/9/12.
+//  Copyright © 2016年 Qiang Guo. All rights reserved.
 //
 
 import UIKit
+import ChameleonFramework
 
 class CommentCell: BaseTableViewCell {
+
+    @IBOutlet weak var leadingMarginConstraint: NSLayoutConstraint!
     
-    var content: UILabel
+    lazy var comment: UILabel! = {
+        return self.viewWithTag(1) as! UILabel
+    }()
+    
+    /**
+     The maximum level of a comment in the comment tree hierachy.
+     
+     @discussion Usually after five or six levels, user won't care to descend further. Therefore
+     maximum number of 20 levels are more than enough.
+     */
+    let maxLevel: Int = 20
+    
+    /**
+     Point on screen per level
+     */
+    let marginUnit: CGFloat = 5
+    
+    override func awakeFromNib() {
+        super.awakeFromNib()
+        // Initialization code
+        self.applyTheme()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CommentCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+    }
+
+    override func setSelected(selected: Bool, animated: Bool) {
+        super.setSelected(selected, animated: animated)
+
+        // Configure the view for the selected state
+    }
 
     /**
-     The level of this comment in the comment tree
+     Load the comment and set proper left margin
      */
-    var level: Int
+    func loadComment(atLevel: Int, text: String) {
+        var level = atLevel
+        if level > self.maxLevel { level = self.maxLevel }
+        
+        self.leadingMarginConstraint.constant = CGFloat(level) * self.marginUnit
+        self.comment.text = text
+    }
+    
+    override func applyTheme() {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.backgroundColor = FlatBlack()
+            self.comment?.textColor = FlatWhite()
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
+            self.selectedBackgroundView = bg
+        } else {
+            self.backgroundColor = UIColor.whiteColor()
+            self.comment?.textColor = UIColor.blackColor()
+            
+            let bg = UIView()
+            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
+            self.selectedBackgroundView = bg
+        }
 
-    /**
-     The maximum level of replies that are supported.
-
-     @discussion Usually any level above five or six becomes un-interesting to readers.
-     Any comment that is under `maxLevelOfComment` will be discarded
-     */
-    let maxLevelOfComment = 10
-
-    /**
-     On-screen point per level
-     */
-    let leadingMarginUnit = 5
+    }
+    
 }
-

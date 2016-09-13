@@ -195,13 +195,13 @@ class SearchViewController: UIViewController {
             self.tableView.tableHeaderView?.backgroundColor = ClearColor()
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
             self.tableView.indicatorStyle = .White
-            self.searchController.searchBar.barTintColor = FlatOrange()
-            self.searchController.searchBar.tintColor = FlatOrange()
+            self.searchController.searchBar.barTintColor = FlatBlue()
+            self.searchController.searchBar.tintColor = FlatBlue()
             self.searchController.searchBar.backgroundColor = FlatBlack()
-            self.scopeBar.tintColor = FlatOrange()
-            self.scopeBar.layer.borderColor = FlatOrange().CGColor
+            self.scopeBar.tintColor = FlatBlue()
+            self.scopeBar.layer.borderColor = FlatBlue().CGColor
             self.separatorView.backgroundColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
-            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = FlatWhite()
+            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).defaultTextAttributes = [NSForegroundColorAttributeName: FlatBlue()]
         } else {
             view.backgroundColor = UIColor.whiteColor()
             self.tableView.backgroundColor = UIColor.whiteColor()
@@ -215,7 +215,7 @@ class SearchViewController: UIViewController {
             self.scopeBar.tintColor = FlatOrange()
             self.scopeBar.layer.borderColor = FlatOrange().CGColor
             self.separatorView.backgroundColor = UIColor(white: 224/255, alpha: 1.0)
-            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).textColor = UIColor.blackColor()
+            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).defaultTextAttributes = [NSForegroundColorAttributeName: FlatBlack()]
         }
         
         for subView in searchController.searchBar.subviews {
@@ -479,7 +479,7 @@ extension SearchViewController: UISearchResultsUpdating {
 
             if let links = links {
                 self.links.appendContentsOf(links)
-                self.afterTitle = links.last!.name
+                self.afterTitle = self.links.last!.name
 
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
@@ -496,7 +496,7 @@ extension SearchViewController: UISearchResultsUpdating {
 
             if let subs = subs {
                 self.subreddits.appendContentsOf(subs)
-                self.afterSubreddit = subs.last!.name
+                self.afterSubreddit = self.subreddits.last!.name
 
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
