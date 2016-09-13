@@ -7,7 +7,8 @@
 //
 
 import UIKit
-
+import SafariServices
+import FontAwesome_swift
 
 enum LayoutType {
     case Media
@@ -77,16 +78,33 @@ class DetailsViewController: UIViewController {
     private func setupUI() {
         navigationItem.title = self.subject.title
         navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 17)!]
-        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        commentsVC.automaticallyAdjustsScrollViewInsets = false
-
-        if layout == .External {
-            navigationItem.rightBarButtonItem = UIBarButtonItem()
+        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        
+        if self.layout != .Text {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: self, action: #selector(DetailsViewController.openExternalLink))
+            navigationItem.rightBarButtonItem.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+            navigationItem.rightBarButtonItem.title = String.fontAwesomeIconWithName(.ExternalLink)
         }
     }
 
     private func commentsCount(comments: [Comment]) -> Int {
         return comments.reduce(0) { $0 + $1.totalReplies() }
+    }
+
+    private func openExternalLink() {
+        let ac = UIAlertController(title: nil, message: nil, preferredStyle: .ActionSheet)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
+        }
+        ac.addAction(cancelAction)
+
+        let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
+            let url = self.subject.url
+            let safariViewController = SFSafariViewController(URL: url)
+            presentViewController(safariViewController, animated: true, completion: nil)
+        }
+        ac.addAction(openAction)
+
+        presentViewController(ac, animated: true) {}
     }
 }
 

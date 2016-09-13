@@ -28,7 +28,7 @@ enum TableContent: String, CustomStringConvertible {
     }
 }
 
-class SearchViewController: UIViewController {
+class SearchViewController: BaseViewController {
 
     let searchController = UISearchController(searchResultsController: nil)
     
