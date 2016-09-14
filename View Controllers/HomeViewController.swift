@@ -10,7 +10,7 @@ import UIKit
 import ChameleonFramework
 import FontAwesome_swift
 
-class HomeViewController: UIViewController {
+class HomeViewController: BaseViewController {
 
     var topicTableViewController: TopicTableViewController!
     

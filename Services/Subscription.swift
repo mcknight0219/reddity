@@ -1,5 +1,5 @@
 //
-//  SubSync.swift
+//  Subscription.swift
 //  Reddity
 //
 //  Created by Qiang Guo on 2016-09-09.
@@ -14,10 +14,12 @@ let kSubscriptionsChangedNotification = "SubscriptionsChangedNotification"
 
 /**
  This class manages the subscribed subreddits for user. If user is logged in, it will synchronizes
- to reddit service on behalf of the user; otherwise, the `guest` user maintains a subscritpion list
+ to reddit service on behalf of the user; otherwise, the `guest` user maintains a subscription list
  on the local disk.
  */
-class SubSync {
+class Subscription {
+
+    public static let sharedInstance = Subscription()
 
     /**
      Get the app instance lazily
@@ -48,7 +50,7 @@ class SubSync {
     /**
      The status of a subscribed item
      */
-    enum SubStatus {
+    enum Status {
         case New        // newly subscribed, need to be synchronized to local storage and remote
         case Deleted    // deleted, need to be synchronized to local storage
         case Normal     // no need to be synchronized
@@ -57,48 +59,51 @@ class SubSync {
     /**
      An dictionary of statuses for subscribed items in`sub`
      */
-    var flags = [String:SubStatus]()
+    var flags = [String: Status]()
 
     
     // MARK: - Initializer
     
     init() {
         self.user = app.user
-
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubSync.userDidChange(_:)), name: kUserChangedNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(Subscription.updateSubscription(_:)), name: kUserChangedNotification, object: nil)
+        // send notification immediately since we need to get subscription
+        NSNotificationCenter.defaultCenter().postNotificationName(kUserChangeNotification, object: self.user)
     }
 
     
-    @objc func userDidChange(note: NSNotification) {
+    @objc func updateSubscription(note: NSNotification) {
         let newUser = note.object as! String
         guard newUser != user else {
             return
         }
+
+        self.findSubscriptionsFor(user: newUser)
     }
     
     
     // MARK: - Public functions
     
-    func subscribeTo(subreddit subr: Subreddit) -> Bool {
+    func subscribeTo(aSubreddit subreddit: Subreddit) -> Bool {
         // Check if subscribing to an existing element
         for sub in subs {
-            if sub == subr {
-                let id = subr.id
+            if sub == subreddit {
+                let id = subreddit.id
                 if flags[id]! == .Deleted {
                     flags[id] = .Normal
                 }
                 return true
             }
         }
-        self.subs.append(subr)
-        self.flags[subr.id] = .New
+        self.subs.append(subreddit)
+        self.flags[subreddit.id] = .New
         
         return true
     }
     
-    func unsubscribe(subreddit subr: Subreddit) -> Bool {
+    func unsubscribe(aSubreddit subreddit: Subreddit) -> Bool {
         for sub in subs {
-            if sub == subr {
+            if sub == subreddit {
                 if flags[sub.id]! == .New {
                     // remove an unsynchronized item, so just remove it entirely
                     flags.removeValueForKey(sub.id)
@@ -110,7 +115,7 @@ class SubSync {
                 return true
             }
         }
-        print("failed: \(subr.displayName) is not subscribed")
+        print("failed: \(subreddit.displayName) is not subscribed")
         
         return false
     }
@@ -119,7 +124,7 @@ class SubSync {
     // MARK: - Implementation
     
 
-    private func findSubscriptionsFor(user user: String) {
+    private func findSubscriptionsFor(user: String) {
         if user == "guest" {
             self.subs = self.unserializeFromDB("guest")
             return
@@ -171,11 +176,11 @@ class SubSync {
         if let db = app.database {
             do {
                 try queryClosure(db)
-                return true
             } catch let err as NSError {
                 print("failed: \(err.localizedDescription)")
+                return false
             }
-            return false
+            return true
         }
         
         return false
