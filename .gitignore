@@ -2,6 +2,7 @@
 *.sw[op]
 capybara-*.html
 .rspec
+*.txt
 /log
 /tmp
 /db/*.sqlite3
