@@ -51,22 +51,26 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        commentsVC = UITableViewController()
+        commentsVC = BaseTableViewController()
+        commentsVC.view.frame = view.bounds
+        commentsVC.tableView.delegate = self
+        commentsVC.tableView.dataSource = self
         addChildViewController(commentsVC)
-  
+        commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+        
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
        
         indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
         commentsVC.tableView.addSubview(indicatorView)
+        commentsVC.tableView.tableFooterView = UIView()
         indicatorView.hidesWhenStopped = true
-        indicatorView.center = commentsVC.tableView.center
+        indicatorView.center = view.center
         self.setupUI()
 
         indicatorView.startAnimating()
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
-
             self?.comments = comments!
             dispatch_async(dispatch_get_main_queue()) {
                 self?.commentsVC.tableView.reloadData()
@@ -108,6 +112,20 @@ class DetailsViewController: UIViewController {
     }
 }
 
+
+extension DetailsViewController: UITableViewDelegate {
+    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        let width = UIScreen.mainScreen().bounds.width - 50
+        let height = comments[indexPath.row].text.heightWithContrained(width, font: UIFont(name: "Lato-Regular", size: 13)!) + 30
+    
+        return height
+    }
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
+    }
+}
+
 // MARK: - Table view data source
 
 extension DetailsViewController : UITableViewDataSource{
@@ -115,19 +133,13 @@ extension DetailsViewController : UITableViewDataSource{
         return 1
     }
 
-    func tableView(tableView: UITableView, heigthForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 0
-    }
-
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        return UITableViewCell()
+        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        cell.loadComment(3, text: comments[indexPath.row].text)
+        return cell
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
-    }
-
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        
+        return comments.count
     }
 }

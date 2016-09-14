@@ -96,7 +96,7 @@ func commentsParser(json: JSON) -> [Comment] {
     // The replies that direct to post
     var tops = [Comment]()
     for (_, commentJson):(String, JSON) in treeJson {
-        if let comment = commentParser(commentJson) {
+        if let comment = commentParser(commentJson["data"]) {
             tops.append(comment)
         }
     }
@@ -105,9 +105,13 @@ func commentsParser(json: JSON) -> [Comment] {
 }
 
 internal func commentParser(json: JSON) -> Comment? {
+    guard !json["body"].stringValue.isEmpty else{
+        return nil
+    }
+    
     var comment = Comment(id: json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue)
-    for (_, replyJson): (String, JSON) in json["replies"] {
-        let reply = commentParser(replyJson)
+    for (_, replyJson): (String, JSON) in json["replies"]["data"]["children"] {
+        let reply = commentParser(replyJson["data"])
         if let reply = reply {
             comment.addReply(reply)
         }
