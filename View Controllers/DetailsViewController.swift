@@ -16,6 +16,14 @@ enum LayoutType {
     case External
 }
 
+
+class InsetLabel: UILabel {
+    override func drawTextInRect(rect: CGRect) {
+        let insets = UIEdgeInsets.init(top: 0, left: 20, bottom: 0, right: 20)
+        super.drawTextInRect(UIEdgeInsetsInsetRect(rect, insets))
+    }
+}
+
 /**
  Implements the detail view. There are 3 types of layouts: Image, Text, and External link.
  All three layouts have the same comments view. 
@@ -26,6 +34,8 @@ class DetailsViewController: UIViewController {
     var commentsVC: UITableViewController!
     
     var imageContainer: UIView!
+    
+    var textView: InsetLabel!
 
     var indicatorView: UIActivityIndicatorView!
     
@@ -42,6 +52,8 @@ class DetailsViewController: UIViewController {
         else                             { layout = .Media }
         
         super.init(nibName: nil, bundle: nil)
+        
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DetailsViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     required init?(coder aCoder: NSCoder) {
@@ -51,21 +63,36 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if self.layout == .Text {
+            self.textView = InsetLabel(frame: CGRectMake(0, 0 , view.bounds.width, 120))
+            self.textView.textAlignment = .Left
+            self.textView.numberOfLines = 0
+            self.textView.text = self.subject.title
+            self.textView.font = UIFont(name: "Lato-Regular", size: 18)
+
+            view.addSubview(self.textView)
+        }
+        
+        let offset: CGFloat = (self.layout == .Text) ? 120 : 0
+        
+        
         commentsVC = BaseTableViewController()
-        commentsVC.view.frame = view.bounds
+        commentsVC.view.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
         addChildViewController(commentsVC)
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+        commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
+        commentsVC.tableView.estimatedRowHeight = 80
         
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
        
-        indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+        indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .White)
         commentsVC.tableView.addSubview(indicatorView)
         commentsVC.tableView.tableFooterView = UIView()
         indicatorView.hidesWhenStopped = true
-        indicatorView.center = view.center
+        indicatorView.center = CGPointMake(view.center.x, view.center.y - 35)
         self.setupUI()
 
         indicatorView.startAnimating()
@@ -77,17 +104,30 @@ class DetailsViewController: UIViewController {
                 self?.indicatorView.stopAnimating()
             }
         }
+        
+        self.applyTheme()
+    }
+    
+    func applyTheme() {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.textView?.backgroundColor = UIColor.blackColor()
+            self.textView?.textColor = UIColor.whiteColor()
+        } else {
+            self.textView?.backgroundColor = UIColor.whiteColor()
+            self.textView?.textColor = UIColor.blackColor()
+        }
     }
 
     private func setupUI() {
-        navigationItem.title = self.subject.title
-        navigationController?.navigationBar.titleTextAttributes = [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 17)!]
         navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         
         if self.layout != .Text {
+            navigationItem.title = self.subject.title
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: self, action: #selector(DetailsViewController.openExternalLink))
-            navigationItem.rightBarButtonItem.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
-            navigationItem.rightBarButtonItem.title = String.fontAwesomeIconWithName(.ExternalLink)
+            navigationItem.rightBarButtonItem!.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+            navigationItem.rightBarButtonItem!.title = String.fontAwesomeIconWithName(.ExternalLink)
+        } else {
+            navigationItem.title = ""
         }
     }
 
@@ -95,7 +135,7 @@ class DetailsViewController: UIViewController {
         return comments.reduce(0) { $0 + $1.totalReplies() }
     }
 
-    private func openExternalLink() {
+    @objc private func openExternalLink() {
         let ac = UIAlertController(title: nil, message: nil, preferredStyle: .ActionSheet)
         let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
         }
@@ -104,7 +144,7 @@ class DetailsViewController: UIViewController {
         let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
             let url = self.subject.url
             let safariViewController = SFSafariViewController(URL: url)
-            presentViewController(safariViewController, animated: true, completion: nil)
+            self.presentViewController(safariViewController, animated: true, completion: nil)
         }
         ac.addAction(openAction)
 
@@ -114,12 +154,6 @@ class DetailsViewController: UIViewController {
 
 
 extension DetailsViewController: UITableViewDelegate {
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        let width = UIScreen.mainScreen().bounds.width - 50
-        let height = comments[indexPath.row].text.heightWithContrained(width, font: UIFont(name: "Lato-Regular", size: 13)!) + 30
-    
-        return height
-    }
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         

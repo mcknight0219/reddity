@@ -54,7 +54,9 @@ extension String {
 
     func heightWithContrained(width: CGFloat, font: UIFont) -> CGFloat {
         let maxRect = CGSize(width: width, height: CGFloat.max)
-        let boundingBox = self.boundingRectWithSize(maxRect, options: [NSStringDrawingOptions.UsesLineFragmentOrigin, NSStringDrawingOptions.UsesFontLeading], attributes: [NSFontAttributeName: font], context: nil)
+        let style = NSMutableParagraphStyle()
+        style.lineBreakMode = .ByWordWrapping
+        let boundingBox = self.boundingRectWithSize(maxRect, options: [.UsesLineFragmentOrigin, .UsesFontLeading], attributes: [NSFontAttributeName: font, NSParagraphStyleAttributeName: style], context: nil)
     
         return boundingBox.height
     }

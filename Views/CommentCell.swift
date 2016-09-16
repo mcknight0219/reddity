@@ -55,20 +55,12 @@ class CommentCell: BaseTableViewCell {
     }
     
     override func applyTheme() {
+        super.applyTheme()
+        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.backgroundColor = FlatBlack()
-            self.comment?.textColor = FlatWhite()
-            
-            let bg = UIView()
-            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
-            self.selectedBackgroundView = bg
+            self.comment?.textColor = FlatWhiteDark()
         } else {
-            self.backgroundColor = UIColor.whiteColor()
             self.comment?.textColor = UIColor.blackColor()
-            
-            let bg = UIView()
-            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-            self.selectedBackgroundView = bg
         }
 
     }

@@ -68,7 +68,7 @@ class Subscription {
         self.user = app.user
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(Subscription.updateSubscription(_:)), name: kUserChangedNotification, object: nil)
         // send notification immediately since we need to get subscription
-        NSNotificationCenter.defaultCenter().postNotificationName(kUserChangeNotification, object: self.user)
+        NSNotificationCenter.defaultCenter().postNotificationName(kUserChangedNotification, object: self.user)
     }
 
     
@@ -78,7 +78,7 @@ class Subscription {
             return
         }
 
-        self.findSubscriptionsFor(user: newUser)
+        self.findSubscriptionsFor(newUser)
     }
     
     

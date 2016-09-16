@@ -7,12 +7,9 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 class SubredditCell: BaseTableViewCell {
-
-    lazy var picture: UIImageView! = {
-        return self.viewWithTag(1) as! UIImageView
-    }()
     
     lazy var titleLabel: UILabel! = {
         return self.viewWithTag(2) as! UILabel
@@ -35,24 +32,26 @@ class SubredditCell: BaseTableViewCell {
     }
     
     override func prepareForReuse() {
-        self.picture.image = .None
         self.titleLabel.text = .None
         self.descLabel.text = .None
     }
     
     func loadCell(subreddit: Subreddit) {
         
-        if let headerUrl = subreddit.headerImage {
-            self.picture.contentMode = .ScaleAspectFit
-            self.picture.sd_setImageWithURL(headerUrl, placeholderImage: UIImage(named: "placeholder"))
-        }
-        
         self.titleLabel.text = subreddit.title
-        self.descLabel.text = "\(subreddit.description)"
+        self.descLabel.text = "\(subreddit.subscribers)"
     }
     
     override func applyTheme() {
+        super.applyTheme()
         
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.titleLabel?.textColor  = FlatWhiteDark()
+            self.descLabel?.textColor   = UIColor.lightGrayColor()
+        } else {
+            self.titleLabel?.textColor  = UIColor.blackColor()
+            self.descLabel?.textColor   = UIColor.darkGrayColor()
+        }
     }
     
 }
