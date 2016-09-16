@@ -80,19 +80,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let searchVC = SearchViewController()
         searchVC.modalTransitionStyle = .CoverVertical
-        searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: blackColor(), size: CGSizeMake(37, 37)), tag: 0)
+        searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
         
         let homeVC = HomeViewController(subredditName: "")
         homeVC.modalTransitionStyle = .CrossDissolve
-        homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: blackColor(), size: CGSizeMake(37, 37)), tag: 1)
+        homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
 
         let subscriptionVC = SubscriptionViewController()
         subscriptionVC.modalTransitionStyle = .CrossDissolve
-        subscriptionVC.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: blackColor(), size: CGSizeMake(37, 37)), tag: 2)
+        subscriptionVC.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 2)
         
         let meVC = MeViewController()
         meVC.modalTransitionStyle = .CrossDissolve
-        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: blackColor(), size: CGSizeMake(37, 37)), tag: 3)
+        meVC.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
 
         tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController(rootViewController: $0) }
         // Select Browse tab on starup

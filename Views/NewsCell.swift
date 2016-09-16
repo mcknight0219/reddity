@@ -9,7 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-class NewsCell: UITableViewCell {
+class NewsCell: BaseTableViewCell {
 
     lazy var titleLabel: UILabel! = {
        return self.viewWithTag(1) as! UILabel
@@ -54,8 +54,8 @@ class NewsCell: UITableViewCell {
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
         self.titleLabel.numberOfLines = 4
-        self.infoLabel.text = "\(aTopic.subreddit)・\(String(aTopic.numberOfComments))"
-        self.dateLabel.text = NSDate.describePastTimeInDays(aTopic.createdAt)
+        self.infoLabel.text = "\(aTopic.subreddit)"
+        self.dateLabel.text = "\(NSDate.describePastTimeInDays(aTopic.createdAt))・\(String(aTopic.numberOfComments))"
         self.picture.contentMode = .ScaleAspectFill
         self.picture.clipsToBounds = true
         
@@ -98,27 +98,20 @@ class NewsCell: UITableViewCell {
         return false
     }
     
-    func applyTheme() {
+    override func applyTheme() {
+        super.applyTheme()
+        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.backgroundColor = FlatBlack()
-            self.titleLabel?.textColor = UIColor(colorLiteralRed: 0.62, green: 0.65, blue: 0.72, alpha: 1.0)
-            self.descriptionLabel?.textColor = FlatWhiteDark()
-            self.infoLabel?.textColor = FlatWhite()
-            self.dateLabel?.textColor = FlatWhite()
-            
-            let bg = UIView()
-            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
-            self.selectedBackgroundView = bg
+            self.titleLabel?.textColor = FlatWhiteDark()
+            self.descriptionLabel?.textColor = UIColor.darkGrayColor()
+            self.infoLabel?.textColor = UIColor.lightGrayColor()
+            self.dateLabel?.textColor = UIColor.lightGrayColor()
         } else {
             self.backgroundColor = UIColor.whiteColor()
             self.titleLabel?.textColor = UIColor.blackColor()
             self.descriptionLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
             self.infoLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
             self.dateLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
-            
-            let bg = UIView()
-            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-            self.selectedBackgroundView = bg
         }
     }
 }

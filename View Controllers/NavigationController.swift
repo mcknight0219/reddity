@@ -18,13 +18,7 @@ class NavigationController: UINavigationController {
     }
 
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        
         return ThemeManager.defaultManager.currentTheme == "Dark" ? .LightContent : .Default
-    
-    }
-    
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
 
     func applyTheme() {
@@ -37,12 +31,12 @@ class NavigationController: UINavigationController {
                 self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatOrange()]
             }
         } else {
-            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(FlatBlack()), forBarMetrics: .Default)
-            self.navigationBar.tintColor = UIColor(colorLiteralRed: 0.38, green: 0.38, blue: 0.44, alpha: 1.0)
+            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor.blackColor()), forBarMetrics: .Default)
+            self.navigationBar.tintColor = UIColor.whiteColor()
             if let _ = self.navigationBar.titleTextAttributes {
-                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = FlatBlue()
+                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor.whiteColor()
             } else {
-                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatBlue()]
+                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
             }
         }
         

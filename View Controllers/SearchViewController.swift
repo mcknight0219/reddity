@@ -74,12 +74,6 @@ class SearchViewController: BaseViewController {
     
     // Cache the searched results so we don't make redundant api calls
     private var cache = [String:AnyObject]()
-
-    // The `after` flag in search api call for title search
-    private var afterTitle: String = ""
-
-    // The `after` flag in search api call for subreddit search
-    private var afterSubreddit: String = ""
     
     // For placeholder view when history is empty
     lazy var backgroundView: UIView = {
@@ -136,7 +130,7 @@ class SearchViewController: BaseViewController {
         
         tableView.tableHeaderView = wrapper
         view.addSubview(tableView)
-        ["SubredditCell", "LinkCell"].forEach { name in
+        ["SubredditCell", "TitleCell"].forEach { name in
             tableView.registerNib(UINib(nibName: name, bundle: nil), forCellReuseIdentifier: name)
         }
 
@@ -187,20 +181,23 @@ class SearchViewController: BaseViewController {
         if let timer = self.timer { timer.invalidate() }
     }
 
-    func applyTheme() {
+    override func applyTheme() {
+        super.applyTheme()
+        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             view.backgroundColor = FlatBlackDark()
             navigationController?.navigationBar.barTintColor = FlatBlack()
             self.tableView.backgroundColor = FlatBlackDark()
             self.tableView.tableHeaderView?.backgroundColor = ClearColor()
-            self.tableView.separatorColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
+            self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
-            self.searchController.searchBar.barTintColor = FlatBlue()
-            self.searchController.searchBar.tintColor = FlatBlue()
+            self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
+            self.searchController.searchBar.tintColor = UIColor.lightGrayColor()
             self.searchController.searchBar.backgroundColor = FlatBlack()
-            self.scopeBar.tintColor = FlatBlue()
-            self.scopeBar.layer.borderColor = FlatBlue().CGColor
+            self.scopeBar.tintColor = UIColor.grayColor()
+            self.scopeBar.layer.borderColor = UIColor.grayColor().CGColor
             self.separatorView.backgroundColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
+            
             UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).defaultTextAttributes = [NSForegroundColorAttributeName: FlatBlue()]
         } else {
             view.backgroundColor = UIColor.whiteColor()
@@ -371,16 +368,12 @@ extension SearchViewController: UITableViewDataSource {
             return cell
 
         } else if currentTableContent == .Link {
-            var cell = tableView.dequeueReusableCellWithIdentifier("LinkCell")
-            if cell == nil {
-                cell = BaseTableViewCell(style: .Default, reuseIdentifier: "LinkCell")
-            }
+            let cell = tableView.dequeueReusableCellWithIdentifier("TitleCell", forIndexPath: indexPath) as! TitleCell
 
             let link = self.links[row]
-            cell!.imageView?.sd_setImageWithURL(link.url, placeholderImage: UIImage.imageFilledWithColor(FlatWhite()))
-            cell!.textLabel?.text = link.title
+            cell.loadTitle(link)
 
-            return cell!
+            return cell
         } else {
             var cell = tableView.dequeueReusableCellWithIdentifier("HistoryCell")
             if cell == nil {
@@ -454,10 +447,10 @@ extension SearchViewController: UISearchResultsUpdating {
         let text = timer.userInfo as! String
         if scopeBar.selectedSegmentIndex == 0 {
             self.currentTableContent = .Link
-            searchTitleAndUpdate(text)
+            searchTitleAndUpdate(text, after: "")
         } else {
             self.currentTableContent = .Subreddit
-            searchSubredditAndUpdate(text)
+            searchSubredditAndUpdate(text, after: "")
         }
     }
 
@@ -467,19 +460,18 @@ extension SearchViewController: UISearchResultsUpdating {
         }
         
         let text = self.searchController.searchBar.text
-        (self.currentTableContent == .Subreddit) ? searchSubredditAndUpdate(text!, after: afterSubreddit) : searchTitleAndUpdate(text!, after: afterTitle)
+        (self.currentTableContent == .Subreddit) ? searchSubredditAndUpdate(text!, after: afterName) : searchTitleAndUpdate(text!, after: afterName)
     }
 
-    private func searchTitleAndUpdate(title: String, after: String = "") {
+    private func searchTitleAndUpdate(title: String, after: String?) {
         let resource =  Resource(url: "/search", method: .GET, parser: linkParser)
         let text = "title:\(title)"
 
-        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q": text, "limit": "100", "after": after]) { [unowned self] (links) -> Void in
+        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q": text, "limit": "100", "after": after ?? ""]) { [unowned self] (links) -> Void in
             NetworkActivityIndicator.decreaseActivityCount()
 
             if let links = links {
                 self.links.appendContentsOf(links)
-                self.afterTitle = self.links.last!.name
 
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
@@ -488,15 +480,14 @@ extension SearchViewController: UISearchResultsUpdating {
         }
     }
 
-    private func searchSubredditAndUpdate(subreddit: String, after: String = "") {
+    private func searchSubredditAndUpdate(subreddit: String, after: String?) {
         let resource = Resource(url: "/subreddits/search", method: .GET, parser: subredditsParser)
         
-        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q" : subreddit, "limit" : "45", after: after]) { [unowned self] (subs) -> Void in
+        apiRequest(Config.ApiBaseURL, resource: resource, params: ["q" : subreddit, "limit" : "45", "after": after ?? ""]) { [unowned self] (subs) -> Void in
             NetworkActivityIndicator.decreaseActivityCount()
 
             if let subs = subs {
                 self.subreddits.appendContentsOf(subs)
-                self.afterSubreddit = self.subreddits.last!.name
 
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()

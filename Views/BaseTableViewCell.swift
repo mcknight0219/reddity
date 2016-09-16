@@ -32,8 +32,8 @@ class BaseTableViewCell: UITableViewCell {
     func applyTheme() {
         guard self.backgroundColor != UIColor.clearColor() else { return }
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.backgroundColor = FlatBlack()
-            self.textLabel?.textColor = FlatWhite()
+            self.backgroundColor = UIColor(colorLiteralRed: 42/255, green: 45/255, blue: 45/255, alpha: 1.0)
+            self.textLabel?.textColor = FlatWhiteDark()
             self.detailTextLabel?.textColor = FlatBlueDark()
 
             let bg = UIView()
