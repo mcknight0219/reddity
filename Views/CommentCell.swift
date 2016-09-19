@@ -8,6 +8,7 @@
 
 import UIKit
 import ChameleonFramework
+import FontAwesome_swift
 
 class CommentCell: BaseTableViewCell {
 
@@ -17,6 +18,18 @@ class CommentCell: BaseTableViewCell {
         return self.viewWithTag(1) as! UILabel
     }()
     
+    lazy var vote: UIImageView! = {
+        return self.viewWithTag(2) as! UIImageView
+    }()
+
+    lazy var pointLabel: UILabel! = {
+        return self.viewWithTag(3) as! UILabel
+    }()
+
+    lazy var userLabel: UILabel! = {
+        return self.viewWithTag(4) as! UILabel
+    }()
+
     /**
      The maximum level of a comment in the comment tree hierachy.
      
@@ -46,12 +59,19 @@ class CommentCell: BaseTableViewCell {
     /**
      Load the comment and set proper left margin
      */
-    func loadComment(atLevel: Int, text: String) {
-        var level = atLevel
-        if level > self.maxLevel { level = self.maxLevel }
+    func loadComment(comment: Comment) {
         
-        self.leadingMarginConstraint.constant = CGFloat(level) * self.marginUnit
-        self.comment.text = text
+        self.leadingMarginConstraint.constant = CGFloat(10) * self.marginUnit
+
+        self.comment.text = comment.text
+        self.pointLabel.text = String(comment.score)
+        self.userLabel.text = "username"
+        
+        self.vote.image = UIImage.fontAwesomeIconWithName(.ThumbsOUp, textColor: UIColor.grayColor(), size: CGSize(width: 17, height: 17))
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(CommentCell.voteIconClicked))
+        singleTap.numberOfTapsRequired = 1
+        self.vote.userInteractionEnabled = true
+        self.vote.gestureRecognizers = [singleTap]
     }
     
     override func applyTheme() {
@@ -62,7 +82,13 @@ class CommentCell: BaseTableViewCell {
         } else {
             self.comment?.textColor = UIColor.blackColor()
         }
-
     }
-    
+
+    func voteIconClicked() {
+        print("Vote clicked ")
+    }
+}
+
+extension CommentCell {
+
 }

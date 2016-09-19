@@ -27,13 +27,13 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6fj-28-sMx">
-                        <rect key="frame" x="18" y="23" width="358" height="20"/>
+                        <rect key="frame" x="18" y="23" width="348" height="20"/>
                         <fontDescription key="fontDescription" name="Lato-Bold" family="Lato" pointSize="16"/>
                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" tag="2" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ttc-86-UDc">
-                        <rect key="frame" x="18" y="184" width="358" height="0.0"/>
+                        <rect key="frame" x="18" y="184" width="348" height="0.0"/>
                         <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="13"/>
                         <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                         <nil key="highlightedColor"/>
@@ -56,7 +56,7 @@
                         </subviews>
                     </stackView>
                     <imageView userInteractionEnabled="NO" tag="4" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Hkb-Ov-BRi">
-                        <rect key="frame" x="381" y="23" width="292" height="292"/>
+                        <rect key="frame" x="371" y="23" width="302" height="302"/>
                         <constraints>
                             <constraint firstAttribute="width" secondItem="Hkb-Ov-BRi" secondAttribute="height" multiplier="1:1" id="XZh-gZ-ff7"/>
                         </constraints>
@@ -67,7 +67,7 @@
                     <constraint firstAttribute="bottomMargin" secondItem="uHq-t4-O12" secondAttribute="bottom" constant="15" id="50E-v2-dmV"/>
                     <constraint firstAttribute="trailingMargin" secondItem="Hkb-Ov-BRi" secondAttribute="trailing" constant="10" id="5jX-Y4-jfL"/>
                     <constraint firstItem="Hkb-Ov-BRi" firstAttribute="leading" secondItem="6fj-28-sMx" secondAttribute="trailing" constant="5" id="AhL-Vg-Ben"/>
-                    <constraint firstAttribute="bottomMargin" secondItem="Hkb-Ov-BRi" secondAttribute="bottom" constant="45" id="BFj-Lu-yM6"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="Hkb-Ov-BRi" secondAttribute="bottom" constant="35" id="BFj-Lu-yM6"/>
                     <constraint firstAttribute="trailingMargin" secondItem="uHq-t4-O12" secondAttribute="trailing" constant="10" id="GPp-oA-8OC"/>
                     <constraint firstItem="Hkb-Ov-BRi" firstAttribute="top" secondItem="zV4-Qh-o9E" secondAttribute="topMargin" constant="15" id="HPY-XP-HNG"/>
                     <constraint firstAttribute="bottomMargin" secondItem="uHq-t4-O12" secondAttribute="bottom" constant="15" id="OXH-3w-lne"/>

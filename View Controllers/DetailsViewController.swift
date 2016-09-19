@@ -8,6 +8,7 @@
 
 import UIKit
 import SafariServices
+import ChameleonFramework
 import FontAwesome_swift
 
 enum LayoutType {
@@ -35,9 +36,18 @@ class DetailsViewController: UIViewController {
     
     var imageContainer: UIView!
     
-    var textView: InsetLabel!
+    var textLabel: InsetLabel!
+    
+    var textView:  UITextView!
 
-    var indicatorView: UIActivityIndicatorView!
+    lazy var indicatorView: UIActivityIndicatorView = {
+        
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            return UIActivityIndicatorView(activityIndicatorStyle: .White)
+        } else {
+            return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+        }
+    }()
     
     var layout: LayoutType!
 
@@ -63,62 +73,30 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if self.layout == .Text {
-            self.textView = InsetLabel(frame: CGRectMake(0, 0 , view.bounds.width, 120))
-            self.textView.textAlignment = .Left
-            self.textView.numberOfLines = 0
-            self.textView.text = self.subject.title
-            self.textView.font = UIFont(name: "Lato-Regular", size: 18)
-
-            view.addSubview(self.textView)
-        }
+        self.setupHeaderView()
         
         let offset: CGFloat = (self.layout == .Text) ? 120 : 0
         
         
         commentsVC = BaseTableViewController()
-        commentsVC.view.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
+        commentsVC.tableView.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
-        addChildViewController(commentsVC)
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
         commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
         commentsVC.tableView.estimatedRowHeight = 80
         
+        addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
        
-        indicatorView = UIActivityIndicatorView(activityIndicatorStyle: .White)
-        commentsVC.tableView.addSubview(indicatorView)
+    
+        commentsVC.tableView.tableHeaderView = UIView(frame: CGRectMake(0, 0, view.bounds.width, 34))
+        commentsVC.tableView.tableHeaderView?.addSubview(indicatorView)
+        indicatorView.center = commentsVC.tableView.tableHeaderView!.center
         commentsVC.tableView.tableFooterView = UIView()
         indicatorView.hidesWhenStopped = true
-        indicatorView.center = CGPointMake(view.center.x, view.center.y - 35)
-        self.setupUI()
-
-        indicatorView.startAnimating()
-        let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
-        apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
-            self?.comments = comments!
-            dispatch_async(dispatch_get_main_queue()) {
-                self?.commentsVC.tableView.reloadData()
-                self?.indicatorView.stopAnimating()
-            }
-        }
-        
-        self.applyTheme()
-    }
     
-    func applyTheme() {
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.textView?.backgroundColor = UIColor.blackColor()
-            self.textView?.textColor = UIColor.whiteColor()
-        } else {
-            self.textView?.backgroundColor = UIColor.whiteColor()
-            self.textView?.textColor = UIColor.blackColor()
-        }
-    }
-
-    private func setupUI() {
         navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         
         if self.layout != .Text {
@@ -129,6 +107,63 @@ class DetailsViewController: UIViewController {
         } else {
             navigationItem.title = ""
         }
+
+        indicatorView.startAnimating()
+        let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
+        apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
+            self?.comments = comments!
+            dispatch_async(dispatch_get_main_queue()) {
+                self?.indicatorView.stopAnimating()
+                self?.commentsVC.tableView.tableHeaderView = nil
+                self?.commentsVC.tableView.reloadData()
+            }
+        }
+        
+        self.applyTheme()
+    }
+    
+    func applyTheme() {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            self.textLabel?.backgroundColor = UIColor.blackColor()
+            self.textLabel?.textColor = UIColor.whiteColor()
+        } else {
+            self.textLabel?.backgroundColor = UIColor.whiteColor()
+            self.textLabel?.textColor = UIColor.blackColor()
+        }
+    }
+    
+    private func setupHeaderView() {
+        if self.layout == .Text {
+            
+            let quoteMark = UIImage.fontAwesomeIconWithName(.QuoteLeft, textColor: UIColor.whiteColor(), size: CGSize(width: 20, height: 20))
+            let attachment = NSTextAttachment()
+            attachment.image = quoteMark
+            
+            let attachmentString = NSAttributedString(attachment: attachment)
+            
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.alignment = .Justified
+            let title = NSMutableAttributedString(string: self.subject.title, attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 18)!, NSParagraphStyleAttributeName: paragraphStyle])
+            
+            title.insertAttributedString(attachmentString, atIndex: 0)
+            
+            self.textLabel = InsetLabel(frame: CGRectMake(0, 0 , view.bounds.width, 120))
+            self.textLabel.numberOfLines = 0
+            self.textLabel.textAlignment = .Left
+            self.textLabel.attributedText = title
+            
+            view.addSubview(self.textLabel)
+        } else if self.layout == .External {
+
+            let externalMark = UIImage.fontAwesomeIconWithName(.ExternalLink, textColor: FlatOrange(), size: CGSize(width: 17, height: 17))
+            let attachment = NSTextAttachment()
+            attachment.image = externalMark
+            
+            let attachmentString = NSAttributedString(attachment: attachment)
+            
+            
+        }
+
     }
 
     private func commentsCount(comments: [Comment]) -> Int {
@@ -169,7 +204,7 @@ extension DetailsViewController : UITableViewDataSource{
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        cell.loadComment(3, text: comments[indexPath.row].text)
+        cell.loadComment(comments[indexPath.row])
         return cell
     }
 

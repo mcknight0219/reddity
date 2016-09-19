@@ -31,7 +31,7 @@ class NavigationController: UINavigationController {
                 self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatOrange()]
             }
         } else {
-            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor.blackColor()), forBarMetrics: .Default)
+            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)), forBarMetrics: .Default)
             self.navigationBar.tintColor = UIColor.whiteColor()
             if let _ = self.navigationBar.titleTextAttributes {
                 self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor.whiteColor()
