@@ -10,6 +10,7 @@ import UIKit
 import SafariServices
 import ChameleonFramework
 import FontAwesome_swift
+import SnapKit
 
 enum LayoutType {
     case Media
@@ -34,11 +35,7 @@ class DetailsViewController: UIViewController {
     
     var commentsVC: UITableViewController!
     
-    var imageContainer: UIView!
-    
-    var textLabel: InsetLabel!
-    
-    var textView:  UITextView!
+    var topView:  UIView!
 
     lazy var indicatorView: UIActivityIndicatorView = {
         
@@ -73,10 +70,10 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let offset: CGFloat = 160
+        self.topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, offset))
+        
         self.setupHeaderView()
-        
-        let offset: CGFloat = (self.layout == .Text) ? 120 : 0
-        
         
         commentsVC = BaseTableViewController()
         commentsVC.tableView.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
@@ -138,7 +135,7 @@ class DetailsViewController: UIViewController {
             let quoteMark = UIImage.fontAwesomeIconWithName(.QuoteLeft, textColor: UIColor.whiteColor(), size: CGSize(width: 20, height: 20))
             let attachment = NSTextAttachment()
             attachment.image = quoteMark
-            
+          
             let attachmentString = NSAttributedString(attachment: attachment)
             
             let paragraphStyle = NSMutableParagraphStyle()
@@ -147,21 +144,47 @@ class DetailsViewController: UIViewController {
             
             title.insertAttributedString(attachmentString, atIndex: 0)
             
-            self.textLabel = InsetLabel(frame: CGRectMake(0, 0 , view.bounds.width, 120))
-            self.textLabel.numberOfLines = 0
-            self.textLabel.textAlignment = .Left
-            self.textLabel.attributedText = title
+            let textLabel = InsetLabel()
+            textLabel.numberOfLines = 0
+            textLabel.textAlignment = .Left
+            textLabel.attributedText = title
             
-            view.addSubview(self.textLabel)
+            self.topView.addSubview(textLabel)
+            textLabel.snp_makeConstraint { make in
+                make.left.right.top.bottm.equalTo(self.topView)
+            }
+
         } else if self.layout == .External {
 
-            let externalMark = UIImage.fontAwesomeIconWithName(.ExternalLink, textColor: FlatOrange(), size: CGSize(width: 17, height: 17))
-            let attachment = NSTextAttachment()
-            attachment.image = externalMark
+            let button = UIButton()
+            button.setImage(UIImage.fontAwesomeIconWithName(.ExternaliLink, textColor: FlatOrange(), size: CGSize(width: 18, height: 18)), forState: .Normal)
             
-            let attachmentString = NSAttributedString(attachment: attachment)
+            let link = NSMutableAttributedString(string: self.subject.host, attributes: [
+                    NSFontAttributeName: UIFont(name: "Lato-Bold", size: 18)])
+            link.addAttribute(NSUnderlinkStyleAttributeName, value: self.subject.link, range: NSMakeRange(0, self.subject.link.characters.count))
+
+            button.setAttributedTitle(link, forState: .Normal)
+
+            button.addTarget(self, action: #selector(DetailsViewController.openExternalLink), forControlEvents: UIControlEvent.TouchUpInside)
+
+            self.topView.addSubview(button)
             
+            button.center = self.topView.center
+        } else {
             
+            let imageView = UIImageView()
+            imageView.contentMode = ScaleAspectFill
+            imageView.clipsToBound = true
+            imageView.sd_setImageWithURL(self.subject.url, placeholderImage: nil, options: [], progress: nil, completed: nil)
+
+            self.topView.addSubview(imageView)
+
+            imageView.snp_makeConstraint { make in
+                make.left.right.top.botton.equalTo(self.topView)
+            }
+
+            let tap = UITapGestureRecognizer(self, action: #selector(DetailsViewController.handleImageTap(_:)))
+            imageView.addGestureRecognizer(tap)
         }
 
     }
@@ -177,13 +200,16 @@ class DetailsViewController: UIViewController {
         ac.addAction(cancelAction)
 
         let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
-            let url = self.subject.url
-            let safariViewController = SFSafariViewController(URL: url)
+            let safariViewController = SFSafariViewController(URL: self.subject.link)
             self.presentViewController(safariViewController, animated: true, completion: nil)
         }
         ac.addAction(openAction)
 
         presentViewController(ac, animated: true) {}
+    }
+
+    private func handleImageTap(sender: UITapGestureRecognizer) {
+
     }
 }
 
@@ -193,6 +219,44 @@ extension DetailsViewController: UITableViewDelegate {
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         
     }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+
+        if 0...30 ~= offsetY {
+            UIView.animateWithDuration(0.2) { [unowned self] in
+                // new height for topView
+                let newHeight = self.topView.frame.height -  offsetY * 1.1
+                
+                self.topView.frame      = CGRectMake(0, 0, self.view.bounds.width, newHeight)
+                self.topView.alpha      = 1.0 - offsetY / 30
+                self.tableView.frame    = CGRectMake(0, newHeight, self.view.bounds.width, self.view.bounds.heigth - newHeight)
+            }    
+        }
+
+        // Scroll past threshhold, fold the topView completely
+        if offsetY > 30 {
+            UIView.animateWithDuration(0.7) { [unowned self] in
+                self.topView.frame = CGRectZero
+                self.topView.alpha = 0
+                self.tableView.framei = CGRectMake(0, 0, self.view.bounds.width, self.view.bounds.height)
+            }
+        }
+
+        if -30...0 ~= offsetY {
+            // Pulling down from initial state, don't do anything.
+            if self.topView.alpha > 0 { return }
+
+            UIView.animateWithDuration(1.0) { [unowned self] in
+                // restore to orignal setup
+                self.topView.frame = CGRectMake(0, 0, self.view.bounds.width, 160)
+                self.topView.alpha = 1
+                self.tableView.frame = CGRectMake(0, 160, self.view.bounds.width, self.view.bounds.height-160)
+            }
+        }
+
+    }
+
 }
 
 // MARK: - Table view data source
