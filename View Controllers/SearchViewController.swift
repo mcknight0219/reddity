@@ -59,12 +59,7 @@ class SearchViewController: BaseViewController {
     
     var tableView: UITableView!
 
-    var scopeBar: UISegmentedControl!
-
-    /**
-     * @discussion We put it here because it needs change according to theme
-     */
-    var separatorView: UIView!
+    var headerWrap: UIView!
     
     // Trigger a new search only after user pause for a while
     private var timer: NSTimer?
@@ -98,38 +93,27 @@ class SearchViewController: BaseViewController {
 
         return background
     }()
+    
+    lazy var scopeChoiceView: UIView = {
+        let v = UIView()
+        
+        
+        return v
+    }()
 
     // MARK: - Life Cycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        edgesForExtendedLayout = .None
-        automaticallyAdjustsScrollViewInsets = false
+        
         tableView = UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
-        tableView.autoresizingMask = [.FlexibleHeight]
         tableView.delegate = self
         tableView.dataSource = self
+    
         
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: 44))
-        headerView.autoresizingMask = [.FlexibleWidth, .FlexibleHeight]
-        scopeBar = UISegmentedControl(items: ["Title", "Subreddit"])
-        scopeBar.frame = CGRectMake(0, 0, headerView.frame.width - 120, headerView.frame.height - 13)
-        scopeBar.center = headerView.center
-        scopeBar.selectedSegmentIndex = 0
-        scopeBar.addTarget(self, action: #selector(SearchViewController.scopeBarDidChange(_:)), forControlEvents: UIControlEvents.ValueChanged)
-        headerView.addSubview(scopeBar)
-        scopeBar.clipsToBounds = true
-        scopeBar.layer.cornerRadius = CGRectGetHeight(scopeBar.bounds) / 2
-        scopeBar.layer.borderWidth = 1
-        
-        let wrapper = UIView(frame: headerView.bounds)
-        wrapper.addSubview(headerView)
-        
-        self.separatorView = UIView(frame: CGRectMake(0, headerView.frame.height-1, headerView.frame.width, 1))
-        headerView.addSubview(self.separatorView)
-        
-        tableView.tableHeaderView = wrapper
+        tableView.tableHeaderView = searchController.searchBar
         view.addSubview(tableView)
+        
         ["SubredditCell", "TitleCell"].forEach { name in
             tableView.registerNib(UINib(nibName: name, bundle: nil), forCellReuseIdentifier: name)
         }
@@ -142,32 +126,21 @@ class SearchViewController: BaseViewController {
         setupUI()
     }
     
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-    }
-    
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        let nav = navigationController?.navigationBar
-        nav?.translucent = false
-        let img = UIImage()
-        nav?.shadowImage = img
-        nav?.setBackgroundImage(img, forBarMetrics: .Default)
-    }
-    
     func setupUI() {
         definesPresentationContext = true
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
         self.tableView.tableFooterView = UIView()
         
-        edgesForExtendedLayout = .None
-        automaticallyAdjustsScrollViewInsets = false
-        self.searchController.searchBar.searchBarStyle = .Minimal
-        navigationItem.titleView = self.searchController.searchBar
-        searchController.hidesNavigationBarDuringPresentation = false
-        searchController.dimsBackgroundDuringPresentation = false
-    
+        extendedLayoutIncludesOpaqueBars = true
+        automaticallyAdjustsScrollViewInsets = true
+        self.searchController.searchBar.searchBarStyle = .Default
+        
+        self.searchController.dimsBackgroundDuringPresentation = false
+        
+        navigationItem.title = "Discovery"
+        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
+        
         self.applyTheme()
     }
 
@@ -186,54 +159,27 @@ class SearchViewController: BaseViewController {
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             view.backgroundColor = FlatBlackDark()
-            navigationController?.navigationBar.barTintColor = FlatBlack()
+            
             self.tableView.backgroundColor = FlatBlackDark()
-            self.tableView.tableHeaderView?.backgroundColor = ClearColor()
+           
             self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
-            self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
-            self.searchController.searchBar.tintColor = UIColor.lightGrayColor()
-            self.searchController.searchBar.backgroundColor = FlatBlack()
-            self.scopeBar.tintColor = UIColor.grayColor()
-            self.scopeBar.layer.borderColor = UIColor.grayColor().CGColor
-            self.separatorView.backgroundColor = UIColor(colorLiteralRed: 0.11, green: 0.11, blue: 0.16, alpha: 1.0)
+            self.searchController.searchBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+            self.searchController.searchBar.tintColor = UIColor.whiteColor()
+            (UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.whiteColor()
             
-            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).defaultTextAttributes = [NSForegroundColorAttributeName: FlatBlue()]
         } else {
             view.backgroundColor = UIColor.whiteColor()
+            
             self.tableView.backgroundColor = UIColor.whiteColor()
-            navigationController?.navigationBar.barTintColor = UIColor.whiteColor()
-            self.tableView.tableHeaderView?.backgroundColor = ClearColor()
+            
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.tableView.indicatorStyle = .Default
-            self.searchController.searchBar.barTintColor = FlatOrange()
-            self.searchController.searchBar.tintColor = FlatOrange()
-            self.searchController.searchBar.backgroundColor = UIColor.whiteColor()
-            self.scopeBar.tintColor = FlatOrange()
-            self.scopeBar.layer.borderColor = FlatOrange().CGColor
-            self.separatorView.backgroundColor = UIColor(white: 224/255, alpha: 1.0)
-            UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self]).defaultTextAttributes = [NSForegroundColorAttributeName: FlatBlack()]
+            self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
+            self.searchController.searchBar.tintColor = UIColor.blackColor()
+            (UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.blackColor()
         }
         
-        for subView in searchController.searchBar.subviews {
-            if let scopeBar = subView as? UISegmentedControl {
-                scopeBar.backgroundColor = ThemeManager.defaultManager.currentTheme == "Dark" ? FlatBlackDark() : UIColor.whiteColor()
-            }
-        }
-    }
-
-    func scopeBarDidChange(scopeBar: UISegmentedControl) {
-        guard currentTableContent != .History else {
-            return
-        }
-        
-        if scopeBar.selectedSegmentIndex == 0 {
-            self.currentTableContent = .Link
-        } else {
-            self.currentTableContent = .Subreddit
-        }
-        
-        NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: currentTableContent.rawValue)
     }
 
     
@@ -327,9 +273,6 @@ extension SearchViewController: UITableViewDelegate {
 
     func scrollViewDidScroll(scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
-        let headerView = self.tableView.tableHeaderView?.subviews[0]
-        // Always keep scope bar at the top when pulling down.
-        headerView?.transform = CGAffineTransformMakeTranslation(0, min(0, offsetY))
 
         if offsetY > scrollView.contentSize.height - scrollView.frame.size.height {
             NSNotificationCenter.defaultCenter().postNotificationName(kLoadMoreSearchResults, object: nil)
@@ -445,7 +388,7 @@ extension SearchViewController: UISearchResultsUpdating {
         } 
 
         let text = timer.userInfo as! String
-        if scopeBar.selectedSegmentIndex == 0 {
+        if true {
             self.currentTableContent = .Link
             searchTitleAndUpdate(text, after: "")
         } else {
@@ -513,7 +456,7 @@ extension SearchViewController: UISearchResultsUpdating {
                     return
                 }
 
-                try app.database!.executeUpdate("INSERT INTO search_history(term, timestamp, scope, user) values(?, ?, ?, ?)", values: [term, NSDate.sqliteDate(), self.scopeBar.selectedSegmentIndex, app.user])
+                try app.database!.executeUpdate("INSERT INTO search_history(term, timestamp, scope, user) values(?, ?, ?, ?)", values: [term, NSDate.sqliteDate(), 1, app.user])
             } catch let err as NSError {
                 print("failed: \(err.localizedDescription)")
             }
@@ -545,6 +488,7 @@ extension SearchViewController: UISearchBarDelegate {
     }
 
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool {
+        
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Subreddit.rawValue)
     
         return true
