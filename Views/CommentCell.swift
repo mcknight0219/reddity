@@ -41,7 +41,7 @@ class CommentCell: BaseTableViewCell {
     /**
      Point on screen per level
      */
-    let marginUnit: CGFloat = 5
+    let marginUnit: CGFloat = 15
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -61,7 +61,7 @@ class CommentCell: BaseTableViewCell {
      */
     func loadComment(comment: Comment) {
         
-        self.leadingMarginConstraint.constant = CGFloat(10) * self.marginUnit
+        self.leadingMarginConstraint.constant = comment.level * self.marginUnit
 
         self.comment.text = comment.text
         self.pointLabel.text = String(comment.score)

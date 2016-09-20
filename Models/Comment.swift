@@ -43,6 +43,19 @@ struct Comment: ResourceType {
         }
     } 
     
+    var isPlaceholder: Bool = false
+
+    lazy var level: Int = {
+        let l = 1
+        var p = self.parent
+        while !p.isEmpty {
+            p = p.parent
+            l++
+        }
+
+        return l
+    }()
+
     init(id: String, parent: String, text: String, timestampString: String, ups: Int, downs: Int) {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
@@ -89,7 +102,36 @@ struct Comment: ResourceType {
         if self.replies.count < 2 { return }
         self.replies.sortInPlace { $0.createdAt.compare($1.createdAt) == .OrderedAscending }
     }
+
+    mutating func setStatusAll(isHidden: Bool) {
+        if isHidden {
+            self.isShow = false // this will handle all children nodes
+            return
+        }
+
+        self.isShow = true
+        for reply in replies {
+            reply.setAllStatus(false)
+        }
+    }
+
+    /**
+     Return the median score of replies to this comment.
+     */
+    func getMedianScore() -> Float {
+        let n = self.replies.count
+        guard n > 0 { return 0 }
+
+        if n % 2 == 0 {
+            return Float(self.replies[n / 2 -1].score + self.replies[n / 2].score) / 2.0
+        } else {
+            return self.replies[n / 2]
+        }
+    }
 }
+
+
+
 
 func commentsParser(json: JSON) -> [Comment] {
     let treeJson = json[1]["data"]["children"]
@@ -120,3 +162,4 @@ internal func commentParser(json: JSON) -> Comment? {
 
     return comment
 }
+

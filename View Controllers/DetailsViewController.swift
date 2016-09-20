@@ -55,7 +55,12 @@ class DetailsViewController: UIViewController {
     var layout: LayoutType!
 
     let subject: Link
+    
+    // The original comments tree
     var comments = [Comment]()
+
+    // The comments that are actullay displayed in tableview.
+    var commentsOSD = [Comment]()
     
     init(aSubject: Link) {
 
@@ -88,6 +93,7 @@ class DetailsViewController: UIViewController {
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+        commentsVC.tableView.registerNib(UINib(nibName: "CommentPlaceholderCell", bundle: nil), forCellReuseIdentifier: "CommentPlaceholderCell")
         commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
         commentsVC.tableView.estimatedRowHeight = 80
         
@@ -121,6 +127,8 @@ class DetailsViewController: UIViewController {
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
             self?.comments = comments!
+
+            self.commentsOSD = self?.pickImportantComments(self?.comments)           
             
             dispatch_async(dispatch_get_main_queue()) {
                 self?.indicatorView.stopAnimating()
@@ -323,17 +331,31 @@ extension DetailsViewController : UITableViewDataSource{
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         
-        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        let comment = self.commentsOSD[indexPath.row] 
         
-        cell.loadComment(comments[indexPath.row])
+        if comment.isPlaceholder {
+            return commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentPlaceholderCell")    
+        }
+
+        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        cell.loadComment(comment)
         
         return cell
     
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    
-        return comments.count
+        
+        return self.commentsOSD.count 
     
     }
 }
+
+extension DetailsViewController {
+    /**
+     This function
+     */
+    func pickImportantComments(comments: [Commment]) -> [Comment] {
+        
+    }      
+} 
