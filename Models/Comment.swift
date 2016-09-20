@@ -52,6 +52,7 @@ struct Comment: ResourceType {
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
         self.ups = ups
         self.downs = downs
+        
         self.isShow = true
     }
     

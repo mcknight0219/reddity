@@ -46,6 +46,12 @@ class DetailsViewController: UIViewController {
         }
     }()
     
+    lazy var topIndicatorView: UIActivityIndicatorView = {
+       
+        return UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
+        
+    }()
+    
     var layout: LayoutType!
 
     let subject: Link
@@ -75,6 +81,8 @@ class DetailsViewController: UIViewController {
         
         self.setupHeaderView()
         
+        self.view.addSubview(self.topView)
+        
         commentsVC = BaseTableViewController()
         commentsVC.tableView.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
         commentsVC.tableView.delegate = self
@@ -92,23 +100,28 @@ class DetailsViewController: UIViewController {
         commentsVC.tableView.tableHeaderView?.addSubview(indicatorView)
         indicatorView.center = commentsVC.tableView.tableHeaderView!.center
         commentsVC.tableView.tableFooterView = UIView()
+
+        
         indicatorView.hidesWhenStopped = true
     
         navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         
         if self.layout != .Text {
             navigationItem.title = self.subject.title
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: self, action: #selector(DetailsViewController.openExternalLink))
-            navigationItem.rightBarButtonItem!.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
-            navigationItem.rightBarButtonItem!.title = String.fontAwesomeIconWithName(.ExternalLink)
+            
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
+        
         } else {
+        
             navigationItem.title = ""
+        
         }
 
         indicatorView.startAnimating()
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
             self?.comments = comments!
+            
             dispatch_async(dispatch_get_main_queue()) {
                 self?.indicatorView.stopAnimating()
                 self?.commentsVC.tableView.tableHeaderView = nil
@@ -120,13 +133,42 @@ class DetailsViewController: UIViewController {
     }
     
     func applyTheme() {
+        
+        guard self.topView.subviews.count > 0 else { return }
+        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.textLabel?.backgroundColor = UIColor.blackColor()
-            self.textLabel?.textColor = UIColor.whiteColor()
+        
+            self.view.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+            
+            self.topView.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+        
         } else {
-            self.textLabel?.backgroundColor = UIColor.whiteColor()
-            self.textLabel?.textColor = UIColor.blackColor()
+        
+            self.view.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+            
+            self.topView.backgroundColor = UIColor.whiteColor()
+            
         }
+        
+        
+        if let label = self.topView.subviews[0] as? InsetLabel {
+            
+            if ThemeManager.defaultManager.currentTheme == "Dark" {
+                
+                label.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+                
+                label.textColor = UIColor.whiteColor()
+            
+            } else {
+                
+                label.backgroundColor = UIColor.whiteColor()
+                
+                label.textColor = UIColor.blackColor()
+            
+            }
+
+        }
+        
     }
     
     private func setupHeaderView() {
@@ -150,22 +192,31 @@ class DetailsViewController: UIViewController {
             textLabel.attributedText = title
             
             self.topView.addSubview(textLabel)
-            textLabel.snp_makeConstraint { make in
-                make.left.right.top.bottm.equalTo(self.topView)
+            textLabel.snp_makeConstraints { make in
+                make.left.right.top.bottom.equalTo(self.topView)
             }
 
         } else if self.layout == .External {
 
             let button = UIButton()
-            button.setImage(UIImage.fontAwesomeIconWithName(.ExternaliLink, textColor: FlatOrange(), size: CGSize(width: 18, height: 18)), forState: .Normal)
+            button.setImage(UIImage.fontAwesomeIconWithName(.ExternalLink, textColor: FlatOrange(), size: CGSize(width: 20, height: 20)), forState: .Normal)
             
-            let link = NSMutableAttributedString(string: self.subject.host, attributes: [
-                    NSFontAttributeName: UIFont(name: "Lato-Bold", size: 18)])
-            link.addAttribute(NSUnderlinkStyleAttributeName, value: self.subject.link, range: NSMakeRange(0, self.subject.link.characters.count))
+            let style = NSMutableParagraphStyle()
+            style.alignment = .Center
+            style.lineBreakMode = .ByCharWrapping
+            
+            let link = NSMutableAttributedString(string: " \(self.subject.url.host!)", attributes: [
+                NSFontAttributeName: UIFont(name: "Lato-Bold", size: 18)!,
+                NSUnderlineStyleAttributeName: NSUnderlineStyle.StyleSingle.rawValue,
+                NSParagraphStyleAttributeName: style,
+                NSForegroundColorAttributeName: FlatOrange()
+                ])
 
             button.setAttributedTitle(link, forState: .Normal)
 
-            button.addTarget(self, action: #selector(DetailsViewController.openExternalLink), forControlEvents: UIControlEvent.TouchUpInside)
+            button.addTarget(self, action: #selector(DetailsViewController.openExternalLink), forControlEvents: UIControlEvents.TouchUpInside)
+            
+            button.sizeToFit()
 
             self.topView.addSubview(button)
             
@@ -173,18 +224,32 @@ class DetailsViewController: UIViewController {
         } else {
             
             let imageView = UIImageView()
-            imageView.contentMode = ScaleAspectFill
-            imageView.clipsToBound = true
-            imageView.sd_setImageWithURL(self.subject.url, placeholderImage: nil, options: [], progress: nil, completed: nil)
+            imageView.contentMode = .ScaleAspectFill
+            imageView.clipsToBounds = true
+            
+            self.topView.addSubview(self.topIndicatorView)
+            self.topIndicatorView.center = self.topView.center
+            self.topIndicatorView.startAnimating()
+            
+            imageView.sd_setImageWithURL(self.subject.url, placeholderImage: nil, options: [], progress: nil, completed: { (_, _, _, _)  in
+
+                self.topIndicatorView.stopAnimating()
+                
+                self.topIndicatorView.removeFromSuperview()
+            
+            })
 
             self.topView.addSubview(imageView)
 
-            imageView.snp_makeConstraint { make in
-                make.left.right.top.botton.equalTo(self.topView)
+            imageView.snp_makeConstraints { make in
+                
+                make.left.right.top.bottom.equalTo(self.topView)
+            
             }
 
-            let tap = UITapGestureRecognizer(self, action: #selector(DetailsViewController.handleImageTap(_:)))
-            imageView.addGestureRecognizer(tap)
+            let tap = UITapGestureRecognizer(target: self, action: #selector(DetailsViewController.handleImageTap(_:)))
+            
+            self.topView.addGestureRecognizer(tap)
         }
 
     }
@@ -200,16 +265,26 @@ class DetailsViewController: UIViewController {
         ac.addAction(cancelAction)
 
         let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
-            let safariViewController = SFSafariViewController(URL: self.subject.link)
+            
+            let safariViewController = SFSafariViewController(URL: self.subject.url)
+            
             self.presentViewController(safariViewController, animated: true, completion: nil)
+        
         }
+        
         ac.addAction(openAction)
 
         presentViewController(ac, animated: true) {}
     }
 
-    private func handleImageTap(sender: UITapGestureRecognizer) {
-
+    @objc private func handleImageTap(sender: UITapGestureRecognizer) {
+        
+        let imageDetailVC = ImageDetailViewController(URL: self.subject.url)
+        
+        imageDetailVC.modalTransitionStyle = .CrossDissolve
+        imageDetailVC.modalPresentationStyle = .FullScreen
+        
+        self.navigationController?.presentViewController(imageDetailVC, animated: true, completion: nil)
     }
 }
 
@@ -223,35 +298,13 @@ extension DetailsViewController: UITableViewDelegate {
     func scrollViewDidScroll(scrollView: UIScrollView) {
         let offsetY = scrollView.contentOffset.y
 
-        if 0...30 ~= offsetY {
+        if 0..<160 ~= offsetY {
             UIView.animateWithDuration(0.2) { [unowned self] in
-                // new height for topView
-                let newHeight = self.topView.frame.height -  offsetY * 1.1
                 
-                self.topView.frame      = CGRectMake(0, 0, self.view.bounds.width, newHeight)
-                self.topView.alpha      = 1.0 - offsetY / 30
-                self.tableView.frame    = CGRectMake(0, newHeight, self.view.bounds.width, self.view.bounds.heigth - newHeight)
-            }    
-        }
-
-        // Scroll past threshhold, fold the topView completely
-        if offsetY > 30 {
-            UIView.animateWithDuration(0.7) { [unowned self] in
-                self.topView.frame = CGRectZero
-                self.topView.alpha = 0
-                self.tableView.framei = CGRectMake(0, 0, self.view.bounds.width, self.view.bounds.height)
-            }
-        }
-
-        if -30...0 ~= offsetY {
-            // Pulling down from initial state, don't do anything.
-            if self.topView.alpha > 0 { return }
-
-            UIView.animateWithDuration(1.0) { [unowned self] in
-                // restore to orignal setup
-                self.topView.frame = CGRectMake(0, 0, self.view.bounds.width, 160)
-                self.topView.alpha = 1
-                self.tableView.frame = CGRectMake(0, 160, self.view.bounds.width, self.view.bounds.height-160)
+                self.topView.frame = CGRectMake(0, -1.0 * offsetY, self.view.bounds.width, 160)
+                
+                self.commentsVC.tableView.frame = CGRectMake(0, 160 - offsetY, self.view.bounds.width, self.view.bounds.height - (160 - offsetY))
+            
             }
         }
 
@@ -263,16 +316,24 @@ extension DetailsViewController: UITableViewDelegate {
 
 extension DetailsViewController : UITableViewDataSource{
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+ 
         return 1
+    
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        
         let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        
         cell.loadComment(comments[indexPath.row])
+        
         return cell
+    
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    
         return comments.count
+    
     }
 }
