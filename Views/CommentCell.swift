@@ -65,7 +65,7 @@ class CommentCell: BaseTableViewCell {
 
         self.comment.text = comment.text
         self.pointLabel.text = String(comment.score)
-        self.userLabel.text = "username"
+        self.userLabel.text = comment.user
         
         self.vote.image = UIImage.fontAwesomeIconWithName(.ThumbsOUp, textColor: UIColor.grayColor(), size: CGSize(width: 17, height: 17))
         let singleTap = UITapGestureRecognizer(target: self, action: #selector(CommentCell.voteIconClicked))

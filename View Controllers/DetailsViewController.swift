@@ -57,7 +57,12 @@ class DetailsViewController: UIViewController {
     let subject: Link
     
     // The original comments tree
-    var comments = [Comment]()
+    var comments = [Comment]() {
+        didSet {
+            self.markHiddenComments()
+            self.loadCommentsOSD()
+        }
+    }
 
     // The comments that are actullay displayed in tableview.
     var commentsOSD = [Comment]()
@@ -124,12 +129,12 @@ class DetailsViewController: UIViewController {
         }
 
         indicatorView.startAnimating()
+        
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
-            self?.comments = comments!
 
-            self.commentsOSD = self?.pickImportantComments(self?.comments)           
-            
+            self?.comments = comments!
+                        
             dispatch_async(dispatch_get_main_queue()) {
                 self?.indicatorView.stopAnimating()
                 self?.commentsVC.tableView.tableHeaderView = nil
@@ -301,6 +306,18 @@ extension DetailsViewController: UITableViewDelegate {
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         
+        let comment = self.commentsOSD[indexPath.row]
+
+        if comment.isPlaceholder {
+            let idx = self.comments.indexOf { $0 == comment }
+            
+            // find the parent comment and load all its replies
+            let parent = self.findParentCommentInOSD(idx-1)
+
+            for i in 0..<parent.replies.count {
+                
+            }
+        } 
     }
     
     func scrollViewDidScroll(scrollView: UIScrollView) {
@@ -352,10 +369,81 @@ extension DetailsViewController : UITableViewDataSource{
 }
 
 extension DetailsViewController {
-    /**
-     This function
-     */
-    func pickImportantComments(comments: [Commment]) -> [Comment] {
         
-    }      
+    /**
+     Extract comments which are active into OSD array.
+
+     @discussion we use commentsOSD to display in the table
+     */
+    private func loadCommentsOSD() {
+        self.commentsOSD.removeAll()
+
+        for comment in self.comments {
+            if comment.isShow {
+                self.commentsOSD.append(comment)
+                self.loadRepliesOSD(comment.replies)
+            }        
+        }
+    }
+
+    private func loadRepliesOSD(replies: [Comment]) {
+        guard replies.count > 0 else { return }
+
+        var hasHidden = false
+        for reply in replies {
+            if reply.isShow { 
+                self.commentsOSD.append(reply) 
+                self.loadRepliesOSD(reply.replies)
+            } else {
+                hasHidden = true
+            }
+        }
+
+        if hasHidden {
+            
+            self.commentsOSD.append(makePlaceholder())
+        
+        }
+    }
+
+    /**
+     @discussion The default display status is always `false` on start
+     */
+    private func markHiddenComments() {
+        
+        let skipScoreFiltering = self.comments.count < 5
+
+        for i in 0..<self.comments.count {
+            // Show top comments if number of comments are less than 5 or score is non-negative    
+            if (self.comments[i].score > 0) || skipScoreFiltering {
+                self.comments[i].isShow = true            
+            }
+
+            let median = self.comments[i].getMedianScore()
+
+            for j in 0..<self.comments[i].replies.count {
+                if self.comments[i].replies[j].score > median {
+                    self.comments[i].replies[j].isShow = true
+                }
+            }
+        }    
+    }
 } 
+
+extension DetailsViewController {
+    private func findParentCommentInOSD(index: Int) -> Comment? {
+        guard index > 0 {
+            return nil
+        }
+
+        let child = self.commentsOSD[index]
+        for i in (0..<index).reverse() {
+            if self.commentsOSD[i].name == child.parent {
+                return self.commentsOSD[i]
+            } 
+        }
+
+        return nil
+    }
+}
+

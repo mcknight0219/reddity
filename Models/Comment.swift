@@ -30,6 +30,7 @@ struct Comment: ResourceType {
             return ups - downs
         }
     }
+    let user: String
     
     var replies = [Comment]()
     // UI related property: whether to show the comment
@@ -56,7 +57,7 @@ struct Comment: ResourceType {
         return l
     }()
 
-    init(id: String, parent: String, text: String, timestampString: String, ups: Int, downs: Int) {
+    init(id: String, parent: String, text: String, timestampString: String, ups: Int, downs: Int, user: String) {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
         self.parentType = parent.startsWith(ListType.Link.description) ? .Link : .Comment
@@ -65,8 +66,9 @@ struct Comment: ResourceType {
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
         self.ups = ups
         self.downs = downs
+        self.user = user
         
-        self.isShow = true
+        self.isShow = false
     }
     
     func hasReplies() -> Bool {
@@ -82,6 +84,12 @@ struct Comment: ResourceType {
         return replies.reduce(0) { (sum, comment) -> Int in
             return sum + comment.totalReplies()
         }
+    }
+
+    mutating func removeReplies() {
+
+        self.replies.removeAll()
+    
     }
 
     mutating func addReply(aComment: Comment) {
@@ -131,7 +139,12 @@ struct Comment: ResourceType {
 }
 
 
+public func makePlaceholder() {
+    var ret = Comment(id: "", parent: "", text: "", timestampString: "", ups: 0, downs: 0, user: "")
+    ret.isPlaceholder = true
 
+    return ret
+}
 
 func commentsParser(json: JSON) -> [Comment] {
     let treeJson = json[1]["data"]["children"]
@@ -152,7 +165,7 @@ internal func commentParser(json: JSON) -> Comment? {
         return nil
     }
     
-    var comment = Comment(id: json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue)
+    var comment = Comment(id: json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)
     for (_, replyJson): (String, JSON) in json["replies"]["data"]["children"] {
         let reply = commentParser(replyJson["data"])
         if let reply = reply {
