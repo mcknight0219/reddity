@@ -11,16 +11,40 @@ import SwiftyJSON
 
 
 struct Comment: ResourceType {
-    enum ParentType {
-        case Comment
-        case Link
-    }
-    
+       
     let listType: ListType = .Comment
     let id: String
     let name: String
-    let parentType: ParentType
-    let parent: String
+    
+    /**
+     A hack to work around `stored property that references itself` for struct value type
+
+     @see https://gist.github.com/zats/c39dbd9b0017fb3b77dd37be744cf474
+     */
+    private var _parent: [Comment]?
+
+    var parent: Comment? {
+        set {
+            _parent = newValue.map {[$0]}
+        }
+
+        get {
+            return _parent?.first
+        }
+    }
+
+    // Level of comments in comments tree
+    lazy var level: Int = {
+        var ret = 0
+        
+        while var p = self.parent {
+            p = p.parent
+            ret = ret + 1
+        }
+
+        return ret
+    }() 
+
     let text: String
     let createdAt: NSDate
     let ups: Int
@@ -46,21 +70,9 @@ struct Comment: ResourceType {
     
     var isPlaceholder: Bool = false
 
-    lazy var level: Int = {
-        let l = 1
-        var p = self.parent
-        while !p.isEmpty {
-            p = p.parent
-            l++
-        }
-
-        return l
-    }()
-
-    init(id: String, parent: String, text: String, timestampString: String, ups: Int, downs: Int, user: String) {
+    init(id: String, parent: Comment?, text: String, timestampString: String, ups: Int, downs: Int, user: String) {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
-        self.parentType = parent.startsWith(ListType.Link.description) ? .Link : .Comment
         self.parent = parent
         self.text = text
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
@@ -119,7 +131,7 @@ struct Comment: ResourceType {
 
         self.isShow = true
         for reply in replies {
-            reply.setAllStatus(false)
+            reply.setStatusAll(false)
         }
     }
 
@@ -131,23 +143,42 @@ struct Comment: ResourceType {
         guard n > 0 { return 0 }
 
         if n % 2 == 0 {
-            return Float(self.replies[n / 2 -1].score + self.replies[n / 2].score) / 2.0
+            return Float(self.replies[n/2-1].score + self.replies[n/2].score) / 2.0
         } else {
-            return self.replies[n / 2]
+            return Float(self.replies[n/2])
         }
+    }
+
+    /**
+     This function creates an array of all children comments. It follows a DFS fashion so
+     it suits displaying them on screen.
+
+     @note the flattened list includes the comment itself as first 
+     */
+    func flatten() -> [Comment] {
+        var ret = [self]
+        guard replies.count > 0 { return ret }
+
+        replies.map { ret.appendContentsOf($0.flatten) }
+
+        return ret
     }
 }
 
 
 public func makePlaceholder() {
-    var ret = Comment(id: "", parent: "", text: "", timestampString: "", ups: 0, downs: 0, user: "")
+    var ret = Comment(id: "", parent: nil, text: "", timestampString: "", ups: 0, downs: 0, user: "")
     ret.isPlaceholder = true
 
     return ret
 }
 
+private var _commentsParsedDict = [String:Comment]()
+
 func commentsParser(json: JSON) -> [Comment] {
     let treeJson = json[1]["data"]["children"]
+
+    _commentsParsedDict.removeAll(false)
 
     // The replies that direct to post
     var tops = [Comment]()
@@ -165,13 +196,29 @@ internal func commentParser(json: JSON) -> Comment? {
         return nil
     }
     
-    var comment = Comment(id: json["id"].stringValue, parent: json["parent_id"].stringValue, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)
+    // Figure out parent, it's always available because we walk comments tree in top-down fashion
+    let parentId = json["parent_id"].stringValue
+    
+    var parent: Comment?
+    if parentId.startsWith("t3_") {
+        // The root comments have link itself as parent
+        parent = nil
+    
+    } else {
+    
+        parent = _commentsParsedDict[parent.substringFromIndex(parentId.startIndex.advancedBy(3))]
+    
+    }
+
+    var comment = Comment(id: json["id"].stringValue, parent: parent, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)
     for (_, replyJson): (String, JSON) in json["replies"]["data"]["children"] {
         let reply = commentParser(replyJson["data"])
         if let reply = reply {
             comment.addReply(reply)
         }
     }
+
+    _commentsParsedDict[comment.id] = comment
 
     return comment
 }

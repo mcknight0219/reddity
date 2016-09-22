@@ -20,7 +20,9 @@ let kLoadMoreSearchResults = "LoadMoreSearchResults"
  */
 enum TableContent: String, CustomStringConvertible {
     case History = "History"
+    
     case Subreddit = "Subreddit"
+    
     case Link = "Link"
     
     var description: String {
@@ -130,10 +132,11 @@ class SearchViewController: BaseViewController {
         definesPresentationContext = true
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
-        self.tableView.tableFooterView = UIView()
         
         extendedLayoutIncludesOpaqueBars = true
+        
         automaticallyAdjustsScrollViewInsets = true
+        
         self.searchController.searchBar.searchBarStyle = .Default
         
         self.searchController.dimsBackgroundDuringPresentation = false
@@ -185,7 +188,7 @@ class SearchViewController: BaseViewController {
     
     func onContextSwitch(notification: NSNotification) {
         self.currentTableContent = TableContent(rawValue: notification.object as! String)!
-        self.tableView.backgroundView = nil
+        self.tableView.tableFooterView = nil
         
         dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
             self.history.removeAll()
@@ -203,13 +206,20 @@ class SearchViewController: BaseViewController {
 
                     dispatch_async(dispatch_get_main_queue()) {
                         self.tableView.reloadData()
+                        
                         if self.history.count == 0 { 
-                            self.tableView.backgroundView = self.backgroundView
-                            return
+
+                            self.tableView.tableFooterView = self.backgroundView
+                        
                         }
                     }
+
                 break
+
             default:
+
+                
+
                 // If the search field is not empty, the context switch will trigger search
                 // of the term within new scope
                 if let text = self.searchController.searchBar.text {
@@ -230,9 +240,13 @@ class SearchViewController: BaseViewController {
 extension SearchViewController: UITableViewDelegate {
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         if currentTableContent == .History {
+            
             return 44
+        
         } else  {
+        
             return 100
+        
         }
     }
     
@@ -388,18 +402,26 @@ extension SearchViewController: UISearchResultsUpdating {
         } 
 
         let text = timer.userInfo as! String
+        
         if true {
+            
             self.currentTableContent = .Link
+            
             searchTitleAndUpdate(text, after: "")
         } else {
+            
             self.currentTableContent = .Subreddit
+            
             searchSubredditAndUpdate(text, after: "")
         }
     }
 
     func loadMoreContent() {
+        
         guard self.currentTableContent != TableContent.History else {
+        
             return
+        
         }
         
         let text = self.searchController.searchBar.text
@@ -476,19 +498,25 @@ extension SearchViewController: UISearchBarDelegate {
     }
     
     func searchBarSearchButtonClicked(searchBar: UISearchBar) {
+        
         searchBar.resignFirstResponder()
+        
         self.view.endEditing(true)
     }
     
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        
         if searchText.isEmpty {
+        
             self.subreddits.removeAll()
+            
             self.tableView.reloadData()
         }
     }
 
     func searchBarShouldBeginEditing(searchBar: UISearchBar) -> Bool {
         
+        // Default to search in subreddit context
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.Subreddit.rawValue)
     
         return true

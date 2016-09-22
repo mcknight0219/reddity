@@ -311,12 +311,32 @@ extension DetailsViewController: UITableViewDelegate {
         if comment.isPlaceholder {
             let idx = self.comments.indexOf { $0 == comment }
             
-            // find the parent comment and load all its replies
-            let parent = self.findParentCommentInOSD(idx-1)
+            let parent = self.comments[idx-1].parent
+            
+            commentsOSD.removeAtIndex(indexPath.row)
+            self.commentsVC.tableView.beginUpdates()
+            self.commentsVC.tableView.removeRowsAtIndexes([indexPath], withRowAnimation: false)
+            self.commentsVC.tableView.endUpdates()
 
-            for i in 0..<parent.replies.count {
+            for i in (0..<parent.replies.count).reverse() {
+
+                if !parent.replies[i].isShow {
+                    
+                    parent.replies[i].isShow = true
+                    parent.replies[i].setStatusAll(true)
+
+                    let children = parent.replies[i].flatten()
+                    
+                    self.commentsOSD.insertContentsOf(children , at: idx)
                 
+                    self.commentsVC.tableView.beginUpdates()
+
+                    self.commentsVC.tableView.insertRowsAtIndexes(NSIndexSet(indexesInRange: idx.row..<(idx.row + chidlren.count)))
+
+                    self.commentsVC.tableView.endUpdates()
+                }
             }
+            
         } 
     }
     
@@ -348,14 +368,9 @@ extension DetailsViewController : UITableViewDataSource{
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         
-        let comment = self.commentsOSD[indexPath.row] 
-        
-        if comment.isPlaceholder {
-            return commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentPlaceholderCell")    
-        }
-
         let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        cell.loadComment(comment)
+        
+        cell.configCellWith(self.commentsOSD[indexPath.row])
         
         return cell
     
@@ -429,21 +444,4 @@ extension DetailsViewController {
         }    
     }
 } 
-
-extension DetailsViewController {
-    private func findParentCommentInOSD(index: Int) -> Comment? {
-        guard index > 0 {
-            return nil
-        }
-
-        let child = self.commentsOSD[index]
-        for i in (0..<index).reverse() {
-            if self.commentsOSD[i].name == child.parent {
-                return self.commentsOSD[i]
-            } 
-        }
-
-        return nil
-    }
-}
 

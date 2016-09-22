@@ -13,6 +13,8 @@ import FontAwesome_swift
 class CommentCell: BaseTableViewCell {
 
     @IBOutlet weak var leadingMarginConstraint: NSLayoutConstraint!
+
+    @IBOutlet weak var bottomSectHeightConstraint: NSLayoutConstraint!
     
     lazy var comment: UILabel! = {
         return self.viewWithTag(1) as! UILabel
@@ -59,9 +61,19 @@ class CommentCell: BaseTableViewCell {
     /**
      Load the comment and set proper left margin
      */
-    func loadComment(comment: Comment) {
+    func configCellWith(comment: Comment) {
         
         self.leadingMarginConstraint.constant = comment.level * self.marginUnit
+
+        if self.comment.isPlaceholder {
+            
+            self.bottomSectHeightConstraint.constant = 0
+
+            self.comment.text = "Load more"
+
+            return
+        }
+
 
         self.comment.text = comment.text
         self.pointLabel.text = String(comment.score)
@@ -89,6 +101,10 @@ class CommentCell: BaseTableViewCell {
     }
 }
 
-extension CommentCell {
 
+extension CommentCell {
+    
+    func transformMarkdown(text: String) -> NSAttributedString {
+        
+    }
 }
