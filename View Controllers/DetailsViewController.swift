@@ -311,27 +311,27 @@ extension DetailsViewController: UITableViewDelegate {
         if comment.isPlaceholder {
             let idx = self.comments.indexOf { $0 == comment }
             
-            let parent = self.comments[idx-1].parent
+            var parent = self.comments[idx!-1].parent
             
             commentsOSD.removeAtIndex(indexPath.row)
             self.commentsVC.tableView.beginUpdates()
-            self.commentsVC.tableView.removeRowsAtIndexes([indexPath], withRowAnimation: false)
+            self.commentsVC.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Bottom)
             self.commentsVC.tableView.endUpdates()
 
-            for i in (0..<parent.replies.count).reverse() {
+            for i in (0..<parent!.replies.count).reverse() {
 
-                if !parent.replies[i].isShow {
+                if !parent!.replies[i].isShow {
                     
-                    parent.replies[i].isShow = true
-                    parent.replies[i].setStatusAll(true)
+                    parent!.replies[i].isShow = true
+                    parent!.replies[i].setStatusAll(true)
 
-                    let children = parent.replies[i].flatten()
+                    let children = parent!.replies[i].flatten()
                     
-                    self.commentsOSD.insertContentsOf(children , at: idx)
+                    self.commentsOSD.insertContentsOf(children , at: idx!)
                 
                     self.commentsVC.tableView.beginUpdates()
 
-                    self.commentsVC.tableView.insertRowsAtIndexes(NSIndexSet(indexesInRange: idx.row..<(idx.row + chidlren.count)))
+                    self.commentsVC.tableView.insertRowsAtIndexPaths((idx!...idx!+children.count).map { NSIndexPath(index: $0) }, withRowAnimation: .Bottom)
 
                     self.commentsVC.tableView.endUpdates()
                 }
@@ -370,7 +370,7 @@ extension DetailsViewController : UITableViewDataSource{
         
         let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
         
-        cell.configCellWith(self.commentsOSD[indexPath.row])
+        cell.configCellWith(&self.commentsOSD[indexPath.row])
         
         return cell
     
@@ -426,7 +426,7 @@ extension DetailsViewController {
      */
     private func markHiddenComments() {
         
-        let skipScoreFiltering = self.comments.count < 5
+        let skipScoreFiltering = (self.comments.count < 5)
 
         for i in 0..<self.comments.count {
             // Show top comments if number of comments are less than 5 or score is non-negative    
@@ -437,7 +437,7 @@ extension DetailsViewController {
             let median = self.comments[i].getMedianScore()
 
             for j in 0..<self.comments[i].replies.count {
-                if self.comments[i].replies[j].score > median {
+                if self.comments[i].replies[j].score > Int(median) {
                     self.comments[i].replies[j].isShow = true
                 }
             }

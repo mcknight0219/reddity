@@ -19,7 +19,7 @@ let kSubscriptionsChangedNotification = "SubscriptionsChangedNotification"
  */
 class Subscription {
 
-    public static let sharedInstance = Subscription()
+    static let sharedInstance = Subscription()
 
     /**
      Get the app instance lazily

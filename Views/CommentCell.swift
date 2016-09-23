@@ -61,11 +61,11 @@ class CommentCell: BaseTableViewCell {
     /**
      Load the comment and set proper left margin
      */
-    func configCellWith(comment: Comment) {
+    func configCellWith(inout comment: Comment) {
         
-        self.leadingMarginConstraint.constant = comment.level * self.marginUnit
+        self.leadingMarginConstraint.constant = CGFloat(comment.level) * self.marginUnit
 
-        if self.comment.isPlaceholder {
+        if comment.isPlaceholder {
             
             self.bottomSectHeightConstraint.constant = 0
 
@@ -106,5 +106,7 @@ extension CommentCell {
     
     func transformMarkdown(text: String) -> NSAttributedString {
         
+        return NSAttributedString()
+    
     }
 }

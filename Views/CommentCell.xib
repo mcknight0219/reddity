@@ -73,6 +73,7 @@
                 </constraints>
             </tableViewCellContentView>
             <connections>
+                <outlet property="bottomSectHeightConstraint" destination="Cdn-5I-zST" id="aHm-lx-3nq"/>
                 <outlet property="leadingMarginConstraint" destination="FSI-5B-tiP" id="drQ-bs-6jZ"/>
             </connections>
             <point key="canvasLocation" x="197" y="516.5"/>

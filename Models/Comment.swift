@@ -10,7 +10,7 @@ import Foundation
 import SwiftyJSON
 
 
-struct Comment: ResourceType {
+struct Comment: ResourceType, Equatable {
        
     let listType: ListType = .Comment
     let id: String
@@ -38,7 +38,7 @@ struct Comment: ResourceType {
         var ret = 0
         
         while var p = self.parent {
-            p = p.parent
+            p = p.parent!
             ret = ret + 1
         }
 
@@ -73,14 +73,15 @@ struct Comment: ResourceType {
     init(id: String, parent: Comment?, text: String, timestampString: String, ups: Int, downs: Int, user: String) {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
-        self.parent = parent
+        
         self.text = text
         self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
         self.ups = ups
         self.downs = downs
         self.user = user
-        
         self.isShow = false
+    
+        self.parent = parent
     }
     
     func hasReplies() -> Bool {
@@ -88,7 +89,7 @@ struct Comment: ResourceType {
     }
     
     func isTopLevel() -> Bool {
-        return self.parentType == .Link
+        return self.parent == nil
     }
     
     // Get number of replies recursively
@@ -128,10 +129,9 @@ struct Comment: ResourceType {
             self.isShow = false // this will handle all children nodes
             return
         }
-
-        self.isShow = true
-        for reply in replies {
-            reply.setStatusAll(false)
+        
+        for i in 0..<replies.count {
+            replies[i].setStatusAll(false)
         }
     }
 
@@ -140,12 +140,12 @@ struct Comment: ResourceType {
      */
     func getMedianScore() -> Float {
         let n = self.replies.count
-        guard n > 0 { return 0 }
+        guard n > 0 else { return 0 }
 
         if n % 2 == 0 {
             return Float(self.replies[n/2-1].score + self.replies[n/2].score) / 2.0
         } else {
-            return Float(self.replies[n/2])
+            return Float(self.replies[n/2].score)
         }
     }
 
@@ -157,16 +157,22 @@ struct Comment: ResourceType {
      */
     func flatten() -> [Comment] {
         var ret = [self]
-        guard replies.count > 0 { return ret }
+        guard replies.count > 0 else {
+            return ret
+        }
 
-        replies.map { ret.appendContentsOf($0.flatten) }
+        replies.forEach { ret.appendContentsOf($0.flatten()) }
 
         return ret
     }
 }
 
 
-public func makePlaceholder() {
+func ==(lhs: Comment, rhs: Comment) -> Bool {
+    return lhs.id == rhs.id
+}
+
+func makePlaceholder() -> Comment {
     var ret = Comment(id: "", parent: nil, text: "", timestampString: "", ups: 0, downs: 0, user: "")
     ret.isPlaceholder = true
 
@@ -178,7 +184,7 @@ private var _commentsParsedDict = [String:Comment]()
 func commentsParser(json: JSON) -> [Comment] {
     let treeJson = json[1]["data"]["children"]
 
-    _commentsParsedDict.removeAll(false)
+    _commentsParsedDict.removeAll(keepCapacity: false)
 
     // The replies that direct to post
     var tops = [Comment]()
@@ -206,7 +212,7 @@ internal func commentParser(json: JSON) -> Comment? {
     
     } else {
     
-        parent = _commentsParsedDict[parent.substringFromIndex(parentId.startIndex.advancedBy(3))]
+        parent = _commentsParsedDict[parentId.substringFromIndex(parentId.startIndex.advancedBy(3))]
     
     }
 

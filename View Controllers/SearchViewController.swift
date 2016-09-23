@@ -96,7 +96,7 @@ class SearchViewController: BaseViewController {
         return background
     }()
     
-    lazy var scopeChoiceView: UIView = {
+    lazy var scopeBadgesView: UIView = {
         let v = UIView()
         
         
@@ -218,6 +218,11 @@ class SearchViewController: BaseViewController {
 
             default:
 
+                dispatch_async(dispatch_get_main_queue()) {
+                
+                    self.tableView.tableFooterView = self.scopeBadgesView
+                
+                }
                 
 
                 // If the search field is not empty, the context switch will trigger search
