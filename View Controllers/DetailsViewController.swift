@@ -57,12 +57,7 @@ class DetailsViewController: UIViewController {
     let subject: Link
     
     // The original comments tree
-    var comments = [Comment]() {
-        didSet {
-            self.markHiddenComments()
-            self.loadCommentsOSD()
-        }
-    }
+    var comments = [Comment]()
 
     // The comments that are actullay displayed in tableview.
     var commentsOSD = [Comment]()
@@ -98,7 +93,7 @@ class DetailsViewController: UIViewController {
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-        commentsVC.tableView.registerNib(UINib(nibName: "CommentPlaceholderCell", bundle: nil), forCellReuseIdentifier: "CommentPlaceholderCell")
+        
         commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
         commentsVC.tableView.estimatedRowHeight = 80
         
@@ -132,8 +127,9 @@ class DetailsViewController: UIViewController {
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
-
             self?.comments = comments!
+            self?.markHiddenComments()
+            self?.loadCommentsOSD()
                         
             dispatch_async(dispatch_get_main_queue()) {
                 self?.indicatorView.stopAnimating()

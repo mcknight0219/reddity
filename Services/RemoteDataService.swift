@@ -32,7 +32,7 @@ func apiRequest<A>(base: NSURL, resource: Resource<A>, params: [String:String]?,
     
     var url = base.URLByAppendingPathComponent(resource.url)
     if let params = params,
-        let components = NSURLComponents(URL: url, resolvingAgainstBaseURL: true) {
+        let components = NSURLComponents(URL: url!, resolvingAgainstBaseURL: true) {
         
         params.forEach { components.appendQueryItem(name: $0.0, value: $0.1) }
         if let result = components.URL {
@@ -42,7 +42,7 @@ func apiRequest<A>(base: NSURL, resource: Resource<A>, params: [String:String]?,
         }
     }
     
-    let request = NSMutableURLRequest(URL: url)
+    let request = NSMutableURLRequest(URL: url!)
     request.addValue("bearer \(TokenService.sharedInstance.token)", forHTTPHeaderField: "Authorization")
     request.addValue(UIApplication.userAgent(), forHTTPHeaderField: "User-Agent")
     

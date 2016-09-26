@@ -38,8 +38,9 @@ struct Comment: ResourceType, Equatable {
         var ret = 0
         
         while var p = self.parent {
-            p = p.parent!
             ret = ret + 1
+            if p.parent == nil { break }
+            else { p = p.parent! }
         }
 
         return ret
@@ -173,7 +174,7 @@ func ==(lhs: Comment, rhs: Comment) -> Bool {
 }
 
 func makePlaceholder() -> Comment {
-    var ret = Comment(id: "", parent: nil, text: "", timestampString: "", ups: 0, downs: 0, user: "")
+    var ret = Comment(id: "", parent: nil, text: "", timestampString: "0", ups: 0, downs: 0, user: "")
     ret.isPlaceholder = true
 
     return ret
@@ -217,14 +218,13 @@ internal func commentParser(json: JSON) -> Comment? {
     }
 
     var comment = Comment(id: json["id"].stringValue, parent: parent, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)
+    _commentsParsedDict[comment.id] = comment
     for (_, replyJson): (String, JSON) in json["replies"]["data"]["children"] {
         let reply = commentParser(replyJson["data"])
         if let reply = reply {
             comment.addReply(reply)
         }
     }
-
-    _commentsParsedDict[comment.id] = comment
 
     return comment
 }

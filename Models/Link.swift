@@ -81,7 +81,7 @@ struct Link: ResourceType {
         default: break
         }
         
-        switch self.url.absoluteString.mediaType() {
+        switch self.url.absoluteString!.mediaType() {
         case .Unknown:
             return .News
         case .Image:

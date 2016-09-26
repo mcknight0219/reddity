@@ -28,8 +28,6 @@ class ImageCell: BaseTableViewCell {
         return self.viewWithTag(4) as! UILabel
     }()
     
-    var progressView: ProgressPieView!
-    
     override func awakeFromNib() {
         super.awakeFromNib()
         self.applyTheme()

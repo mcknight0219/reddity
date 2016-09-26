@@ -127,7 +127,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      */
     func openDB(createTables: Bool) {
         let fileURL = try! NSFileManager.defaultManager().URLForDirectory(.DocumentDirectory, inDomain: .UserDomainMask, appropriateForURL: nil, create: false).URLByAppendingPathComponent("app.sqlite")
-        database = FMDatabase(path: fileURL.path)
+        database = FMDatabase(path: fileURL!.path)
         if !database!.open() {
             print("Unable to open database")
             return

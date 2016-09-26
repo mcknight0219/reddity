@@ -16,8 +16,8 @@ class CommentCell: BaseTableViewCell {
 
     @IBOutlet weak var bottomSectHeightConstraint: NSLayoutConstraint!
     
-    lazy var comment: UILabel! = {
-        return self.viewWithTag(1) as! UILabel
+    lazy var comment: CommentLabel! = {
+        return self.viewWithTag(1) as! CommentLabel
     }()
     
     lazy var vote: UIImageView! = {
@@ -70,9 +70,12 @@ class CommentCell: BaseTableViewCell {
             self.bottomSectHeightConstraint.constant = 0
 
             self.comment.text = "Load more"
+            self.vote.image = nil
 
             return
         }
+        
+        self.bottomSectHeightConstraint.constant = 25
 
 
         self.comment.text = comment.text

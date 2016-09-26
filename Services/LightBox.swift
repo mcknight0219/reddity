@@ -18,7 +18,7 @@ class LightBox {
     typealias HandlerType = (title: String?, description: String?, imageURL: NSURL?) -> Void
     
     func load(URL: NSURL, completion: HandlerType) -> Void {
-        guard !URL.absoluteString.isEmpty else {
+        guard !URL.absoluteString!.isEmpty else {
             completion(title: nil, description: nil, imageURL: nil)
             return
         }
