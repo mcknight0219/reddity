@@ -7,7 +7,6 @@ import UIKit
 import SafariServices
 
 
-
 protocol CommentLabelDelegate {
     
     func urlDidTapped(URL: NSURL)
@@ -162,6 +161,36 @@ extension CommentLabel {
 
 extension CommentLabel {
     func parseMarkdown(text: String) -> NSAttributedString? {
-        return nil
+        guard text.isEmpty else {
+            return nil
+        }
+
+        var ms = NSMutableAttributedString(string: text)
+
+        // Bold texts
+        if let matches = ms.string.matchesAll("*.+*") {
+            matches.forEach { range in
+                let boldFont = UIFont(name: "Lato-Bold", size: 12)!
+                let boldStr = NSAttributedString(string: ms.string.substring(with: range), attributes: [NSFontAttributeName: boldFont])
+                ms.replaceCharactersInRange(range, withAttributedString: boldStr)
+            }
+        }
+
+        // Strike-through text
+        if let matches = ms.string.matchesAll("~~.+~~") {
+            
+        }
+
+        // Link text
+        if let matches = ms.string.matchesAll("") {
+            
+        }
+
+        // Any remaining url link
+        if let matches = ms.string.matchesAll(Config.URLPattern) {
+            
+        }
+
+        return ms
     }
 }
