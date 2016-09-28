@@ -14,30 +14,31 @@ extension NSRange {
         case Right
     }
 
-    func shrinkBy(_ amount: Distance, option: NSRangeShrinkage = .Both) -> NSRange? {
-        guard amount > 0 else { 
+    func shrinkBy(amount: Int, option: NSRangeShrinkage = .Both) -> NSRange {
+        guard amount > 0 else {
             return self
         }
-
-        var l, r, location, length: Int?
-        if option == .Both || options == .Left {
+        
+        var l, r, location: Int?
+        var length = self.length
+        if option == .Both || option == .Left {
             l = amount
         }
-        if option == .Both || options == .Right {
+        if option == .Both || option == .Right {
             r = amount
         }
-        if l ?? 0 + r ?? 0 >= length {
-            return NSRange(NSNotFound, 0)
+        if (l ?? 0) + (r ?? 0) >= length {
+            return NSMakeRange(NSNotFound, 0)
         }
-
+        
         if let l = l {
-            location = location + amount
-            length   = length - amount
+            location = self.location + l
+            length   = length - l
         }
         if let r = r {
-            length = length - amount
+            length = length - r
         }
-
-        return NSRange(location, length)
+        
+        return NSMakeRange(location ?? self.location, length)
     }
-} 
+}

@@ -173,40 +173,48 @@ extension CommentLabel {
         }
 
         // Start a chain of parsing and replacing Markdown grammars
-        return NSMutableAttributedString(string: text).matchesOccurrence("*.+*") { (r, ms) -> NSAttributedString in
+        return NSMutableAttributedString(string: text).replaceOccurrence(ofPattern: "\\*.+\\*") { (r, ms) -> NSAttributedString in
             let b = UIFont(name: "Lato-Bold", size: 12)!
-            return NSAttributedString(string: ms.string.substring(with: r.shrinkBy(1)), attributes: [NSFontAttributeName: b])
-        }
-        .matchestOccurrence("~~.+~~") { (r, ms) -> NSAttributedString in
-            return NSAttributedString(string: ms.string.substring(with: r.shrinkBy(2)), attributes: [NSStrikethroughStyleAttributeName: .NSUnderlineStyleThick])            
-        }
-        .matchesOccurrence("[.+]\(\(Config.URLPattern)\)") { (r, ms) -> NSAttributedString in
-            var t = NSRangeMake(1, 0)
-            let s = ms.string.substring(with: r)
-            for i in 0..<s.characters.count {
-                if s[i] == "]" {
-                    t.length = i - 1
-                    break
-                }
+            let s = NSString(string: ms.string)
+            return NSAttributedString(string: s.substringWithRange(r.shrinkBy(1)), attributes: [NSFontAttributeName: b])
             }
-            
-            let url = NSURL(string: s.string.substring(with: NSRangeMake(t.location+t.length+2, s.characters.length-t.location-t.length-2)))!
-            return NSAttributedString(string: s.substring(with: t), attributes: [NSLinkAttributeName: url])
+            .replaceOccurrence(ofPattern: "~~.+~~") { (r, ms) -> NSAttributedString in
+                let s = NSString(string: ms.string)
+                return NSAttributedString(string: s.substringWithRange(r.shrinkBy(2)), attributes: [NSStrikethroughStyleAttributeName: NSNumber(integer: NSUnderlineStyle.StyleThick.rawValue)])
+            }
+            .replaceOccurrence(ofPattern: "[.+]\\(\(Config.URLPattern)\\)") { (r, ms) -> NSAttributedString in
+                var t = NSMakeRange(1, 0)
+                let s = NSString(string: ms.string)
+                for i in 0..<s.length {
+                    if String(s.characterAtIndex(i)) == "]" {
+                        t.length = i - 1
+                        break
+                    }
+                }
+                
+                let url = NSURL(string: s.substringWithRange(NSMakeRange(t.location+t.length+2, s.length-t.location-t.length-2)))!
+                return NSAttributedString(string: s.substringWithRange(t), attributes: [NSLinkAttributeName: url])
+            }
+            .replaceOccurrence(ofPattern: Config.URLPattern) { (r, ms) -> NSAttributedString in
+                let s = NSString(string: ms.string)
+                let url = NSURL(string: s.substringWithRange(r))!
+                return NSAttributedString(string: url.host!, attributes: [NSLinkAttributeName: url])
+            }
+            .replaceOccurrence(ofPattern: "([ \\t]?-\\s\\S.+\\n?)+") { (r, ms) -> NSAttributedString in
+                let s = NSString(string: ms.string)
+                // The item lists
+                let p = NSMutableParagraphStyle()
+                p.firstLineHeadIndent = 10
+                p.paragraphSpacing = 4
+                p.paragraphSpacingBefore = 3
+                p.lineBreakMode = .ByWordWrapping
+                
+                return NSAttributedString(string: s.substringWithRange(r), attributes: [NSParagraphStyleAttributeName: p])
+            }
+            .replaceOccurrence(ofPattern: "^\\s?\\*+\\s+[^\\*]+$") { (r, ms) -> NSAttributedString in
+                
+                
         }
-        .matchesOccurrence(Config.URLPattern) { (r, ms) -> NSAttributedString in
-            let url = NSURL(string: ms.string.substring(with: r))!
-            return NSAttributedString(string: url.host, attributes: [NSLinkAttributeName: url])
-        }
-        .matchOccurrence("([ \t]?-\s\S.+\n?)+") { (r, ms) -> NSAttributedString in
-            // The item lists
-            let p = NSMutableParagraphStyle()
-            p.firstLineHeadIndent = 10
-            p.paragraphSpacing = 4
-            p.paragraphSpacingBefore = 3
-            p.lineBreakMode = .ByWordWrapping
-
-            return NSAttributedString(string: ms.substring(with: ms.string.substring(with: r)), attributes: [NSParagraphStyleAttributeName: p])
-        }
-
+        
     }
 }

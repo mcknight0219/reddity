@@ -9,9 +9,7 @@
 import Foundation
 
 extension NSMutableAttributedString {
-    typealias MatchedAction = (Range, NSMutableAttributedString) -> NSAttributedString
-
-    let NotFoundRange = NSRangeMake(NSNotFound, 0)
+    typealias MatchedAction = (NSRange, NSMutableAttributedString) -> NSAttributedString
 
     /**
      This function finds all matched parts and applies the callbacks on each. The returned
@@ -29,15 +27,19 @@ extension NSMutableAttributedString {
         guard !pattern.isEmpty && self.length > 0 else {
             return self
         }
-
-        var limit = NSRangeMake(0, self.length)
+        
+        var limit = NSMakeRange(0, self.length)
+        let str = NSString(string: self.string)
         while true {
-            let r = self.string.rangeOfString(pattern, .RegularExpressionSearch, limit)
-            if r == NotFoundRange { break }
-            let mod = action?(r, self)
-            self.replaceCharactersInRange(r, withAttributedString: mod)
+            let r = str.rangeOfString(pattern, options: .RegularExpressionSearch, range: limit)
+            if r.location == NSNotFound {
+                break
+            }
             
-            limit = NSRangeMake(r.location + mod.length, self.length - r.location - mod.length)
+            if let mod = action?(r, self) {
+                self.replaceCharactersInRange(r, withAttributedString: mod)
+                limit = NSMakeRange(r.location + mod.length, self.length - r.location - mod.length)
+            }
         }
         
         return self

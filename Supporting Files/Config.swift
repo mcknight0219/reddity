@@ -11,7 +11,7 @@ import Foundation
 struct Config {
     static let ApiBaseURL = NSURL(string: "https://oauth.reddit.com")!
 
-    static let URLPattern = "^(https?|ftp|file)://.+$"
+    static let URLPattern = "(https?|ftp|file)://\\S+"
 
     static let ImgurResourcePattern = "^.+(imgur.com)/[0-9a-zA-Z]+/?$"
 }
