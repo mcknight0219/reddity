@@ -111,13 +111,9 @@ struct Comment: ResourceType, Equatable {
         self.replies.append(aComment)
     }
 
-    /**
-     * The sorting occurs on flat level under the parent. The 
-     * popularity
-     */
     mutating func sortByPopularity() {
         if self.replies.count < 2 { return }
-        self.replies.sortInPlace { $0.score < $1.score }
+        self.replies.sortInPlace { $0.score > $1.score }
     }
 
     mutating func sortByDate() {
@@ -125,28 +121,14 @@ struct Comment: ResourceType, Equatable {
         self.replies.sortInPlace { $0.createdAt.compare($1.createdAt) == .OrderedAscending }
     }
 
-    mutating func setStatusAll(isHidden: Bool) {
-        if isHidden {
-            self.isShow = false // this will handle all children nodes
-            return
-        }
-        
-        for i in 0..<replies.count {
-            replies[i].setStatusAll(false)
-        }
-    }
-
-    /**
-     Return the median score of replies to this comment.
-     */
-    func getMedianScore() -> Float {
-        let n = self.replies.count
-        guard n > 0 else { return 0 }
-
-        if n % 2 == 0 {
-            return Float(self.replies[n/2-1].score + self.replies[n/2].score) / 2.0
+    mutating func markIsShow(withFilter filter: (Comment) -> Bool) {
+        if filter(self) {
+            self.isShow = true
+            for i in 0..<replies.count {
+                replies[i].markIsShow(filter)
+            }
         } else {
-            return Float(self.replies[n/2].score)
+            self.isShow = false
         }
     }
 
@@ -173,9 +155,10 @@ func ==(lhs: Comment, rhs: Comment) -> Bool {
     return lhs.id == rhs.id
 }
 
-func makePlaceholder() -> Comment {
+func makePlaceholder(level: Int) -> Comment {
     var ret = Comment(id: "", parent: nil, text: "", timestampString: "0", ups: 0, downs: 0, user: "")
     ret.isPlaceholder = true
+    ret.level = level
 
     return ret
 }

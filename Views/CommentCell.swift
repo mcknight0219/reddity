@@ -93,23 +93,15 @@ class CommentCell: BaseTableViewCell {
         super.applyTheme()
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.comment?.textColor = FlatWhiteDark()
+            self.comment?.textColor = self.comment?.isPlaceholder ? FlatBlueDark() : FlatWhiteDark()
         } else {
-            self.comment?.textColor = UIColor.blackColor()
+            self.comment?.textColor = self.comment?.isPlaceholder ? FlatBlueDark() : UIColor.blackColor()
         }
+
+        self.comment?.font = UIFont(name: "Lato-Regular", size: (self.comment?.isPlacholder ? 10 : 12))
     }
 
     func voteIconClicked() {
         print("Vote clicked ")
-    }
-}
-
-
-extension CommentCell {
-    
-    func transformMarkdown(text: String) -> NSAttributedString {
-        
-        return NSAttributedString()
-    
     }
 }

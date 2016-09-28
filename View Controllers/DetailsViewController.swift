@@ -126,15 +126,20 @@ class DetailsViewController: UIViewController {
         indicatorView.startAnimating()
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
-        apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[weak self] comments in
-            self?.comments = comments!
-            self?.markHiddenComments()
-            self?.loadCommentsOSD()
+        apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[unowned self] comments in
+            self.comments = comments!
+            // Sort comments by popularity
+            self.comments.sortInPlace { $0.score > $1.score }
+            for i in 0..<self.comments.count {
+                self.comments[i].replies.sortInPlace { $0.score > $1.score }
+            }
+            self.markCommentsVisibility()
+            self.loadCommentsOSD()
                         
             dispatch_async(dispatch_get_main_queue()) {
-                self?.indicatorView.stopAnimating()
-                self?.commentsVC.tableView.tableHeaderView = nil
-                self?.commentsVC.tableView.reloadData()
+                self.indicatorView.stopAnimating()
+                self.commentsVC.tableView.tableHeaderView = nil
+                self.commentsVC.tableView.reloadData()
             }
         }
         
@@ -301,34 +306,25 @@ class DetailsViewController: UIViewController {
 extension DetailsViewController: UITableViewDelegate {
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        
         let comment = self.commentsOSD[indexPath.row]
-
         if comment.isPlaceholder {
-            let idx = self.comments.indexOf { $0 == comment }
-            
-            var parent = self.comments[idx!-1].parent
-            
+            var parent = self.commentsOSD[indexPath.row-1].parent
             commentsOSD.removeAtIndex(indexPath.row)
+            
             self.commentsVC.tableView.beginUpdates()
             self.commentsVC.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Bottom)
             self.commentsVC.tableView.endUpdates()
 
             for i in (0..<parent!.replies.count).reverse() {
-
                 if !parent!.replies[i].isShow {
-                    
                     parent!.replies[i].isShow = true
-                    parent!.replies[i].setStatusAll(true)
+                    parent!.replies[i].markIsShow { true }
 
                     let children = parent!.replies[i].flatten()
-                    
                     self.commentsOSD.insertContentsOf(children , at: idx!)
-                
+                    
                     self.commentsVC.tableView.beginUpdates()
-
                     self.commentsVC.tableView.insertRowsAtIndexPaths((idx!...idx!+children.count).map { NSIndexPath(index: $0) }, withRowAnimation: .Bottom)
-
                     self.commentsVC.tableView.endUpdates()
                 }
             }
@@ -411,31 +407,19 @@ extension DetailsViewController {
         }
 
         if hasHidden {
-            
             self.commentsOSD.append(makePlaceholder())
-        
         }
     }
 
     /**
      @discussion The default display status is always `false` on start
      */
-    private func markHiddenComments() {
-        
-        let skipScoreFiltering = (self.comments.count < 5)
-
+    private func markCommentsVisbility() {
+        let showAll = commentsCount() < 20
         for i in 0..<self.comments.count {
-            // Show top comments if number of comments are less than 5 or score is non-negative    
-            if (self.comments[i].score > 0) || skipScoreFiltering {
-                self.comments[i].isShow = true            
-            }
-
-            let median = self.comments[i].getMedianScore()
-
-            for j in 0..<self.comments[i].replies.count {
-                if self.comments[i].replies[j].score > Int(median) {
-                    self.comments[i].replies[j].isShow = true
-                }
+            if showAll { self.comments[i].setStatusAll(false) }
+            else {
+                self.comments[i].markIsShow { $0.score >= 5 } 
             }
         }    
     }

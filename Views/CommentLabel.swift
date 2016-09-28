@@ -186,7 +186,7 @@ extension CommentLabel {
                 var t = NSMakeRange(1, 0)
                 let s = NSString(string: ms.string)
                 for i in 0..<s.length {
-                    if String(s.characterAtIndex(i)) == "]" {
+                    if "\(s.characterAtIndex(i))" == "]" {
                         t.length = i - 1
                         break
                     }
@@ -212,8 +212,13 @@ extension CommentLabel {
                 return NSAttributedString(string: s.substringWithRange(r), attributes: [NSParagraphStyleAttributeName: p])
             }
             .replaceOccurrence(ofPattern: "^\\s?\\*+\\s+[^\\*]+$") { (r, ms) -> NSAttributedString in
+                let s = NSString(string: ms.string).substringWithRange(r) as NSString
+                // Get the head level which is the number of consecutive '*'
+                let regex = try NSRegularExpression(pattern: "^\\s?(\\*+)\\s+", options: [])
+                let results = regex.matchesInString(s, options: [], range: NSMakeRange(0, s.length)).first    // results always match
                 
-                
+                let l = results.rangeAtIndex(1).length
+                return NSAttributedString(string: s.substringWithRange(NSMakeRange(results.range.length, s.length - l)), attributes: [NSFontAttributeName: UIFont(name: "Lato-Bold", size: 15 - l)!])
         }
         
     }
