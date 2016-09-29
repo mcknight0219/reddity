@@ -201,7 +201,7 @@ extension CommentLabel {
                 return NSAttributedString(string: url.host!, attributes: [NSLinkAttributeName: url])
             }
             .replaceOccurrence(ofPattern: "([ \\t]?-\\s\\S.+\\n?)+") { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string)
+                let s = NSString(string: ms.string).substringWithRange(r) as NSString
                 // The item lists
                 let p = NSMutableParagraphStyle()
                 p.firstLineHeadIndent = 10
@@ -209,7 +209,13 @@ extension CommentLabel {
                 p.paragraphSpacingBefore = 3
                 p.lineBreakMode = .ByWordWrapping
                 
-                return NSAttributedString(string: s.substringWithRange(r), attributes: [NSParagraphStyleAttributeName: p])
+                let ret = NSMutableAttributedString(string: s, attributes: [NSParagraphStyleAttributeName: p])
+                // add existing attributes 
+                enumerateAttributesInRange(r, options:[NSAttributedStringEnumerationOptions.LongestEffectiveRangeNotRequired]) { (attrs, range, _) in
+                    for attr in attrs {
+                        
+                    }
+                }
             }
             .replaceOccurrence(ofPattern: "^\\s?\\*+\\s+[^\\*]+$") { (r, ms) -> NSAttributedString in
                 let s = NSString(string: ms.string).substringWithRange(r) as NSString

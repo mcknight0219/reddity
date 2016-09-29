@@ -82,48 +82,42 @@ class DetailsViewController: UIViewController {
         super.viewDidLoad()
         
         let offset: CGFloat = 160
-        self.topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, offset))
-        
-        self.setupHeaderView()
-        
-        self.view.addSubview(self.topView)
-        
-        commentsVC = BaseTableViewController()
-        commentsVC.tableView.frame = CGRectMake(0, offset, view.bounds.width, view.bounds.height - offset)
+                
+        commentsVC = BaseTableViewController(frame: self.view.bounds)
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-        
+        commentsVC.tableView.contentInset = UIEdgeInsetsMake(offset, 0, 0, 0)
         commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
         commentsVC.tableView.estimatedRowHeight = 80
+        commentsVC.tableView.tableFooterView = UIView()
         
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
-       
     
-        commentsVC.tableView.tableHeaderView = UIView(frame: CGRectMake(0, 0, view.bounds.width, 34))
-        commentsVC.tableView.tableHeaderView?.addSubview(indicatorView)
-        indicatorView.center = commentsVC.tableView.tableHeaderView!.center
-        commentsVC.tableView.tableFooterView = UIView()
-
         
+        topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, offset))
+        topView.backgroundColoro = UIColor.clearColor()
+        self.configTopView()
+        commentsVC.tableView.tableHeaderView = topView
+
+        // indicator for comments table 
+        view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
+        indicatorView.center = view.center
         indicatorView.hidesWhenStopped = true
-    
-        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        
-        if self.layout != .Text {
-            navigationItem.title = self.subject.title
-            
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
-        
-        } else {
-        
-            navigationItem.title = ""
-        
-        }
-
         indicatorView.startAnimating()
+    
+        // navigation controller behavior
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: UIBarMetrics.Default)
+        navigationController?.navigationBar.shadowImage = UIImage()
+        navigationController?.navigationBar.translucent = true
+
+        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        if self.layout != .Text {
+            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
+        } 
+
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[unowned self] comments in
@@ -185,7 +179,7 @@ class DetailsViewController: UIViewController {
         
     }
     
-    private func setupHeaderView() {
+    private func configTopView() {
         if self.layout == .Text {
             
             let quoteMark = UIImage.fontAwesomeIconWithName(.QuoteLeft, textColor: UIColor.whiteColor(), size: CGSize(width: 20, height: 20))
@@ -333,17 +327,9 @@ extension DetailsViewController: UITableViewDelegate {
     }
     
     func scrollViewDidScroll(scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
+        let offsetY = scrollView.contentOffset.y + self.commentsVC.tableView.contentInset.top 
 
-        if 0..<160 ~= offsetY {
-            UIView.animateWithDuration(0.2) { [unowned self] in
-                
-                self.topView.frame = CGRectMake(0, -1.0 * offsetY, self.view.bounds.width, 160)
-                
-                self.commentsVC.tableView.frame = CGRectMake(0, 160 - offsetY, self.view.bounds.width, self.view.bounds.height - (160 - offsetY))
-            
-            }
-        }
+        print("\(offsetY)")
 
     }
 

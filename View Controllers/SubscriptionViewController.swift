@@ -11,7 +11,15 @@ import ChameleonFramework
 
 class SubscriptionViewController: BaseTableViewController {
 
-    var subscriptions = [Subreddit]()
+    var subscriptions = [Subreddit]() {
+        didSet {
+            if self.subscriptions.count > 0 {
+                self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: #selector(SubscriptionViewController.mixTimelines))
+            } else {
+                self.navigationItem.rightBarButtonItem = nil
+            }
+        }
+    }
 
     var background: UIView?
     
@@ -84,7 +92,7 @@ class SubscriptionViewController: BaseTableViewController {
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let subreddit = subscriptions[indexPath.row]
-        let timelineVC = HomeViewController(subredditName: subreddit.displayName)
+        let timelineVC = TimelineViewController(subredditName: subreddit.displayName)
         timelineVC.hidesBottomBarWhenPushed = true
         timelineVC.subreddit = subreddit
 
@@ -108,5 +116,12 @@ class SubscriptionViewController: BaseTableViewController {
 
     func showBackgroundView() {
         if self.subscriptions.count == 0 { tableView.backgroundView = background }
+    }
+}
+
+
+extension SubscriptionViewController {
+    func mixTimelines() {
+
     }
 }

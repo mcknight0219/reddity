@@ -39,14 +39,15 @@ class BaseTableViewController: UITableViewController {
 
     func applyTheme() {
         var tabBarIconColor: UIColor!
+        self.tableView.backgroundColor = UIColor.clearColor()
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.tableView.backgroundColor = FlatBlackDark()
+            //self.tableView.backgroundColor = FlatBlackDark()
             self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
             self.tableView.tableFooterView?.backgroundColor = FlatBlackDark()
             tabBarIconColor = FlatSkyBlue()
         } else {
-            self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
+            //self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.tableView.indicatorStyle = .Default
             self.tableView.tableFooterView?.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)

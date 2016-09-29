@@ -275,7 +275,7 @@ extension SearchViewController: UITableViewDelegate {
             self.emulateTriggerSearchWith(self.history[row])
         } else if currentTableContent == .Subreddit {
             let subreddit = self.subreddits[row]
-            let timelineVC = HomeViewController(subredditName: subreddit.displayName)
+            let timelineVC = TimelineViewController(subredditName: subreddit.displayName)
             timelineVC.hidesBottomBarWhenPushed = true
             timelineVC.isFromSearch = true
             timelineVC.subreddit = subreddit

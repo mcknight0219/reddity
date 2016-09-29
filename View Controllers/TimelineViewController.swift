@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  TimelineViewController.swift
 //  Reddity
 //
 //  Created by Qiang Guo on 2016-06-23.
@@ -10,7 +10,7 @@ import UIKit
 import ChameleonFramework
 import FontAwesome_swift
 
-class HomeViewController: BaseViewController {
+class TimelineViewController: BaseViewController {
 
     var topicTableViewController: TopicTableViewController!
     
@@ -25,9 +25,6 @@ class HomeViewController: BaseViewController {
      */
     var subredditName: String = ""
 
-    /**
-
-     */
     var subreddit: Subreddit?
     
     var isFromSearch: Bool = false
@@ -97,7 +94,7 @@ class HomeViewController: BaseViewController {
 
 // MARK: TopicController delegate
 
-extension HomeViewController: TopicControllerDelegate {
+extension TimelineViewController: TopicControllerDelegate {
     
     func topicControllerDidFinishLoading(topicController: TopicController) {
         if self.topicTableViewController.refreshControl!.refreshing {

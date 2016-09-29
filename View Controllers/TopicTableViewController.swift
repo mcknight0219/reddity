@@ -65,15 +65,8 @@ extension TopicTableViewController {
             } else {
                 return 270
             }
-        case .News:
-            return 180
-        case .Text:
-            return 160
-        case .Video:
-            return 270
         default:
-            print("Unknown type of cell")
-            return 0
+            return 180
         }
     }
     

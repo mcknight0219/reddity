@@ -82,7 +82,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         searchVC.modalTransitionStyle = .CoverVertical
         searchVC.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
         
-        let homeVC = HomeViewController(subredditName: "")
+        let homeVC = TimelineViewController(subredditName: "")
         homeVC.modalTransitionStyle = .CrossDissolve
         homeVC.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
 
