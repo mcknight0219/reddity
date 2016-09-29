@@ -333,6 +333,15 @@ extension DetailsViewController: UITableViewDelegate {
 
     }
 
+    func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity: CGPoint, targetContentOffset: UnsafeMutablePoint<CGPint>) {
+
+        if velocity.y > 0 {
+            self.navigationController?.navigationBar.hidden = true
+        } else {
+            self.navigationController?.navigationBar.hidden = false
+        }
+    }
+
 }
 
 // MARK: - Table view data source
