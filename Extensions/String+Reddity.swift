@@ -65,11 +65,10 @@ extension String {
 extension String {
 
     func test(pattern: String) -> Bool {
-        guard !isEmpty && !pattern.isEmpty > 0 else {
+        guard !isEmpty && !pattern.isEmpty else {
             return false
         }
 
-        var limit = NSRange(0, self.characters.count)
-        return self.rangeOfString(pattern, .RegularExpression, limit) != NSRange(NSNotFound, 0)
+        return rangeOfString(pattern, options: .RegularExpressionSearch) != nil
     }
 }

@@ -16,7 +16,7 @@ class CommentCell: BaseTableViewCell {
 
     @IBOutlet weak var bottomSectHeightConstraint: NSLayoutConstraint!
     
-    lazy var comment: CommentLabel! = {
+    lazy var label: CommentLabel! = {
         return self.viewWithTag(1) as! CommentLabel
     }()
     
@@ -31,6 +31,8 @@ class CommentCell: BaseTableViewCell {
     lazy var userLabel: UILabel! = {
         return self.viewWithTag(4) as! UILabel
     }()
+    
+    var comment: Comment!
 
     /**
      The maximum level of a comment in the comment tree hierachy.
@@ -61,24 +63,21 @@ class CommentCell: BaseTableViewCell {
     /**
      Load the comment and set proper left margin
      */
-    func configCellWith(inout comment: Comment) {
-        
-        self.leadingMarginConstraint.constant = CGFloat(comment.level) * self.marginUnit
+    func configCellWith(inout aComment: Comment) {
+        self.comment = aComment
+        self.leadingMarginConstraint.constant = CGFloat(self.comment.level) * self.marginUnit
+        self.separatorInset = UIEdgeInsetsMake(0, self.leadingMarginConstraint.constant - 10, 0, 0)
 
         if comment.isPlaceholder {
-            
             self.bottomSectHeightConstraint.constant = 0
-
-            self.comment.text = "Load more"
+            self.label.text = "Load more"
             self.vote.image = nil
 
             return
         }
         
         self.bottomSectHeightConstraint.constant = 25
-
-
-        self.comment.text = comment.text
+        self.label.text = comment.text
         self.pointLabel.text = String(comment.score)
         self.userLabel.text = comment.user
         
@@ -93,12 +92,12 @@ class CommentCell: BaseTableViewCell {
         super.applyTheme()
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.comment?.textColor = self.comment?.isPlaceholder ? FlatBlueDark() : FlatWhiteDark()
+            self.label?.textColor = FlatWhiteDark()
         } else {
-            self.comment?.textColor = self.comment?.isPlaceholder ? FlatBlueDark() : UIColor.blackColor()
+            self.label?.textColor = UIColor.blackColor()
         }
 
-        self.comment?.font = UIFont(name: "Lato-Regular", size: (self.comment?.isPlacholder ? 10 : 12))
+        self.label?.font = UIFont(name: "Lato-Regular", size: 15)
     }
 
     func voteIconClicked() {

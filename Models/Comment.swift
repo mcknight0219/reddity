@@ -37,10 +37,10 @@ struct Comment: ResourceType, Equatable {
     lazy var level: Int = {
         var ret = 0
         
-        while var p = self.parent {
+        var p = self.parent
+        while p != nil {
             ret = ret + 1
-            if p.parent == nil { break }
-            else { p = p.parent! }
+            p = p!.parent
         }
 
         return ret
@@ -125,7 +125,7 @@ struct Comment: ResourceType, Equatable {
         if filter(self) {
             self.isShow = true
             for i in 0..<replies.count {
-                replies[i].markIsShow(filter)
+                replies[i].markIsShow(withFilter: filter)
             }
         } else {
             self.isShow = false

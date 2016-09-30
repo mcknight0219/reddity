@@ -168,7 +168,7 @@ extension CommentLabel {
      item list
      */
     func parseMarkdown(text: String) -> NSAttributedString? {
-        guard text.isEmpty else {
+        guard !text.isEmpty else {
             return nil
         }
 
@@ -197,8 +197,12 @@ extension CommentLabel {
             }
             .replaceOccurrence(ofPattern: Config.URLPattern) { (r, ms) -> NSAttributedString in
                 let s = NSString(string: ms.string)
-                let url = NSURL(string: s.substringWithRange(r))!
-                return NSAttributedString(string: url.host!, attributes: [NSLinkAttributeName: url])
+       
+                if let url = NSURL(string: s.substringWithRange(r)) {
+                    return NSAttributedString(string: url.host!, attributes: [NSLinkAttributeName: url])
+                } else {
+                    return NSAttributedString(string: s.substringWithRange(r))
+                }
             }
             .replaceOccurrence(ofPattern: "([ \\t]?-\\s\\S.+\\n?)+") { (r, ms) -> NSAttributedString in
                 let s = NSString(string: ms.string).substringWithRange(r) as NSString
@@ -209,23 +213,8 @@ extension CommentLabel {
                 p.paragraphSpacingBefore = 3
                 p.lineBreakMode = .ByWordWrapping
                 
-                let ret = NSMutableAttributedString(string: s, attributes: [NSParagraphStyleAttributeName: p])
-                // add existing attributes 
-                enumerateAttributesInRange(r, options:[NSAttributedStringEnumerationOptions.LongestEffectiveRangeNotRequired]) { (attrs, range, _) in
-                    for attr in attrs {
-                        
-                    }
-                }
+                return NSAttributedString(string: s as String, attributes: [NSParagraphStyleAttributeName: p])
             }
-            .replaceOccurrence(ofPattern: "^\\s?\\*+\\s+[^\\*]+$") { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string).substringWithRange(r) as NSString
-                // Get the head level which is the number of consecutive '*'
-                let regex = try NSRegularExpression(pattern: "^\\s?(\\*+)\\s+", options: [])
-                let results = regex.matchesInString(s, options: [], range: NSMakeRange(0, s.length)).first    // results always match
-                
-                let l = results.rangeAtIndex(1).length
-                return NSAttributedString(string: s.substringWithRange(NSMakeRange(results.range.length, s.length - l)), attributes: [NSFontAttributeName: UIFont(name: "Lato-Bold", size: 15 - l)!])
-        }
         
     }
 }

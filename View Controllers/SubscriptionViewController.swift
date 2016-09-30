@@ -53,13 +53,16 @@ class SubscriptionViewController: BaseTableViewController {
         }
         
         let subscriptionResource = Resource(url: "/subreddits/mine/subscriber", method: .GET, parser: subredditsParser)
-        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: nil) { (subs) -> Void in
-        
-        }
+        apiRequest(Config.ApiBaseURL, resource: subscriptionResource, params: ["limit": String(100)]) { (subs) -> Void in
+            if let subs = subs {
+                
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.subscriptions = subs
+                    
+                    self.tableView.reloadData()
+                }
 
-        dispatch_async(dispatch_get_main_queue()) {
-            self.subscriptions = PreferenceManager.sharedManager.subscriptions
-            self.tableView.reloadData()
+            }
         }
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubscriptionViewController.showBackgroundView), name: "PreferenceChanged", object: nil)
@@ -96,7 +99,7 @@ class SubscriptionViewController: BaseTableViewController {
         timelineVC.hidesBottomBarWhenPushed = true
         timelineVC.subreddit = subreddit
 
-        presentViewController(timelineVC, animated: true, completion: nil)
+        navigationController?.pushViewController(timelineVC, animated: true)
     }
 
     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
@@ -106,6 +109,7 @@ class SubscriptionViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let deleteAction = UITableViewRowAction(style: .Normal, title: "Unsubscribe") {action in
             self.subscriptions.removeAtIndex(indexPath.row)
+            
             dispatch_async(dispatch_get_main_queue()) {
                 self.tableView.reloadData()
             }

@@ -80,38 +80,34 @@ class DetailsViewController: UIViewController {
      
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        let offset: CGFloat = 160
                 
-        commentsVC = BaseTableViewController(frame: self.view.bounds)
+        commentsVC = BaseTableViewController()
+        commentsVC.tableView.frame = view.bounds
         commentsVC.tableView.delegate = self
         commentsVC.tableView.dataSource = self
         commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-        commentsVC.tableView.contentInset = UIEdgeInsetsMake(offset, 0, 0, 0)
         commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
         commentsVC.tableView.estimatedRowHeight = 80
         commentsVC.tableView.tableFooterView = UIView()
+        commentsVC.tableView.setContentOffset(CGPointZero, animated: false)
+        commentsVC.tableView.cellLayoutMarginsFollowReadableWidth = false
         
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
     
         
-        topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, offset))
-        topView.backgroundColoro = UIColor.clearColor()
+        topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, 200))
+        topView.backgroundColor = UIColor.clearColor()
         self.configTopView()
         commentsVC.tableView.tableHeaderView = topView
 
         // indicator for comments table 
+        
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
         indicatorView.center = view.center
         indicatorView.hidesWhenStopped = true
         indicatorView.startAnimating()
-    
-        // navigation controller behavior
-        navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: UIBarMetrics.Default)
-        navigationController?.navigationBar.shadowImage = UIImage()
-        navigationController?.navigationBar.translucent = true
 
         navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         if self.layout != .Text {
@@ -121,6 +117,11 @@ class DetailsViewController: UIViewController {
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) {[unowned self] comments in
+            guard comments != nil else {
+                print("Server returns zero comments")
+                return
+            }
+            
             self.comments = comments!
             // Sort comments by popularity
             self.comments.sortInPlace { $0.score > $1.score }
@@ -132,7 +133,8 @@ class DetailsViewController: UIViewController {
                         
             dispatch_async(dispatch_get_main_queue()) {
                 self.indicatorView.stopAnimating()
-                self.commentsVC.tableView.tableHeaderView = nil
+                self.indicatorView.removeFromSuperview()
+                
                 self.commentsVC.tableView.reloadData()
             }
         }
@@ -140,43 +142,46 @@ class DetailsViewController: UIViewController {
         self.applyTheme()
     }
     
-    func applyTheme() {
+    override func viewDidLayoutSubviews() {
+        commentsVC.tableView.contentOffset = CGPointZero
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        navigationController?.navigationBar.setBackgroundImage(UIImage(), forBarMetrics: UIBarMetrics.Default)
+        navigationController?.navigationBar.shadowImage = UIImage()
         
+        navigationController?.navigationBar.translucent = true
+    }
+    
+    override func viewWillDisappear(animated: Bool) {
+        navigationController?.navigationBar.setBackgroundImage(nil, forBarMetrics: .Default)
+        navigationController?.navigationBar.shadowImage = nil
+        
+        NSNotificationCenter.defaultCenter().postNotificationName(kThemeManagerDidChangeThemeNotification, object: nil)
+    }
+    
+    func applyTheme() {
         guard self.topView.subviews.count > 0 else { return }
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-        
             self.view.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            
             self.topView.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-        
         } else {
-        
             self.view.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            
             self.topView.backgroundColor = UIColor.whiteColor()
-            
         }
         
         
         if let label = self.topView.subviews[0] as? InsetLabel {
             
             if ThemeManager.defaultManager.currentTheme == "Dark" {
-                
                 label.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-                
                 label.textColor = UIColor.whiteColor()
-            
             } else {
-                
                 label.backgroundColor = UIColor.whiteColor()
-                
                 label.textColor = UIColor.blackColor()
-            
             }
-
         }
-        
     }
     
     private func configTopView() {
@@ -262,10 +267,6 @@ class DetailsViewController: UIViewController {
 
     }
 
-    private func commentsCount(comments: [Comment]) -> Int {
-        return comments.reduce(0) { $0 + $1.totalReplies() }
-    }
-
     @objc private func openExternalLink() {
         let ac = UIAlertController(title: nil, message: nil, preferredStyle: .ActionSheet)
         let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
@@ -310,38 +311,19 @@ extension DetailsViewController: UITableViewDelegate {
             self.commentsVC.tableView.endUpdates()
 
             for i in (0..<parent!.replies.count).reverse() {
-                if !parent!.replies[i].isShow {
-                    parent!.replies[i].isShow = true
-                    parent!.replies[i].markIsShow { true }
-
-                    let children = parent!.replies[i].flatten()
-                    self.commentsOSD.insertContentsOf(children , at: idx!)
-                    
-                    self.commentsVC.tableView.beginUpdates()
-                    self.commentsVC.tableView.insertRowsAtIndexPaths((idx!...idx!+children.count).map { NSIndexPath(index: $0) }, withRowAnimation: .Bottom)
-                    self.commentsVC.tableView.endUpdates()
-                }
+                
             }
             
         } 
     }
-    
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y + self.commentsVC.tableView.contentInset.top 
 
-        print("\(offsetY)")
-
-    }
-
-    func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity: CGPoint, targetContentOffset: UnsafeMutablePoint<CGPint>) {
-
+    func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         if velocity.y > 0 {
             self.navigationController?.navigationBar.hidden = true
         } else {
             self.navigationController?.navigationBar.hidden = false
         }
     }
-
 }
 
 // MARK: - Table view data source
@@ -354,9 +336,7 @@ extension DetailsViewController : UITableViewDataSource{
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        
         let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        
         cell.configCellWith(&self.commentsOSD[indexPath.row])
         
         return cell
@@ -392,27 +372,29 @@ extension DetailsViewController {
         guard replies.count > 0 else { return }
 
         var hasHidden = false
-        for reply in replies {
+        var level: Int?
+        for var reply in replies {
             if reply.isShow { 
                 self.commentsOSD.append(reply) 
                 self.loadRepliesOSD(reply.replies)
             } else {
+                level = reply.level
                 hasHidden = true
             }
         }
 
         if hasHidden {
-            self.commentsOSD.append(makePlaceholder())
+            self.commentsOSD.append(makePlaceholder(level!))
         }
     }
 
     /**
      @discussion The default display status is always `false` on start
      */
-    private func markCommentsVisbility() {
-        let showAll = commentsCount() < 20
+    private func markCommentsVisibility() {
+        let showAll = self.comments.reduce(0) { $0 + $1.totalReplies() } > 20
         for i in 0..<self.comments.count {
-            if showAll { self.comments[i].setStatusAll(false) }
+            if showAll { self.comments[i].markIsShow { _ in true } }
             else {
                 self.comments[i].markIsShow { $0.score >= 5 } 
             }
