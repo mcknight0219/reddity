@@ -20,7 +20,7 @@ class TabBarController: UITabBarController {
 
     func applyTheme() {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.tabBar.barTintColor = FlatBlackDark()
+            self.tabBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
         } else {
             self.tabBar.barTintColor = UIColor.whiteColor()
         }

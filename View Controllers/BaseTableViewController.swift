@@ -41,10 +41,10 @@ class BaseTableViewController: UITableViewController {
         var tabBarIconColor: UIColor!
         self.tableView.backgroundColor = UIColor.clearColor()
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.tableView.backgroundColor = FlatBlackDark()
+            self.tableView.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
             self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
-            self.tableView.tableFooterView?.backgroundColor = FlatBlackDark()
+            self.tableView.tableFooterView?.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
             tabBarIconColor = FlatSkyBlue()
         } else {
             self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
