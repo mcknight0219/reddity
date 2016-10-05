@@ -15,6 +15,8 @@ class MeViewController: BaseTableViewController {
     
     let themeSwitch = UISwitch()
 
+    let offlineSwitch = UISwitch()
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.title = "Settings"
@@ -24,12 +26,14 @@ class MeViewController: BaseTableViewController {
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         self.clearsSelectionOnViewWillAppear = true
-        
         let footer = UIView()
         self.tableView.tableFooterView = footer
 
         themeSwitch.on = ThemeManager.defaultManager.currentTheme == "Dark"
         themeSwitch.addTarget(self, action: #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
+
+        offlineSwitch.on = OfflineManager.defaultManager.enabled
+        offlineSwitch.addTarget(self, action: #selector(MeViewController.toggleOffline), forControlEvents: .ValueChanged)
     }
     
     // MARK: - Table view data source
@@ -79,8 +83,8 @@ class MeViewController: BaseTableViewController {
             cell.accessoryView = UISwitch()
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
         } else if r == 7 {
-            cell.textLabel?.text = "Offline Mode"
-            cell.accessoryView = UISwitch()
+            cell.textLabel?.text = "Enable Offline"
+            cell.accessoryView = offlineSwitch
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             cell.layoutMargins = UIEdgeInsetsZero
         } else if r == 8 {
@@ -122,6 +126,12 @@ class MeViewController: BaseTableViewController {
     func toggleTheme() {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.3 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
             ThemeManager.defaultManager.setTheme(self.themeSwitch.on ? "Dark" : "Default")
+        }
+    }
+
+    func toggleOffline() {
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND), 0) {
+            OfflineManager.defaultManager.flip()
         }
     }
 }
