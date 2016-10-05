@@ -27,7 +27,7 @@ struct Subreddit: ResourceType, Equatable {
     let id: String
     let displayName: String
     let description: String
-    
+
     let title: String
     let subscribers: Int
     

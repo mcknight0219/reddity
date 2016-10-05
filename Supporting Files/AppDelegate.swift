@@ -180,7 +180,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     private func migrateDB() {
         if let db = self.database {
             do {
-                try db.executeUpdate("", values: nil)
+                try db.executeUpdate("CREATE TABLE offline_data(data TEXT, subreddit TEXT, timestamp TEXT, FOREIGN KEY(subreddit) REFERENCES subreddits(id)", values: nil)
             } catch let err as NSError {
                 print("failed: \(err.localizedDescription)")
             }

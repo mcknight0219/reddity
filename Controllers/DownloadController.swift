@@ -9,7 +9,7 @@
 import UIKit
 import SwiftyJSON
 
-@objc protocol DowloadControllerDelegate {
+@objc protocol DownloadControllerDelegate {
 
 }
 
@@ -36,7 +36,7 @@ class DownloadController {
    * Start downloading all resources to offline storage. This is the publicly     
    * exposed API of `DownloadController` 
    */
-  public func start() {
+  func start() {
     guard self.subreddits.count > 0 && !busy else {
       return
     }
@@ -49,7 +49,7 @@ class DownloadController {
     /**
      * Stop all currently downloading task
      */
-     public func stop() {
+    func stop() {
       for (i, e) in self.finished.enumerate() {
         if !e { self.tasks[i].stop() }
       }
