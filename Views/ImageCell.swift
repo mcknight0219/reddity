@@ -52,11 +52,7 @@ class ImageCell: BaseTableViewCell {
         let placeholder = UIImage.imageFilledWithColor(FlatWhite())
         var url: NSURL = aTopic.url
         
-        var _progress: ((Int, Int) -> Void)?
-        var _completion: SDWebImageCompletionBlock?
-        let _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width)) 
-        
-        
+        let _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width))
         if aTopic.isURLGif() {
             /*
             self.progressView = ProgressPieView(frame: CGRectMake(0, 0, 35, 35))
@@ -75,15 +71,14 @@ class ImageCell: BaseTableViewCell {
             if let thumbnail = _thumbnail { url = thumbnail }
         }
 
-        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: [], progress: _progress, completed: _completion)
+        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: [], progress: nil, completed: nil)
     }
     
     override func applyTheme() {
         super.applyTheme()
-        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.titleLabel?.textColor = UIColor(colorLiteralRed: 0.62, green: 0.65, blue: 0.72, alpha: 1.0)
-            self.infoLabel?.textColor = FlatWhiteDark()
+            self.titleLabel?.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
+            self.infoLabel?.textColor = UIColor.lightGrayColor()
             self.dateLabel?.textColor = UIColor.lightGrayColor()
         } else {
             self.titleLabel?.textColor = UIColor.blackColor()

@@ -38,36 +38,17 @@ class BaseTableViewController: UITableViewController {
     }
 
     func applyTheme() {
-        var tabBarIconColor: UIColor!
         self.tableView.backgroundColor = UIColor.clearColor()
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.tableView.backgroundColor = FlatBlackDark()
+            self.tableView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
             self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
-            self.tableView.tableFooterView?.backgroundColor = FlatBlackDark()
-            tabBarIconColor = FlatSkyBlue()
+            self.tableView.tableFooterView?.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
         } else {
             self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.tableView.indicatorStyle = .Default
             self.tableView.tableFooterView?.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
-            tabBarIconColor = FlatOrange()
-        }
-
-        if let barItem = self.tabBarItem {
-            switch barItem.tag {
-            case 0:
-                barItem.image = UIImage.fontAwesomeIconWithName(.Search, textColor: tabBarIconColor, size: CGSizeMake(37, 37))
-                break
-            case 1:
-                barItem.image = UIImage.fontAwesomeIconWithName(.Home, textColor: tabBarIconColor, size: CGSizeMake(37, 37))
-                break
-            case 2:
-                barItem.image = UIImage.fontAwesomeIconWithName(.List, textColor: tabBarIconColor, size: CGSizeMake(37, 37))
-                break
-            default:
-                barItem.image = UIImage.fontAwesomeIconWithName(.User, textColor: tabBarIconColor, size: CGSizeMake(37, 37))
-            }
         }
 
     }

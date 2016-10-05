@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="10117" systemVersion="15G31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="15G31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
         <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <customFonts key="customFonts">
-        <mutableArray key="Lato-Bold.ttf">
+        <array key="Lato-Bold.ttf">
             <string>Lato-Bold</string>
-        </mutableArray>
-        <mutableArray key="Lato-Regular.ttf">
+        </array>
+        <array key="Lato-Regular.ttf">
             <string>Lato-Regular</string>
-            <string>Lato-Regular</string>
-            <string>Lato-Regular</string>
-        </mutableArray>
+        </array>
     </customFonts>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
@@ -23,40 +22,34 @@
             <rect key="frame" x="0.0" y="0.0" width="691" height="369"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="MZX-Fl-TzR" id="zV4-Qh-o9E">
-                <rect key="frame" x="0.0" y="0.0" width="691" height="368"/>
+                <frame key="frameInset" width="691" height="368"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6fj-28-sMx">
-                        <rect key="frame" x="18" y="23" width="348" height="20"/>
-                        <fontDescription key="fontDescription" name="Lato-Bold" family="Lato" pointSize="16"/>
-                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                        <fontDescription key="fontDescription" name="Lato-Bold" family="Lato" pointSize="17"/>
+                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <label opaque="NO" userInteractionEnabled="NO" tag="2" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Ttc-86-UDc">
-                        <rect key="frame" x="18" y="184" width="348" height="0.0"/>
-                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="13"/>
-                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                        <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="uHq-t4-O12">
-                        <rect key="frame" x="18" y="329" width="655" height="16"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" tag="3" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="J8v-2U-4zF">
-                                <rect key="frame" x="0.0" y="0.0" width="328" height="16"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="13"/>
-                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="14"/>
+                                <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" tag="5" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6js-pB-fk9">
-                                <rect key="frame" x="328" y="0.0" width="327" height="16"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="13"/>
-                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="14"/>
+                                <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
                     </stackView>
                     <imageView userInteractionEnabled="NO" tag="4" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Hkb-Ov-BRi">
-                        <rect key="frame" x="371" y="23" width="302" height="302"/>
                         <constraints>
                             <constraint firstAttribute="width" secondItem="Hkb-Ov-BRi" secondAttribute="height" multiplier="1:1" id="XZh-gZ-ff7"/>
                         </constraints>
@@ -79,7 +72,7 @@
                     <constraint firstItem="Hkb-Ov-BRi" firstAttribute="leading" secondItem="Ttc-86-UDc" secondAttribute="trailing" constant="5" id="yjg-TM-ZAX"/>
                 </constraints>
             </tableViewCellContentView>
-            <point key="canvasLocation" x="462.5" y="383.5"/>
+            <point key="canvasLocation" x="63" y="-40"/>
         </tableViewCell>
     </objects>
 </document>

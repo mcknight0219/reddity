@@ -108,8 +108,7 @@ class CommentLabel : UILabel {
             
             return
         }
-        
-        removeHightlightAt(index)
+        //removeHightlightAt(index)
     }
     
     private func removeHightlightAt(index: Int) {
@@ -129,11 +128,10 @@ extension CommentLabel {
         let characterIndex = self.characterIndex(atPoint: touch.locationInView(self))
         if characterIndex == NSNotFound {
             super.touchesBegan(touches, withEvent: event)
-            
             return
         }
         
-        self.applyHighlightAt(characterIndex)
+        //self.applyHighlightAt(characterIndex)
         
         let attributes = self.attributedText?.attributesAtIndex(characterIndex, effectiveRange: nil)
         if let URL = attributes?[NSLinkAttributeName] as? NSURL {

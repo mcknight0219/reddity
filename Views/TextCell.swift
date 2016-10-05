@@ -62,8 +62,8 @@ class TextCell: BaseTableViewCell {
         super.applyTheme()
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.titleLabel?.textColor = FlatWhiteDark()
-            self.descLabel?.textColor = UIColor.darkGrayColor()
+            self.titleLabel?.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
+            self.descLabel?.textColor = UIColor(colorLiteralRed: 113/255, green: 115/255, blue: 130/255, alpha: 1.0)
             self.infoLabel?.textColor = UIColor.lightGrayColor()
             self.dateLabel?.textColor = UIColor.lightGrayColor()
         } else {

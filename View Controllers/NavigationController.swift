@@ -31,12 +31,12 @@ class NavigationController: UINavigationController {
                 self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatOrange()]
             }
         } else {
-            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)), forBarMetrics: .Default)
-            self.navigationBar.tintColor = UIColor.whiteColor()
+            self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)), forBarMetrics: .Default)
+            self.navigationBar.tintColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
             if let _ = self.navigationBar.titleTextAttributes {
-                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor.whiteColor()
+                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
             } else {
-                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.whiteColor()]
+                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)]
             }
         }
         

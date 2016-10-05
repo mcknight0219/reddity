@@ -16,20 +16,28 @@ class CommentCell: BaseTableViewCell {
 
     @IBOutlet weak var bottomSectHeightConstraint: NSLayoutConstraint!
     
-    lazy var label: CommentLabel! = {
+    lazy var commentLabel: CommentLabel! = {
         return self.viewWithTag(1) as! CommentLabel
     }()
-    
-    lazy var vote: UIImageView! = {
-        return self.viewWithTag(2) as! UIImageView
-    }()
 
-    lazy var pointLabel: UILabel! = {
+    lazy var infoLabel: UILabel! = {
         return self.viewWithTag(3) as! UILabel
     }()
-
+    
     lazy var userLabel: UILabel! = {
-        return self.viewWithTag(4) as! UILabel
+        return self.viewWithTag(2) as! UILabel
+    }()
+    
+    lazy var up: UIImageView! = {
+       return self.viewWithTag(4) as! UIImageView
+    }()
+    
+    lazy var down: UIImageView! = {
+        return self.viewWithTag(5) as! UIImageView
+    }()
+
+    lazy var score: UILabel! = {
+        return self.viewWithTag(6) as! UILabel
     }()
     
     var comment: Comment!
@@ -70,34 +78,32 @@ class CommentCell: BaseTableViewCell {
 
         if comment.isPlaceholder {
             self.bottomSectHeightConstraint.constant = 0
-            self.label.text = "Load more"
-            self.vote.image = nil
+            self.commentLabel.text = "Load more"
 
             return
         }
-        
         self.bottomSectHeightConstraint.constant = 25
-        self.label.text = comment.text
-        self.pointLabel.text = String(comment.score)
-        self.userLabel.text = comment.user
+        commentLabel.text = aComment.text
         
-        self.vote.image = UIImage.fontAwesomeIconWithName(.ThumbsOUp, textColor: UIColor.grayColor(), size: CGSize(width: 17, height: 17))
-        let singleTap = UITapGestureRecognizer(target: self, action: #selector(CommentCell.voteIconClicked))
-        singleTap.numberOfTapsRequired = 1
-        self.vote.userInteractionEnabled = true
-        self.vote.gestureRecognizers = [singleTap]
+        let info = NSMutableAttributedString(string: "・Reply・\(NSDate.describePastTimeInDays(aComment.createdAt))", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
+        self.infoLabel.attributedText = info
+    
+        userLabel.text = aComment.user
+        up.image = UIImage.fontAwesomeIconWithName(.ArrowUp, textColor: FlatGreenDark(), size: CGSizeMake(15, 15))
+        down.image = UIImage.fontAwesomeIconWithName(.ArrowDown, textColor: FlatRedDark(), size: CGSizeMake(15, 15))
+        score.text = "\(aComment.score)"
     }
     
     override func applyTheme() {
         super.applyTheme()
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.label?.textColor = FlatWhiteDark()
+            self.commentLabel?.textColor = UIColor(colorLiteralRed: 113/255, green: 115/255, blue: 130/255, alpha: 1.0)
         } else {
-            self.label?.textColor = UIColor.blackColor()
+            self.commentLabel?.textColor = UIColor.blackColor()
         }
 
-        self.label?.font = UIFont(name: "Lato-Regular", size: 15)
+        self.commentLabel?.font = UIFont(name: "Lato-Regular", size: 18)
     }
 
     func voteIconClicked() {

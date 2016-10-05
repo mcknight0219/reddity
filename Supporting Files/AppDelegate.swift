@@ -76,6 +76,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     @objc func pushTabbar() {
+        UITabBar.appearance().tintColor = UIColor(colorLiteralRed: 188/255, green: 189/255, blue: 214/255, alpha: 1.0)
         let tabBarVC = TabBarController()
 
         let searchVC = SearchViewController()
