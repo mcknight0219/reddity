@@ -49,30 +49,27 @@ class TimelineViewController: BaseViewController {
         
         topicController = TopicController()
         topicController.delegate = self
-        topicTableViewController = TopicTableViewController()
-        topicTableViewController.view.frame = view.bounds
-        topicTableViewController.dataSource = topicDataSource
-        
+        topicTableViewController = {
+            $0.view.frame = view.bounds
+            $0.dataSource = topicDataSource
+            $0.tableView.registerNib(UINib(nibName: "NewsCell", bundle: nil),  forCellReuseIdentifier: "NewsCell")
+            $0.tableView.registerNib(UINib(nibName: "ImageCell", bundle: nil), forCellReuseIdentifier: "ImageCell")
+            $0.tableView.registerNib(UINib(nibName: "TextCell", bundle: nil),  forCellReuseIdentifier: "TextCell")
+            $0.refreshControl?.addTarget(topicController, action: #selector(TopicController.reload), forControlEvents: .
+            ValueChanged)
+            $0.tableView.tableFooterView = UIView()
+        }(TopicTableViewController())
+
         addChildViewController(topicTableViewController)
         view.addSubview(topicTableViewController.view)
         topicTableViewController.didMoveToParentViewController(self)
         
-        topicTableViewController.tableView.registerNib(UINib(nibName: "NewsCell", bundle: nil),  forCellReuseIdentifier: "NewsCell")
-        topicTableViewController.tableView.registerNib(UINib(nibName: "ImageCell", bundle: nil), forCellReuseIdentifier: "ImageCell")
-        topicTableViewController.tableView.registerNib(UINib(nibName: "TextCell", bundle: nil),  forCellReuseIdentifier: "TextCell")
-        topicTableViewController.refreshControl?.addTarget(topicController, action: #selector(TopicController.reload), forControlEvents: .ValueChanged)
-        topicTableViewController.tableView.tableFooterView = UIView()
-        
         NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.prefetch), name: "NeedTopicPrefetchNotification", object: nil)
         NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.changeSubreddit), name: "NeedLoadSubreddit", object: nil)
         
-        // Assign to subreddit will trigger loading of data
         HUDManager.sharedInstance.showCentralActivityIndicator()
+        // Assign to subreddit will trigger loading of data
         topicController.subreddit = subredditName
-    }
-    
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self.topicController)
     }
     
     func setupUI() {

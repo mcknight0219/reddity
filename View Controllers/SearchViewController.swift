@@ -75,18 +75,21 @@ class SearchViewController: BaseViewController {
     // For placeholder view when history is empty
     lazy var backgroundView: UIView = {
         let background = UIView()
-        
-        let image = UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50)))        
-        background.addSubview(image)
-        image.center = CGPoint(x: UIScreen.mainScreen().bounds.width / 2, y: UIScreen.mainScreen().bounds.height / 2 - 150)
 
-        let label = UILabel()
-        label.text = "You can search subreddits name and title"
-        label.font = UIFont(name: "Lato-Regular", size: 18)!
-        label.textColor = FlatWhiteDark()
-        label.numberOfLines = 0
-        label.textAlignment = .Center
+        let image = {
+            $0.center = CGPoint(x: UIScreen.mainScreen().bounds.width / 2, y: UIScreen.mainScreen().bounds.height / 2 - 150)
+        }(UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50))))
+        background.addSubview(image)
+
+        let label = {
+            $0.text = "You can search subreddits name and title"
+            $0.font = UIFont(name: "Lato-Regular", size: 18)!
+            $0.textColor = FlatWhiteDark()
+            $0.numberOfLines = 0
+            $0.textAlignment = .Center
+        }(UILabel())
         background.addSubview(label)
+        
         label.snp_makeConstraints { make in
             make.leading.equalTo(background).offset(30)
             make.trailing.equalTo(background).offset(-30)

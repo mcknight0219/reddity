@@ -9,7 +9,21 @@
 import UIKit
 import ChameleonFramework
 
-class StorageViewController: UITableViewController {
+class StorageViewController: BaseTableViewController {
+
+    lazy var dataSize: Int = {
+        let app = UIApplication.sharedApplication().delegate as! AppDelegate
+        let sys = NSFIleManager.defaultManager()
+        if !sys.fileExistsAtPath(app.storagePath) { return 0 }
+
+        let enumerator = sys.enumeratorAtPath(app.storagePath)
+        let size = 0
+        while let f = enumerator.nextObject() {
+            size = size + (try sys.attributesOfItemAtPath(app.storagePath.stringByAppendingPathComponent(f)) as? NSDictionary).fileSize() ?? 0
+        }
+
+        return size
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -21,9 +35,10 @@ class StorageViewController: UITableViewController {
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         
-        let footer = UIView()
-        footer.backgroundColor = FlatWhite()
-        self.tableView.tableFooterView = footer
+        let footer = {
+            $0.backgroundColor = FlatWhite()
+            self.tableView.tableFooterView = $0
+        }(UIView())
     }
 
     // MARK: - Table view data source
@@ -107,6 +122,12 @@ class StorageViewController: UITableViewController {
             self.tableView.reloadData()
         }
         let delStoredAction = UIAlertAction(title: "Delete", style: .Destructive) { _ in
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND), 0) {
+                self.rm()
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.tableView.reloadData()
+                }
+            }            
         }
 
         let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (_) in }
@@ -120,5 +141,20 @@ class StorageViewController: UITableViewController {
         }
         
     }
+}
 
+extension StorageViewController {
+    /**
+     * Clear all files in app's `Data` directory
+     */
+    func rm() {
+        let app = UIApplication.sharedApplication().delegate as! AppDelegate
+        let sys = NSFIleManager.defaultManager()
+        if !sys.fileExistsAtPath(app.storagePath) { return }
+
+        let enumerator = sys.enumeratorAtPath(app.storagePath)
+        while let f = enumerator.nextObject() {
+            sys.removeItemAtPath(app.storagePath.stringByAppendingPathComponent(f))    
+        }
+    }
 }

@@ -99,19 +99,20 @@ class DetailsViewController: UIViewController {
      
     override func viewDidLoad() {
         super.viewDidLoad()
-                
-        commentsVC = BaseTableViewController()
-        commentsVC.tableView.frame = view.bounds
-        commentsVC.tableView.delegate = self
-        commentsVC.tableView.dataSource = self
-        commentsVC.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-        commentsVC.tableView.rowHeight = UITableViewAutomaticDimension
-        commentsVC.tableView.estimatedRowHeight = 80
-        commentsVC.tableView.tableFooterView = UIView()
-        commentsVC.edgesForExtendedLayout = .All
-        commentsVC.extendedLayoutIncludesOpaqueBars = false
-        //commentsVC.automaticallyAdjustsScrollViewInsets = true
-        commentsVC.tableView.cellLayoutMarginsFollowReadableWidth = false
+
+        commentsVC = {
+            $0.tableView.frame = view.bounds
+            $0.tableView.delegate = self
+            $0.tableView.dataSource = self
+            $0.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+            $0.tableView.rowHeight = UITableViewAutomaticDimension
+            $0.tableView.estimatedRowHeight = 80
+            $0.tableView.tableFooterView = UIView()
+            $0.edgesForExtendedLayout = .All
+            $0.extendedLayoutIncludesOpaqueBars = false
+            //$0.automaticallyAdjustsScrollViewInsets = true
+            $0.tableView.cellLayoutMarginsFollowReadableWidth = false
+        }(BaseTableViewController())
         
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
@@ -216,12 +217,14 @@ class DetailsViewController: UIViewController {
     }
     
     private func configTopView() {
-        let titleLabel = InsetLabel()
-        titleLabel.text = subject.title
-        titleLabel.adjustsFontSizeToFitWidth = true
-        titleLabel.minimumScaleFactor = 0.9
-        titleLabel.numberOfLines = 2
-        titleLabel.font = UIFont(name: "Lato-Bold", size: 18)
+        let titleLabel = {
+            $0.text = subject.title
+            $0.adjustsFontSizeToFitWidth = true
+            $0.minimumScaleFactor = 0.9
+            $0.numberOfLines = 2
+            $0.font = UIFont(name: "Lato-Bold", size: 18)
+        }(InsetLabel())
+        
         
         let separator = UIView(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 15))
         separator.backgroundColor = UIColor.clearColor()
@@ -239,10 +242,11 @@ class DetailsViewController: UIViewController {
             
             title.insertAttributedString(attachmentString, atIndex: 0)
             
-            let textLabel = InsetLabel()
-            textLabel.numberOfLines = 0
+            let textLabel = {
+                textLabel.numberOfLines = 0
             textLabel.textAlignment = .Left
             textLabel.text = "Self text ..."
+            }(InsetLabel())
             
             topView.addSubview(titleLabel)
             titleLabel.snp_makeConstraints { make in

@@ -11,6 +11,11 @@ import Foundation
 class ResourceDownloadOperation: NSOperation {
     let URL: NSURL
     
+    lazy var dest = {
+        let app = UIApplication.sharedApplication().delegate as! AppDelegate
+        return app.storagePath
+    }()
+
     init(URL: NSURL) {
         self.URL = URL
     }
@@ -19,7 +24,12 @@ class ResourceDownloadOperation: NSOperation {
         guard !self.cancelled else { return }
         
         NSURLSession.sharedSession().downloadTaskWithURL(self.URL) { url, _, _ in
-            
+            let sys = NSFileManager.defaultManager()
+            do {
+                try sys.copyItemAtPath(url.path, toPath: dest.stringByAppendingPathComponent(URL.hash))
+            } catch let err as NSError {
+                print("failed: \(err.localizedDescription)")
+            }               
         }
     }
 }

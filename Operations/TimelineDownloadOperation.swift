@@ -29,8 +29,8 @@ class TimelineDownloadOperation: NSOperation {
         apiRequest(Config.ApiBaseURL, resource: resource, params: ["limit": "\(self.maximumArticles)"]) { data -> Void in
             guard data != nil else { return }
             self.extractResource(data!)
-            
             let app = UIApplication.sharedApplication().delegate as! AppDelegate
+            
             do {
                 try app.database!.executeUpdate("INSERT INTO offline_data(data, subreddit, timestamp) values(?, ?, ?)", values: [])
             } catch let err as NSError {
