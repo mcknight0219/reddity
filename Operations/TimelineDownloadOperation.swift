@@ -13,6 +13,10 @@ class TimelineDownloadOperation: NSOperation {
     let subreddit: Subreddit
     
     var maximumArticles = 25
+
+    lazy var db = {
+        return (UIApplication.sharedApplication().delegate as! AppDelegate).database!
+    }()
     
     init(subreddit: Subreddit, max: Int?) {
         self.subreddit = subreddit
@@ -21,31 +25,20 @@ class TimelineDownloadOperation: NSOperation {
     
     override func main() {
         guard !self.cancelled else { return }
-        // don't filter out data right now, just download and save them.
-        let resource = Resource(url: "/r/\(subreddit.displayName)/hot", method: .GET) { json -> String in
-            return json.rawString()!
-        }
+        let resource = Resource(url: "/r/\(subreddit.displayName)/hot", method: .GET, linkParser)
         
-        apiRequest(Config.ApiBaseURL, resource: resource, params: ["limit": "\(self.maximumArticles)"]) { data -> Void in
-            guard data != nil else { return }
-            self.extractResource(data!)
-            let app = UIApplication.sharedApplication().delegate as! AppDelegate
+        apiRequest(Config.ApiBaseURL, resource: resource, params: ["limit": "\(self.maximumArticles)"]) { links -> Void in
+            guard links != nil else { return }
             
-            do {
-                try app.database!.executeUpdate("INSERT INTO offline_data(data, subreddit, timestamp) values(?, ?, ?)", values: [])
-            } catch let err as NSError {
-                print("failed: \(err.localizedDescription)")
+            links.forEach { link in
+                do {
+                    try db.executeUpdate("INSERT INTO offline_data(data, subreddit, timestamp) values(?, ?, ?)", values: [l.rawJsonString!, l.subreddit, NSDate.sqliteDate()])
+                } catch let err as NSError {
+                    print("failed: \(err.localizedDescription)")
+                }
+
             }
         }
     }
     
-    func extractResource(data: String) {
-        linkParser(JSON(data)).forEach { l in
-            if l.type() == .Image || l.type() == .Video  {
-                let op = ResourceDownloadOperation(URL: l.url)
-                self.addDependency(op)
-                NSOperationQueue.mainQueue().addOperation(op)
-            }
-        }
-    }
 }

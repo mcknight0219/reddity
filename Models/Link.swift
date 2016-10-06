@@ -42,6 +42,8 @@ struct Link: ResourceType {
     typealias Width = String
     typealias ThumbnailUrl = String
     var thumbnails: [Width:ThumbnailUrl]
+
+    var rawJsonString: String?
     
     init(id: String, title: String, url: String, subreddit: String, ups: Int, downs: Int, numberOfComments: Int, timestamp: Double, selfType: SelfType = .NotSelf, previews: [Width:ThumbnailUrl], ratio: Float) {
         self.title = title
@@ -152,6 +154,7 @@ func linkParser(json: JSON) -> [Link] {
                         timestamp: content["created"].doubleValue,
                         selfType: content["is_self"].boolValue ? .SelfText(text: content["selftext"].stringValue) : .NotSelf,
                         previews: previews, ratio: ratio ?? 0.0)
+        link.rawJsonString = content.rawString()
         result.append(link)
     }
     

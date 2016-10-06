@@ -33,7 +33,9 @@ struct Subreddit: ResourceType, Equatable {
     
     let headerImage: NSURL?
     var order: SortOrder = .Popular
-    
+    // For serialization purpose
+    var rawJsonString: String?
+
     init(id: String, displayName: String, description: String, title: String, subscribers: Int, headerImageUrl: String) {
         self.id = id
         self.displayName = displayName
@@ -56,12 +58,14 @@ func ==(lhs: Subreddit, rhs: Subreddit) -> Bool {
 }
 
 func subredditParser(json: JSON) -> Subreddit? {
-    return Subreddit(id: json["id"].stringValue,
+    let r = Subreddit(id: json["id"].stringValue,
                               displayName: json["display_name"].stringValue,
                               description: json["public_description"].stringValue,
                               title: json["title"].stringValue,
                               subscribers: json["subscribers"].intValue,
                               headerImageUrl: json["header_img"].stringValue)
+    r.rawJsonString = json.rawString()
+    return r
 }
 
 func subredditsParser(json: JSON) -> [Subreddit] {

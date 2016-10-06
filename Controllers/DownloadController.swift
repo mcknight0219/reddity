@@ -29,11 +29,18 @@ class DownloadController {
 
   var busy = false
 
+  var queue: NSOperationQueue
+
   init(subreddits: [Subreddit]) {
     self.subreddits = subreddits
     self.finished = (0..<self.subreddits.count).map { _ in return false }
-
-    NSOperationQueue.mainQueue().addObserver(self, forKeyPath: "operations", options: [], context: nil)
+    self.queue = {
+      $0.maxConcurrentOperationCount = 3
+      $0.qualityOfService = QOS_BACKGROUND_CLASS
+      $0.name = "TimelineDownload"
+      $0.isSuspended = true
+      $0.addObserver(self, forKeyPath: "operations", options: [], context: nil)
+    }(NSOperationQueue())
   }
 
   /**
@@ -45,9 +52,8 @@ class DownloadController {
       return
     }
 
-    self.subreddits.forEach { 
-      self.startArchiving(forSubreddit: $0)
-    }    
+    self.subreddits.forEach { self.archive(subreddit: $0)}
+    this.queue.isSuspended = false    
   }
 
     /**
@@ -59,17 +65,18 @@ class DownloadController {
       }
     }
 
-    private func startArchiving(forSubreddit aSub: Subreddit) {
+    private func archive(subreddit aSub: Subreddit) {
       let op = TimelineDownloadOperation(aSub)
       ops.append(op)
-      NSOperationQueue.mainQueue().addOperation(op)
+      this.queue.addOperation(op)
     } 
   }
 
-  // MARK: 
+  // MARK: Operation queue events
   extension DownloadController {
-  
     override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String: AnyObject]?, contenxt: UnsafeMutablePointer<Void>) {
+      if let key = keyPath, let queue = object as NSOperationQueue {
 
+      } 
     }
   }
