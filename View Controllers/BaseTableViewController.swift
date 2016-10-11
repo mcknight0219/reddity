@@ -15,15 +15,21 @@ protocol ReachabilityUpdateProtocol {
 
 class BaseTableViewController: UITableViewController {
 
-    private var internalReachabilityStatus = Reachability.sharedInstance.status
+    private var internalReachabilityStatus = Reachability.sharedInstance.status {
+        didSet {
+            updateUIWithReachability()
+        }
+    }
 
     lazy var reachabilityBackground: UILabel! = {
-        let label = UILabel()
-        label.text = "(You are not connected to Internet. Try again later.)"
-        label.font = UIFont(name: "Lato-Regular", size: 18)!
-        label.textColor = FlatWhiteDark()
-        label.numberOfLines = 0
-        label.textAlignment = .Center
+        let label: UILabel = {
+            $0.text = "(You are not connected to Internet. Try again later.)"
+            $0.font = UIFont(name: "Lato-Regular", size: 18)!
+            $0.textColor = FlatWhiteDark()
+            $0.numberOfLines = 0
+            $0.textAlignment = .Center
+            return $0
+        }(UILabel())
 
         return label
     }()
@@ -38,7 +44,6 @@ class BaseTableViewController: UITableViewController {
     }
 
     func applyTheme() {
-        self.tableView.backgroundColor = UIColor.clearColor()
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.tableView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
             self.tableView.separatorColor = UIColor.darkGrayColor()
@@ -60,7 +65,6 @@ class BaseTableViewController: UITableViewController {
         }
         
         internalReachabilityStatus = reachability.status
-        self.updateUIWithReachability()
     }
 }
 
@@ -68,7 +72,6 @@ class BaseTableViewController: UITableViewController {
  Subclass of this class should implement this method in order to 
  update interface after reachability changes
 
- 
  */
 extension BaseTableViewController: ReachabilityUpdateProtocol {
     func updateUIWithReachability() {}

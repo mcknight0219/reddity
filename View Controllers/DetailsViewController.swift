@@ -51,7 +51,6 @@ class DetailsViewController: UIViewController {
     var topView:  UIView!
 
     lazy var indicatorView: UIActivityIndicatorView = {
-        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             return UIActivityIndicatorView(activityIndicatorStyle: .White)
         } else {
@@ -60,9 +59,7 @@ class DetailsViewController: UIViewController {
     }()
     
     lazy var topIndicatorView: UIActivityIndicatorView = {
-       
         return UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
-        
     }()
     
     var layout: LayoutType!
@@ -104,14 +101,18 @@ class DetailsViewController: UIViewController {
             $0.tableView.frame = view.bounds
             $0.tableView.delegate = self
             $0.tableView.dataSource = self
-            $0.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
             $0.tableView.rowHeight = UITableViewAutomaticDimension
-            $0.tableView.estimatedRowHeight = 80
+            $0.tableView.estimatedRowHeight = 40
             $0.tableView.tableFooterView = UIView()
             $0.edgesForExtendedLayout = .All
             $0.extendedLayoutIncludesOpaqueBars = false
             //$0.automaticallyAdjustsScrollViewInsets = true
             $0.tableView.cellLayoutMarginsFollowReadableWidth = false
+            
+            $0.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+            $0.tableView.registerNib(UINib(nibName: "LoadmoreCell", bundle: nil), forCellReuseIdentifier: "LoadmoreCell")
+            
+            return $0
         }(BaseTableViewController())
         
         addChildViewController(commentsVC)
@@ -138,20 +139,21 @@ class DetailsViewController: UIViewController {
         indicatorView.hidesWhenStopped = true
         indicatorView.startAnimating()
 
-        let navTitle = UILabel(frame: CGRectMake(0, 0, 200, 40))
-        navTitle.text = subject.subreddit
-        navTitle.font = UIFont(name: "Lato-Bold", size: 17)
-        navTitle.textAlignment = .Center
-        navTitle.backgroundColor = UIColor.clearColor()
-        navTitle.numberOfLines = 2
-        navTitle.adjustsFontSizeToFitWidth = true
-        navTitle.minimumScaleFactor = 0.8
-        navTitle.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
+        let navTitle: UILabel = {
+            $0.text = subject.subreddit
+            $0.font = UIFont(name: "Lato-Regular", size: 20)
+            $0.textAlignment = .Center
+            $0.backgroundColor = UIColor.clearColor()
+            $0.numberOfLines = 2
+            $0.adjustsFontSizeToFitWidth = true
+            $0.minimumScaleFactor = 0.8
+            $0.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
+            return $0
+        }(UILabel(frame: CGRectMake(0, 0, 200, 40)))
         
-        navigationItem.titleView = navTitle
-        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        self.navigationItem.titleView = navTitle
         if self.layout != .Text {
-            navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
+            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
         } 
 
         
@@ -205,24 +207,25 @@ class DetailsViewController: UIViewController {
                 }
             }
             
-            if let v = subview as? UIView {
                 if ThemeManager.defaultManager.currentTheme == "Dark" {
-                    v.backgroundColor = UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
+                    subview.backgroundColor = UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
                 } else {
-                    v.backgroundColor = UIColor.whiteColor()
+                    subview.backgroundColor = UIColor.whiteColor()
                 }
-            }
+            
         }
        
     }
     
     private func configTopView() {
-        let titleLabel = {
+        let titleLabel: InsetLabel = {
             $0.text = subject.title
             $0.adjustsFontSizeToFitWidth = true
-            $0.minimumScaleFactor = 0.9
+            $0.minimumScaleFactor = 0.8
             $0.numberOfLines = 2
             $0.font = UIFont(name: "Lato-Bold", size: 18)
+            $0.textAlignment = .Justified
+            return $0
         }(InsetLabel())
         
         
@@ -242,10 +245,11 @@ class DetailsViewController: UIViewController {
             
             title.insertAttributedString(attachmentString, atIndex: 0)
             
-            let textLabel = {
-                textLabel.numberOfLines = 0
-            textLabel.textAlignment = .Left
-            textLabel.text = "Self text ..."
+            let textLabel: InsetLabel = {
+                $0.numberOfLines = 0
+                $0.textAlignment = .Left
+                $0.text = "Self text ..."
+                return $0
             }(InsetLabel())
             
             topView.addSubview(titleLabel)
@@ -378,20 +382,37 @@ class DetailsViewController: UIViewController {
 extension DetailsViewController: UITableViewDelegate {
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let comment = self.commentsOSD[indexPath.row]
+        var comment = self.commentsOSD[indexPath.row]
         if comment.isPlaceholder {
-            var parent = self.commentsOSD[indexPath.row-1].parent
-            commentsOSD.removeAtIndex(indexPath.row)
-            
-            self.commentsVC.tableView.beginUpdates()
-            self.commentsVC.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Bottom)
-            self.commentsVC.tableView.endUpdates()
-
-            for i in (0..<parent!.replies.count).reverse() {
-                
+            var r = indexPath.row - 1
+            guard r >= 0 else { return }
+            while r >= 0 {
+                if self.commentsOSD[r].level != comment.level { break }
+                else { r -= 1 }
             }
             
-        } 
+            let parent = self.commentsOSD[r]
+            
+            commentsOSD.removeAtIndex(indexPath.row)
+            
+            let vc = self.commentsVC
+            vc.tableView.beginUpdates()
+            vc.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Top)
+            vc.tableView.endUpdates()
+            
+            var row = indexPath.row
+            vc.tableView.beginUpdates()
+            (parent.replies.filter { !$0.isShow }).forEach { c in
+                let descendants = c.flatten()
+                descendants.forEach {
+                    commentsOSD.insert($0, atIndex: row)
+                    vc.tableView.insertRowsAtIndexPaths([NSIndexPath.init(forItem: row, inSection: 0)], withRowAnimation: .Bottom)
+                    row += 1
+                }
+            }
+            
+            vc.tableView.endUpdates()
+        }
     }
 
     func scrollViewDidScroll(scrollView: UIScrollView) {
@@ -451,10 +472,15 @@ extension DetailsViewController : UITableViewDataSource{
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        cell.configCellWith(&self.commentsOSD[indexPath.row])
-        
-        return cell
+        if self.commentsOSD[indexPath.row].isPlaceholder {
+            let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("LoadmoreCell", forIndexPath: indexPath) as! LoadmoreCell
+            cell.configWith(&self.commentsOSD[indexPath.row])
+            return cell
+        } else {
+            let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+            cell.configCellWith(&self.commentsOSD[indexPath.row])
+            return cell
+        }
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -504,12 +530,8 @@ extension DetailsViewController {
      @discussion The default display status is always `false` on start
      */
     private func markCommentsVisibility() {
-        let showAll = self.comments.reduce(0) { $0 + $1.totalReplies() } > 20
         for i in 0..<self.comments.count {
-            if showAll { self.comments[i].markIsShow { _ in true } }
-            else {
-                self.comments[i].markIsShow { $0.score >= 5 } 
-            }
+            self.comments[i].markIsShow { $0.score >= 3 }
         }    
     }
 } 

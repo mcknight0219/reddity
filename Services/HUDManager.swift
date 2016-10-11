@@ -27,13 +27,16 @@ final class HUDManager {
             $0.frame = CGRectMake(0, UIScreen.mainScreen().bounds.height - 120, UIScreen.mainScreen().bounds.width, 120)
             $0.transform = CGAffineTransformMakeTranslation(0, 120)
             $0.backgroundColor = UIColor.clearColor().colorWithAlphaComponent(0.7)
-            let label = {
+            let label: UILabel = {
                 $0.frame = CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 80)
                 $0.textAlignment = .Center
-                $0.numberOflines = 1
+                $0.numberOfLines = 1
+                return $0
             }(UILabel())
             $0.addSubview(label)
-            label.frame.center = $0.center
+            label.center = $0.center
+            
+            return $0
         }(UIView())
     }
     
@@ -76,21 +79,21 @@ final class HUDManager {
     }
 
     func showToast(withTitle title: String) {
-        let win = UIApplication.sharedApplication().keyWindow
-        let label = self.bottomView.subViews[0] as! UILabel
+        let win = UIApplication.sharedApplication().keyWindow!
+        let label = self.bottomView.subviews[0] as! UILabel
         label.text = title
 
         win.addSubview(self.bottomView)
-        UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animation: {
+        UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animations: {
             self.bottomView.transform = CGAffineTransformIdentity
         }, completion: nil)
     }
 
     func hideToast() {
-        UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animation: {
+        UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animations: {
             self.bottomView.transform = CGAffineTransformMakeTranslation(0, 50)
         }) { finished in
-            self.bottomView.removeFromSuperView()
+            self.bottomView.removeFromSuperview()
             self.bottomView.transform = CGAffineTransformIdentity
         }
     }

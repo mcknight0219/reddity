@@ -58,13 +58,14 @@ func ==(lhs: Subreddit, rhs: Subreddit) -> Bool {
 }
 
 func subredditParser(json: JSON) -> Subreddit? {
-    let r = Subreddit(id: json["id"].stringValue,
+    var r = Subreddit(id: json["id"].stringValue,
                               displayName: json["display_name"].stringValue,
                               description: json["public_description"].stringValue,
                               title: json["title"].stringValue,
                               subscribers: json["subscribers"].intValue,
                               headerImageUrl: json["header_img"].stringValue)
     r.rawJsonString = json.rawString()
+    
     return r
 }
 

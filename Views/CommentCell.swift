@@ -76,22 +76,12 @@ class CommentCell: BaseTableViewCell {
         self.leadingMarginConstraint.constant = CGFloat(self.comment.level) * self.marginUnit
         self.separatorInset = UIEdgeInsetsMake(0, self.leadingMarginConstraint.constant - 10, 0, 0)
 
-        if comment.isPlaceholder {
-            self.bottomSectHeightConstraint.constant = 0
-            self.commentLabel.text = "Load more"
-
-            return
-        }
-        self.bottomSectHeightConstraint.constant = 25
         commentLabel.text = aComment.text
-        
-        let info = NSMutableAttributedString(string: "・Reply・\(NSDate.describePastTimeInDays(aComment.createdAt))", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
-        self.infoLabel.attributedText = info
-    
+        infoLabel.attributedText = NSMutableAttributedString(string: "・Reply・\(NSDate.describePastTimeInDays(aComment.createdAt))", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
         userLabel.text = aComment.user
+        score.text = "\(aComment.score)"
         up.image = UIImage.fontAwesomeIconWithName(.ArrowUp, textColor: FlatGreenDark(), size: CGSizeMake(15, 15))
         down.image = UIImage.fontAwesomeIconWithName(.ArrowDown, textColor: FlatRedDark(), size: CGSizeMake(15, 15))
-        score.text = "\(aComment.score)"
     }
     
     override func applyTheme() {

@@ -26,13 +26,14 @@ class MeViewController: BaseTableViewController {
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         self.clearsSelectionOnViewWillAppear = true
-        let footer = UIView()
-        self.tableView.tableFooterView = footer
+        self.tableView.tableFooterView = UIView()
 
         themeSwitch.on = ThemeManager.defaultManager.currentTheme == "Dark"
+        themeSwitch.onTintColor = FlatBlue()
         themeSwitch.addTarget(self, action: #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
 
-        offlineSwitch.on = OfflineManager.defaultManager.enabled
+        offlineSwitch.on = true
+        offlineSwitch.onTintColor = FlatBlue()
         offlineSwitch.addTarget(self, action: #selector(MeViewController.toggleOffline), forControlEvents: .ValueChanged)
     }
     
@@ -70,7 +71,6 @@ class MeViewController: BaseTableViewController {
         } else if r == 4 {
             cell.textLabel?.text = "BEHAVIOR"
             cell.backgroundColor = UIColor.clearColor()
-            //cell.textLabel?.textColor = FlatWhiteDark()
             cell.selectionStyle = .None
             cell.layoutMargins = UIEdgeInsetsZero
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 17)
@@ -130,8 +130,8 @@ class MeViewController: BaseTableViewController {
     }
 
     func toggleOffline() {
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND), 0) {
-            OfflineManager.defaultManager.flip()
+        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+            
         }
     }
 }

@@ -144,7 +144,7 @@ func linkParser(json: JSON) -> [Link] {
             }
         }
         
-        let link = Link(id: content["id"].stringValue,
+        var link = Link(id: content["id"].stringValue,
                         title: content["title"].stringValue,
                         url: content["url"].stringValue,
                         subreddit: content["subreddit"].stringValue,

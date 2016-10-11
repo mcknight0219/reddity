@@ -9,9 +9,9 @@
 import UIKit
 import SwiftyJSON
 
-@objc protocol DownloadControllerDelegate {
-  optional func downloadControllerDidArchive(subreddit: Subreddit)
-  optional func downloadControllerArchiveCancelled(subreddit: Subreddit)
+protocol DownloadControllerDelegate {
+  func downloadControllerDidArchive(subreddit: Subreddit)
+  func downloadControllerArchiveCancelled(subreddit: Subreddit)
   func downloadControllerArchiveFailed(subeddit: Subreddit)
   func downloadControllerArhiveProgress(subreddit: Subreddit, expectedNumberOfArticles: Int, finishedNumberOfArticles: Int)
 }
@@ -35,11 +35,11 @@ class DownloadController {
     self.subreddits = subreddits
     self.finished = (0..<self.subreddits.count).map { _ in return false }
     self.queue = {
-      $0.maxConcurrentOperationCount = 3
-      $0.qualityOfService = QOS_BACKGROUND_CLASS
-      $0.name = "TimelineDownload"
-      $0.isSuspended = true
-      $0.addObserver(self, forKeyPath: "operations", options: [], context: nil)
+        $0.maxConcurrentOperationCount = 3
+        $0.qualityOfService = .Background
+        $0.name = "TimelineDownload"
+        
+        return $0
     }(NSOperationQueue())
   }
 
@@ -53,30 +53,18 @@ class DownloadController {
     }
 
     self.subreddits.forEach { self.archive(subreddit: $0)}
-    this.queue.isSuspended = false    
   }
 
     /**
      * Stop all currently downloading task
      */
     func stop() {
-      for (i, e) in self.finished.enumerate() {
-        if !e { self.tasks[i].stop() }
-      }
+      
     }
 
     private func archive(subreddit aSub: Subreddit) {
-      let op = TimelineDownloadOperation(aSub)
+      let op = TimelineDownloadOperation(subreddit: aSub, max: 25)
       ops.append(op)
-      this.queue.addOperation(op)
+      self.queue.addOperation(op)
     } 
-  }
-
-  // MARK: Operation queue events
-  extension DownloadController {
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String: AnyObject]?, contenxt: UnsafeMutablePointer<Void>) {
-      if let key = keyPath, let queue = object as NSOperationQueue {
-
-      } 
-    }
   }

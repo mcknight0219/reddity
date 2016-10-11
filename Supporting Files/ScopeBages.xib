@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11201" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11161"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="iN0-l3-epB">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="5GQ-R8-hlX">
+                    <subviews>
+                        <imageView userInteractionEnabled="NO" tag="1" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" highlighted="YES" translatesAutoresizingMaskIntoConstraints="NO" id="2xx-eZ-Z15">
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="2xx-eZ-Z15" secondAttribute="height" multiplier="1:1" id="OCf-qH-GQx"/>
+                            </constraints>
+                        </imageView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Article" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="BBf-hA-lBi">
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="BBf-hA-lBi" firstAttribute="leading" secondItem="5GQ-R8-hlX" secondAttribute="leading" id="3N6-cu-hZB"/>
+                        <constraint firstAttribute="width" constant="64" id="K8G-js-laU"/>
+                        <constraint firstItem="2xx-eZ-Z15" firstAttribute="leading" secondItem="BBf-hA-lBi" secondAttribute="leading" id="ks2-Vx-oSb"/>
+                        <constraint firstItem="BBf-hA-lBi" firstAttribute="top" secondItem="2xx-eZ-Z15" secondAttribute="bottom" id="prD-Du-jbx"/>
+                        <constraint firstAttribute="trailing" secondItem="BBf-hA-lBi" secondAttribute="trailing" id="wfL-Fa-EaM"/>
+                    </constraints>
+                </stackView>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="O52-uJ-ctL">
+                    <subviews>
+                        <imageView userInteractionEnabled="NO" tag="2" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="b0i-WU-vVx">
+                            <constraints>
+                                <constraint firstAttribute="width" secondItem="b0i-WU-vVx" secondAttribute="height" multiplier="1:1" id="FRb-yU-dPe"/>
+                            </constraints>
+                        </imageView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Subreddit" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="a3b-U5-7dL">
+                            <fontDescription key="fontDescription" type="system" pointSize="12"/>
+                            <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="b0i-WU-vVx" firstAttribute="leading" secondItem="a3b-U5-7dL" secondAttribute="leading" id="4wa-qb-h6u"/>
+                        <constraint firstItem="a3b-U5-7dL" firstAttribute="top" secondItem="b0i-WU-vVx" secondAttribute="bottom" id="9Zg-ED-otv"/>
+                        <constraint firstItem="a3b-U5-7dL" firstAttribute="leading" secondItem="O52-uJ-ctL" secondAttribute="leading" id="AJZ-gZ-EEz"/>
+                        <constraint firstAttribute="width" constant="64" id="jSu-z8-Oq0"/>
+                        <constraint firstAttribute="trailing" secondItem="a3b-U5-7dL" secondAttribute="trailing" id="wmv-N3-D0p"/>
+                    </constraints>
+                </stackView>
+            </subviews>
+            <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <constraints>
+                <constraint firstAttribute="trailing" secondItem="O52-uJ-ctL" secondAttribute="trailing" constant="60" id="5eg-FE-4LH"/>
+                <constraint firstItem="5GQ-R8-hlX" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="60" id="Bay-HF-tp6"/>
+                <constraint firstItem="O52-uJ-ctL" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="120" id="e44-DZ-bkD"/>
+                <constraint firstItem="5GQ-R8-hlX" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="120" id="tcR-1c-1Op"/>
+            </constraints>
+            <point key="canvasLocation" x="25.5" y="51.5"/>
+        </view>
+    </objects>
+</document>

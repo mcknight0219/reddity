@@ -7,19 +7,21 @@
 //
 
 import UIKit
+import SDWebImage
 import ChameleonFramework
 
 class StorageViewController: BaseTableViewController {
 
-    lazy var dataSize: Int = {
+    lazy var dataSize: UInt64 = {
         let app = UIApplication.sharedApplication().delegate as! AppDelegate
-        let sys = NSFIleManager.defaultManager()
+        let sys = NSFileManager.defaultManager()
         if !sys.fileExistsAtPath(app.storagePath) { return 0 }
 
         let enumerator = sys.enumeratorAtPath(app.storagePath)
-        let size = 0
-        while let f = enumerator.nextObject() {
-            size = size + (try sys.attributesOfItemAtPath(app.storagePath.stringByAppendingPathComponent(f)) as? NSDictionary).fileSize() ?? 0
+        var size: UInt64 = 0
+        while let f = enumerator?.nextObject() as? String {
+            let attrs: NSDictionary = try! sys.attributesOfItemAtPath((app.storagePath as NSString).stringByAppendingPathComponent(f))
+            size += attrs.fileSize()
         }
 
         return size
@@ -30,15 +32,11 @@ class StorageViewController: BaseTableViewController {
 
         self.navigationItem.title = "Storage"
         self.navigationController?.navigationBar.titleTextAttributes = [ NSFontAttributeName: UIFont(name: "Lato-Regular", size: 20)!]
-        self.view.backgroundColor = UIColor.whiteColor()
     
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         
-        let footer = {
-            $0.backgroundColor = FlatWhite()
-            self.tableView.tableFooterView = $0
-        }(UIView())
+        self.tableView.tableFooterView = UIView()
     }
 
     // MARK: - Table view data source
@@ -58,44 +56,41 @@ class StorageViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = self.tableView.dequeueReusableCellWithIdentifier("Cell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "Cell")
+            cell = BaseTableViewCell(style: .Value1, reuseIdentifier: "Cell")
         }
         
         if let cell = cell {
         
             let bg = UIView()
-            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
+            bg.backgroundColor = UIColor.grayColor()
             cell.selectedBackgroundView = bg
-            
-            cell.layoutMargins = UIEdgeInsetsZero
             cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             cell.detailTextLabel?.font = UIFont(name: "Lato-Regular", size: 20)
             
-            let cachedSize = 0
-            let storedSize = 0
+            let cachedSize = UInt64(SDImageCache.sharedImageCache().getSize()) / 1048576
+            let storedSize = dataSize
             
             switch indexPath.row {
             case 0:
-                cell.backgroundColor = FlatWhite()
+                cell.backgroundColor = UIColor.clearColor()
                 cell.selectionStyle = .None
-                
+                cell.layoutMargins = UIEdgeInsetsZero
             case 1:
                 cell.textLabel?.text = "Total Storage"
                 cell.detailTextLabel?.text = "\(cachedSize + storedSize) Mb"
                 cell.selectionStyle = .None
-                
+                cell.layoutMargins = UIEdgeInsetsZero
             case 2:
-                cell.backgroundColor = FlatWhite()
+                cell.backgroundColor = UIColor.clearColor()
                 cell.selectionStyle = .None
-                
+                cell.layoutMargins = UIEdgeInsetsZero
             case 3:
                 cell.textLabel?.text = "Cached Image"
                 cell.detailTextLabel?.text = "\(cachedSize) Mb"
-                
-                
             case 4:
                 cell.textLabel?.text = "Stored On Disk"
                 cell.detailTextLabel?.text = "\(storedSize) Mb"
+                cell.layoutMargins = UIEdgeInsetsZero
             default: break
             }
         
@@ -122,7 +117,7 @@ class StorageViewController: BaseTableViewController {
             self.tableView.reloadData()
         }
         let delStoredAction = UIAlertAction(title: "Delete", style: .Destructive) { _ in
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND), 0) {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
                 self.rm()
                 dispatch_async(dispatch_get_main_queue()) {
                     self.tableView.reloadData()
@@ -135,9 +130,16 @@ class StorageViewController: BaseTableViewController {
         if row == 3 { delController.addAction(delCacheAction) }
         else if row == 4 { delController.addAction(delStoredAction) }
         delController.addAction(cancelAction)
-        delController.view.tintColor = FlatOrange()
+        delController.view.tintColor = UIColor.blueColor()
         
         self.presentViewController(delController, animated: true) {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
+                SDImageCache.sharedImageCache().clearMemory()
+                SDImageCache.sharedImageCache().clearDisk()
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.tableView.reloadData()
+                }
+            }
         }
         
     }
@@ -149,12 +151,12 @@ extension StorageViewController {
      */
     func rm() {
         let app = UIApplication.sharedApplication().delegate as! AppDelegate
-        let sys = NSFIleManager.defaultManager()
+        let sys = NSFileManager.defaultManager()
         if !sys.fileExistsAtPath(app.storagePath) { return }
 
         let enumerator = sys.enumeratorAtPath(app.storagePath)
-        while let f = enumerator.nextObject() {
-            sys.removeItemAtPath(app.storagePath.stringByAppendingPathComponent(f))    
+        while let f = enumerator?.nextObject() as? String {
+            try! sys.removeItemAtPath((app.storagePath as NSString).stringByAppendingPathComponent(f))
         }
     }
 }

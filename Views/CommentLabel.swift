@@ -172,7 +172,7 @@ extension CommentLabel {
 
         // Start a chain of parsing and replacing Markdown grammars
         return NSMutableAttributedString(string: text).replaceOccurrence(ofPattern: "\\*.+\\*") { (r, ms) -> NSAttributedString in
-            let b = UIFont(name: "Lato-Bold", size: 12)!
+            let b = UIFont(name: "Lato-Bold", size: 15)!
             let s = NSString(string: ms.string)
             return NSAttributedString(string: s.substringWithRange(r.shrinkBy(1)), attributes: [NSFontAttributeName: b])
             }
@@ -180,18 +180,18 @@ extension CommentLabel {
                 let s = NSString(string: ms.string)
                 return NSAttributedString(string: s.substringWithRange(r.shrinkBy(2)), attributes: [NSStrikethroughStyleAttributeName: NSNumber(integer: NSUnderlineStyle.StyleThick.rawValue)])
             }
-            .replaceOccurrence(ofPattern: "[.+]\\(\(Config.URLPattern)\\)") { (r, ms) -> NSAttributedString in
+            .replaceOccurrence(ofPattern: "\\[.+\\]\\((https?|ftp|file)://\\S+\\)") { (r, ms) -> NSAttributedString in
+                let s = NSString(string: ms.string).substringWithRange(r)
                 var t = NSMakeRange(1, 0)
-                let s = NSString(string: ms.string)
-                for i in 0..<s.length {
-                    if "\(s.characterAtIndex(i))" == "]" {
+                for (i, c) in s.characters.enumerate() {
+                    if c == "]" {
                         t.length = i - 1
                         break
                     }
                 }
-                
-                let url = NSURL(string: s.substringWithRange(NSMakeRange(t.location+t.length+2, s.length-t.location-t.length-2)))!
-                return NSAttributedString(string: s.substringWithRange(t), attributes: [NSLinkAttributeName: url])
+                let ns = s as NSString
+                let url = NSURL(string: ns.substringWithRange(NSMakeRange(t.location+t.length+2, ns.length-t.location-t.length-3)))!
+                return NSAttributedString(string: ns.substringWithRange(t), attributes: [NSLinkAttributeName: url])
             }
             .replaceOccurrence(ofPattern: Config.URLPattern) { (r, ms) -> NSAttributedString in
                 let s = NSString(string: ms.string)

@@ -65,6 +65,7 @@ class TopicController: NSObject {
     func prefetch() {
         guard !busy else { return }
         guard self.topics.count > 0 else { return }
+        
         self.busy = true
         
         let linksResource = Resource(url: self.subredditPath, method: .GET, parser: linkParser)

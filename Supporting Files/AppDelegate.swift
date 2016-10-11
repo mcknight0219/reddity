@@ -57,6 +57,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
+        if let u = NSUserDefaults.standardUserDefaults().objectForKey("User") as? String {
+            self.user = u
+        }
+        
         let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("isFirstTime") as? Bool ?? true
         self.openDB(isFirstTime)
         self.newStorage(isFirstTime)
@@ -77,33 +81,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     @objc func pushTabbar() {
-        UITabBar.appearance().tintColor = UIColor(colorLiteralRed: 188/255, green: 189/255, blue: 214/255, alpha: 1.0)
         let tabBarVC = TabBarController()
 
-        let searchVC = {
+        let searchVC: SearchViewController = {
             $0.modalTransitionStyle = .CoverVertical
             $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
+            
+            return $0
         }(SearchViewController())
         
-        let homeVC = {
-            $0.modalTransitionStyle = .CrossDissovle
+        let homeVC: TimelineViewController = {
+            $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
-        }(TimelineViewController())
+            
+            return $0
+        }(TimelineViewController(subredditName: ""))
         
-        let subscriptionVC = {
-            $0..modalTransitionStyle = .CrossDissolve
+        let subscriptionVC: SubscriptionViewController = {
+            $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 2)
+            
+            return $0
         }(SubscriptionViewController())
 
-        let meVC = {
+        let meVC: MeViewController = {
             $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
+            return $0
         }(MeViewController())
 
         tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController(rootViewController: $0) }
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 0
-        tabBarVC.tabBar.tintColor = FlatOrange()
+        tabBarVC.tabBar.tintColor = FlatBlue()
 
         self.presentVC(tabBarVC, withToken: true)
     }
@@ -126,15 +136,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }   
     }
 
-    lazy var storagePath = {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        return paths[0].stringByAppendingPathComponent("Data")
-    }()
+    lazy var storagePath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]
+        .stringByAppendingString("/Data")
 
     func newStorage(isFirstTime: Bool) {
         if !isFirstTime { return }
         do {
-            try NSFileManager.defaultManager().createDirectoryAtPath(self.storagePath, withIntermediateDirectories: false, attributes: [])
+            try NSFileManager.defaultManager().createDirectoryAtPath(self.storagePath, withIntermediateDirectories: false, attributes: nil)
         } catch let err as NSError {
             print("failed: \(err.localizedDescription)")
         }

@@ -58,6 +58,7 @@ class TimelineViewController: BaseViewController {
             $0.refreshControl?.addTarget(topicController, action: #selector(TopicController.reload), forControlEvents: .
             ValueChanged)
             $0.tableView.tableFooterView = UIView()
+            return $0
         }(TopicTableViewController())
 
         addChildViewController(topicTableViewController)

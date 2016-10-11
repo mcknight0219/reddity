@@ -22,17 +22,16 @@ class NavigationController: UINavigationController {
     }
 
     func applyTheme() {
+        self.navigationBar.tintColor = FlatBlue()
         if ThemeManager.defaultManager.currentTheme == "Default" {
             self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor.whiteColor()), forBarMetrics: .Default)
-            self.navigationBar.tintColor = FlatOrange()
             if let _ = self.navigationBar.titleTextAttributes {
-                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = FlatOrange()
+                self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor(colorLiteralRed: 102/255, green: 102/255, blue: 102/255, alpha: 1.0)
             } else {
-                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: FlatOrange()]
+                self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor(colorLiteralRed: 102/255, green: 102/255, blue: 102/255, alpha: 1.0)]
             }
         } else {
             self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)), forBarMetrics: .Default)
-            self.navigationBar.tintColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
             if let _ = self.navigationBar.titleTextAttributes {
                 self.navigationBar.titleTextAttributes![NSForegroundColorAttributeName] = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
             } else {

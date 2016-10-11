@@ -177,8 +177,19 @@ func commentsParser(json: JSON) -> [Comment] {
             tops.append(comment)
         }
     }
+    
+    fixParentRef(&tops)
 
     return tops
+}
+
+internal func fixParentRef(inout seq: [Comment]) {
+    for i in 0..<seq.count {
+        for j in 0..<seq[i].replies.count {
+            seq[i].replies[j].parent = seq[i]
+            fixParentRef(&seq[i].replies)
+        }
+    }
 }
 
 internal func commentParser(json: JSON) -> Comment? {
@@ -195,9 +206,7 @@ internal func commentParser(json: JSON) -> Comment? {
         parent = nil
     
     } else {
-    
         parent = _commentsParsedDict[parentId.substringFromIndex(parentId.startIndex.advancedBy(3))]
-    
     }
 
     var comment = Comment(id: json["id"].stringValue, parent: parent, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)

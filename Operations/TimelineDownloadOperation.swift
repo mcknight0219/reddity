@@ -25,14 +25,14 @@ class TimelineDownloadOperation: NSOperation {
     
     override func main() {
         guard !self.cancelled else { return }
-        let resource = Resource(url: "/r/\(subreddit.displayName)/hot", method: .GET, linkParser)
+        let resource = Resource(url: "/r/\(subreddit.displayName)/hot", method: .GET, parser: linkParser)
         
         apiRequest(Config.ApiBaseURL, resource: resource, params: ["limit": "\(self.maximumArticles)"]) { links -> Void in
             guard links != nil else { return }
             
-            links.forEach { link in
+            links!.forEach { link in
                 do {
-                    try db.executeUpdate("INSERT INTO offline_data(data, subreddit, timestamp) values(?, ?, ?)", values: [l.rawJsonString!, l.subreddit, NSDate.sqliteDate()])
+                    try self.db.executeUpdate("INSERT INTO offline_data(data, subreddit, timestamp) values(?, ?, ?)", values: [link.rawJsonString!, link.subreddit, NSDate.sqliteDate()])
                 } catch let err as NSError {
                     print("failed: \(err.localizedDescription)")
                 }

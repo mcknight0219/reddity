@@ -65,8 +65,10 @@ extension TopicTableViewController {
             } else {
                 return 270
             }
-        default:
+        case .News:
             return 180
+        default:
+            return 120
         }
     }
     

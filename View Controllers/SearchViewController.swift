@@ -18,19 +18,57 @@ let kLoadMoreSearchResults = "LoadMoreSearchResults"
 /**
  This multi-purpose tableview will handle thress kinds of content.
  */
-enum TableContent: String, CustomStringConvertible {
-    case History = "History"
+enum TableContent {
+    case History
+    case Subreddit
+    case Link
+    case Empty
     
-    case Subreddit = "Subreddit"
+    var background: UIView? {
+        switch self {
+        case .Empty:
+            let background = UIView()
+            
+            let image: UIImageView = {
+                $0.center = CGPoint(x: UIScreen.mainScreen().bounds.width / 2, y: UIScreen.mainScreen().bounds.height / 2 - 150)
+                return $0
+            }(UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50))))
+            background.addSubview(image)
+            
+            let label: UILabel = {
+                $0.text = "You can search subreddits name and title"
+                $0.font = UIFont(name: "Lato-Regular", size: 18)!
+                $0.textColor = FlatWhiteDark()
+                $0.numberOfLines = 0
+                $0.textAlignment = .Center
+                
+                return $0
+            }(UILabel())
+            background.addSubview(label)
+            
+            label.snp_makeConstraints { make in
+                make.leading.equalTo(background).offset(30)
+                make.trailing.equalTo(background).offset(-30)
+                make.top.equalTo(image.snp_bottom).offset(5)
+            }
+            
+            return background
+        default:
+            return nil
+        }
+    }
     
-    case Link = "Link"
-    
-    var description: String {
-        return self.rawValue
+    var footer: UIView? {
+        switch self {
+        case .Subreddit, .Link :
+            return nil
+        default:
+            return nil
+        }
     }
 }
 
-class SearchViewController: BaseViewController {
+class SearchViewController: UIViewController {
 
     let searchController = UISearchController(searchResultsController: nil)
     
@@ -73,20 +111,23 @@ class SearchViewController: BaseViewController {
     private var cache = [String:AnyObject]()
     
     // For placeholder view when history is empty
-    lazy var backgroundView: UIView = {
+    lazy var emptyView: UIView = {
         let background = UIView()
 
-        let image = {
+        let image: UIImageView = {
             $0.center = CGPoint(x: UIScreen.mainScreen().bounds.width / 2, y: UIScreen.mainScreen().bounds.height / 2 - 150)
+            return $0
         }(UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50))))
         background.addSubview(image)
 
-        let label = {
+        let label: UILabel = {
             $0.text = "You can search subreddits name and title"
             $0.font = UIFont(name: "Lato-Regular", size: 18)!
             $0.textColor = FlatWhiteDark()
             $0.numberOfLines = 0
             $0.textAlignment = .Center
+            
+            return $0
         }(UILabel())
         background.addSubview(label)
         
@@ -110,14 +151,14 @@ class SearchViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        tableView = UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
-        tableView.delegate = self
-        tableView.dataSource = self
-    
-        
-        tableView.tableHeaderView = searchController.searchBar
+        tableView = {
+            $0.delegate = self
+            $0.dataSource = self
+            $0.tableHeaderView = searchController.searchBar
+            return $0
+        }(UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height)))
         view.addSubview(tableView)
+        self.setupUI()
         
         ["SubredditCell", "TitleCell"].forEach { name in
             tableView.registerNib(UINib(nibName: name, bundle: nil), forCellReuseIdentifier: name)
@@ -127,25 +168,21 @@ class SearchViewController: BaseViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.onContextSwitch), name: kChangeSearchResultsContext, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.loadMoreContent), name: kLoadMoreSearchResults, object: nil)
         NSNotificationCenter.defaultCenter().postNotificationName(kChangeSearchResultsContext, object: TableContent.History.rawValue)
-
-        setupUI()
     }
     
     func setupUI() {
         definesPresentationContext = true
         self.searchController.searchResultsUpdater = self
         self.searchController.searchBar.delegate = self
+        self.searchController.searchBar.searchBarStyle = .Default
+        self.searchController.dimsBackgroundDuringPresentation = false
         
         extendedLayoutIncludesOpaqueBars = true
-        
         automaticallyAdjustsScrollViewInsets = true
-        
-        self.searchController.searchBar.searchBarStyle = .Default
-        
-        self.searchController.dimsBackgroundDuringPresentation = false
         
         navigationItem.title = "Discovery"
         navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
+        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         
         self.applyTheme()
     }
@@ -160,14 +197,12 @@ class SearchViewController: BaseViewController {
         if let timer = self.timer { timer.invalidate() }
     }
 
-    override func applyTheme() {
-        super.applyTheme()
+    func applyTheme() {
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            view.backgroundColor = FlatBlackDark()
-            
-            self.tableView.backgroundColor = FlatBlackDark()
-           
+            view.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
+            self.tableView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
+
             self.tableView.separatorColor = UIColor.darkGrayColor()
             self.tableView.indicatorStyle = .White
             self.searchController.searchBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
@@ -175,9 +210,8 @@ class SearchViewController: BaseViewController {
             (UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.whiteColor()
             
         } else {
-            view.backgroundColor = UIColor.whiteColor()
-            
-            self.tableView.backgroundColor = UIColor.whiteColor()
+            view.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
+            self.tableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
             
             self.tableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.tableView.indicatorStyle = .Default
@@ -212,7 +246,7 @@ class SearchViewController: BaseViewController {
                         
                         if self.history.count == 0 { 
 
-                            self.tableView.tableFooterView = self.backgroundView
+                            self.tableView.tableFooterView = self.emptyView
                         
                         }
                     }
