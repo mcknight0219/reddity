@@ -10,12 +10,16 @@ import UIKit
 import SwiftyJSON
 import ChameleonFramework
 import SnapKit
+#if !RX_NO_MODULE
+import RxSwift
+import RxCocoa
+#endif
 
 class MeViewController: BaseTableViewController {
     
-    let themeSwitch = UISwitch()
+    var themeSwitch: UISwitch!
 
-    let offlineSwitch = UISwitch()
+    var offlineSwitch: UISwitch!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,13 +32,32 @@ class MeViewController: BaseTableViewController {
         self.clearsSelectionOnViewWillAppear = true
         self.tableView.tableFooterView = UIView()
 
-        themeSwitch.on = ThemeManager.defaultManager.currentTheme == "Dark"
-        themeSwitch.onTintColor = FlatBlue()
-        themeSwitch.addTarget(self, action: #selector(MeViewController.toggleTheme), forControlEvents: .ValueChanged)
-
-        offlineSwitch.on = true
-        offlineSwitch.onTintColor = FlatBlue()
-        offlineSwitch.addTarget(self, action: #selector(MeViewController.toggleOffline), forControlEvents: .ValueChanged)
+        self.themeSwitch = {
+            $0.onTintColor = FlatBlue()
+            return $0
+        }(UISwitch())
+        
+        self.offlineSwitch = {
+            $0.onTintColor = FlatBlue()
+            return $0
+        }(UISwitch())
+        
+        let disposeBag = DisposeBag()
+        
+        let darkThemeOn = Variable(ThemeManager.defaultManager.currentTheme == "Dark")
+        themeSwitch.rx_value <-> darkThemeOn
+        darkThemeOn.asObservable()
+            .subscribeNext { x in
+                ThemeManager.defaultManager.setTheme(x ? "Dark" : "Default")
+            }
+        .addDisposableTo(disposeBag)
+        
+        let offlineOn = Variable(true)
+        themeSwitch.rx_value <-> offlineOn
+        offlineOn.asObservable()
+            .subscribeNext { _ in
+        }
+        .addDisposableTo(disposeBag)
     }
     
     // MARK: - Table view data source
@@ -123,15 +146,4 @@ class MeViewController: BaseTableViewController {
         }
     }
 
-    func toggleTheme() {
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(0.3 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-            ThemeManager.defaultManager.setTheme(self.themeSwitch.on ? "Dark" : "Default")
-        }
-    }
-
-    func toggleOffline() {
-        dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-            
-        }
-    }
 }

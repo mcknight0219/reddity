@@ -9,17 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-protocol ReachabilityUpdateProtocol {
-    func updateUIWithReachability()
-}
-
 class BaseTableViewController: UITableViewController {
-
-    private var internalReachabilityStatus = Reachability.sharedInstance.status {
-        didSet {
-            updateUIWithReachability()
-        }
-    }
 
     lazy var reachabilityBackground: UILabel! = {
         let label: UILabel = {
@@ -37,10 +27,8 @@ class BaseTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.applyTheme()
-        self.updateUIWithReachability()
-
+        
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewController.reachabilityChanged(_:)), name: kNetworkReachabilityChanged, object: nil)
     }
 
     func applyTheme() {
@@ -57,22 +45,5 @@ class BaseTableViewController: UITableViewController {
         }
 
     }
-      
-    func reachabilityChanged(notification: NSNotification) {
-        let reachability = notification.object as! Reachability
-        if reachability.status == internalReachabilityStatus {
-            return
-        }
-        
-        internalReachabilityStatus = reachability.status
-    }
-}
-
-/**
- Subclass of this class should implement this method in order to 
- update interface after reachability changes
-
- */
-extension BaseTableViewController: ReachabilityUpdateProtocol {
-    func updateUIWithReachability() {}
+    
 }

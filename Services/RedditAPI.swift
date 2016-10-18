@@ -23,8 +23,8 @@ enum RedditAPI {
 extension RedditAPI: TargetType {
     var path: String {
         switch self {
-        case .XAPP:
-            return ""
+        case .XApp:
+            return "/api/v1/access_token"
 
         case .Me:
             return "/api/v1/me"
@@ -32,7 +32,7 @@ extension RedditAPI: TargetType {
         case .FrontPage:
             return "/"
 
-        case .Subreddit(let name, let _):
+        case .Subreddit(let name, _):
             return "/r/\(name)"
 
         case .SearchTitle:
@@ -59,15 +59,17 @@ extension RedditAPI: TargetType {
         case .FrontPage(let after):
             return ["raw_json": "1", "after": after]
 
-        case .Subreddit(let _, let after):
+        case .Subreddit( _, let after):
             return ["raw_json": "1", "after": after]
             
         case .SearchTitle(let q, let limit, let after):
             return ["q": q, "limit": limit ?? 45, "after": after ?? ""]
 
         case .SearchSubreddit(let q, let limit, let after):
-            return ["q": q, "limit": limit ?? 45, "after": after?? ""]
-        } 
+            return ["q": q, "limit": limit ?? 45, "after": after ?? ""]
+        default:
+            return nil
+        }
     }
 
     var method: Moya.Method {
@@ -78,5 +80,17 @@ extension RedditAPI: TargetType {
             return .GET
         }
     }
+    
+    var multipartBody: [MultipartFormData]? {
+        return nil
+    }
+    
+    var sampleData: NSData {
+        return NSData()
+    }
+}
+
+func url(route: TargetType) -> String {
+    return (route.baseURL.URLByAppendingPathComponent(route.path)?.absoluteString)!
 }
 

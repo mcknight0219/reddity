@@ -1,7 +1,9 @@
 import Foundation
-import Moya
-import Reachability
 import RxSwift
+import RxSwiftExt
+import Moya
+import Alamofire
+import ISO8601DateFormatter
 
 struct XAppToken {
     enum DefaultsKeys: String {
@@ -40,7 +42,7 @@ struct XAppToken {
 
     var expiry: NSDate? {
         get {
-            return defaults.objectForKey(DefaultsKeys.TokenExpiry.rawValue)
+            return defaults.objectForKey(DefaultsKeys.TokenExpiry.rawValue) as? NSDate
         }
         set(newExpiry) {
             defaults.setObject(newExpiry, forKey: DefaultsKeys.TokenExpiry.rawValue)
@@ -54,23 +56,36 @@ struct XAppToken {
         }
         return true
     }
+    
+    var isValid: Bool {
+        if let token = accessToken {
+            return !token.isEmpty && !expired
+        }
+        
+        return false
+    }
 }
 
 
 
 let reachabilityManager = ReachabilityManager()
 
-func endpointsClosure<T where T: TargetType>()
 
-class MoyaProvider<Target where Target: TargetType>: RxMoyaProvider<Target> {
+
+class OnlineProvider<Target where Target: TargetType>: RxMoyaProvider<Target> {
     private let online: Observable<Bool>
 
-    init() {
-        self.online = just(ReachabilityManager.reach)
-        super.init(endpointsClosure, requestClosure)
+    init(endpointClosure: MoyaProvider<Target>.EndpointClosure = MoyaProvider.DefaultEndpointMapping,
+         requestClosure: MoyaProvider<Target>.RequestClosure = MoyaProvider.DefaultRequestMapping,
+         stubClosure: MoyaProvider<Target>.StubClosure = MoyaProvider.NeverStub,
+         manager: Manager = Alamofire.Manager.sharedInstance,
+         plugins: [PluginType] = []) {
+        
+        self.online = reachabilityManager.reach
+        super.init(endpointClosure: endpointClosure, requestClosure: requestClosure, stubClosure: stubClosure, manager: manager, plugins: [], trackInflights: false)
    }
 
-    override func request(action: Target) -> Observable<Moya.response> {
+    override func request(action: Target) -> Observable<Moya.Response> {
         let actualRequest = super.request(action)
         return online
             .ignore(false)
@@ -99,7 +114,7 @@ extension Networking {
         var token = XAppToken(defaults: defaults)
 
         if token.isValid {
-            return Observable.just(appToken.accessToken)
+            return Observable.just(token.accessToken)
         }
 
         let refreshRequest = self.provider.request(.XApp)
@@ -111,13 +126,37 @@ extension Networking {
                 return (token: dict["access_token"] as? String, expiry: dict["expires_in"] as? String)
             }
             .doOn { event in
-            
+                guard case Event.Next(let e) = event else { return }
+                
+                let formatter = ISO8601DateFormatter()
+                token.accessToken = e.0
+                token.expiry = formatter.dateFromString(e.1!)
             }
             .map { (token, _) -> String? in
                 return token
             }
-            .logError()
 
         return refreshRequest
     }
+}
+
+// Static methods
+extension Networking {
+    
+    static func newNetworking() -> Networking {
+        return Networking(provider: newProvider())
+    }
+    
+    static func endpointsClosure<T where T: TargetType>(target: T) -> Endpoint<T> {
+        let endpoint = Endpoint<T>(URL: url(target), sampleResponseClosure: {.NetworkResponse(200, target.sampleData)}, method: target.method, parameters: target.parameters)
+        
+        return endpoint.endpointByAddingHTTPHeaderFields(
+            ["Authorization": "bearer\(XAppToken().accessToken ?? "")",
+             "User-Agent": UIApplication.userAgent()]
+        )
+    }
+}
+
+private func newProvider<T where T: TargetType>() -> OnlineProvider<T> {
+    return OnlineProvider(endpointClosure: Networking.endpointsClosure)
 }

@@ -65,7 +65,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.openDB(isFirstTime)
         self.newStorage(isFirstTime)
         
-        Reachability.sharedInstance.startNotifier()
         if isFirstTime {
             if isFirstTime { NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isFirstTime") }
             
