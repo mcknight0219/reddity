@@ -113,22 +113,8 @@ extension StartupViewController {
         if let number = notification.object as? NSNumber {
             switch number.intValue {
             case 1:
-                TokenService.sharedInstance.invalidateAccessToken()
+                
                 NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
-                // Remember the user after logged in
-                dispatch_async(dispatch_get_main_queue()) {
-                    let app = UIApplication.sharedApplication().delegate as! AppDelegate
-                    
-                    let user = Resource(url: "/api/v1/me", method: .GET) { (json) -> String? in
-                        return json["name"].stringValue
-                    }
-                    
-                    apiRequest(Config.ApiBaseURL, resource: user, params: nil) { user in
-                        if let user = user {
-                            app.user = user
-                        }
-                    }
-                }
             default:
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in
                     let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .Alert)

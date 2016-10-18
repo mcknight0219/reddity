@@ -42,12 +42,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         if let queryParams = result, let code = queryParams["code"] {
-            TokenService.sharedInstance.code = code
-            NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 1))
+            /// time to acquire refresh token
+            let networking = Networking.newNetworking()
+            let token = XAppToken()
+            networking.request(.XApp(.Refresh, code))
+                .filterSuccessfulStatusCode()
+                .mapJSON()
+                .doOn { element in
+                    guard let dict = element as? NSDictionary else { return }
+                    token.refreshToken = dict["refresh_token"] as? String
+                    token.accessToken  = dict["access_token"] as? String
+                    token.expiry = dict["expire_in"] as? NSDate
+                    
+                    networking.request(.XApp(.Me))
+                        .filterSuccessfulStatusCode()
+                        .mapJSON()
+                        .map { element -> String? in
+                            guard let dict = element as? NSDictionary else { return "guest" }
+                            return dict["name"] as? String
+                        }
+                        .doOn { [weak self] name in 
+                            if let delegate = self {
+                                Account().user = .LoggedInUser(name) 
+                            } 
+
+                            NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 1))
+                        }
+                }
+                
+
         } else {
+
             NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 0))
         }
-        
         
         return true
     }
@@ -57,20 +84,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
-        if let u = NSUserDefaults.standardUserDefaults().objectForKey("User") as? String {
-            self.user = u
-        }
+        let isPristine = Account().isPristine
+        self.openDB(isPristine)
+        self.newStorage(isPristine)
         
-        let isFirstTime = NSUserDefaults.standardUserDefaults().objectForKey("isFirstTime") as? Bool ?? true
-        self.openDB(isFirstTime)
-        self.newStorage(isFirstTime)
-        
-        if isFirstTime {
-            if isFirstTime { NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isFirstTime") }
-            
+        if isPristine {
+            Account().user = .Guest
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
-            presentVC(startVC, withToken: false)
+            presentVC(startVC)
             
             return true
         }
@@ -114,25 +136,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         tabBarVC.selectedIndex = 0
         tabBarVC.tabBar.tintColor = FlatBlue()
 
-        self.presentVC(tabBarVC, withToken: true)
+        self.presentVC(tabBarVC)
     }
 
     /**
      Present the view controller
      
      - parameter vc:        the view controller to present
-     - parameter withToken: if the presentation needs wrapped in token service
      
      */
-    func presentVC(vc: UIViewController, withToken: Bool) {
+    func presentVC(vc: UIViewController) {
         self.window?.rootViewController = vc
-        if withToken {
-            TokenService.sharedInstance.withAccessToken {
-                self.window?.makeKeyAndVisible()
-            }
-        } else {
-            self.window?.makeKeyAndVisible()
-        }   
+        self.window?.makeKeyAndVisible()
     }
 
     lazy var storagePath = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)[0]

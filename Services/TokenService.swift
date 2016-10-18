@@ -114,8 +114,7 @@ final class TokenService {
             if response.statusCode == 401 {
                 print("401 response when requesting token")
                 // toast
-            } else {
-                let json = JSON(data: data)
+            } else {                let json = JSON(data: data)
                 let refreshToken = json["refresh_token"].stringValue
                 self.token = json["access_token"].stringValue
                 if !refreshToken.isEmpty {
@@ -136,10 +135,10 @@ final class TokenService {
         request.addValue(basicAuthHeaderString(), forHTTPHeaderField: "Authorization")
         
         let (data, response, _) = NSURLSession.sharedSession().synchronousDataTaskWithURL(request)
-        if let data = data, let response = response as? NSHTTPURLResponse {
+        if let = data, let response = response as? NSHTTPURLResponse {
             if response.statusCode == 401 {
                 print("401 response when refreshing access token")
-                // toast
+ // toast
             } else {
                 let json = JSON(data: data)
                 self.token = json["access_token"].stringValue

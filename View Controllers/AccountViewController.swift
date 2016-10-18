@@ -11,10 +11,6 @@ import ChameleonFramework
 
 class AccountViewController: BaseTableViewController {
 
-    lazy var app: AppDelegate = {
-        return UIApplication.sharedApplication().delegate as! AppDelegate
-    }()
-    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -38,7 +34,7 @@ class AccountViewController: BaseTableViewController {
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return app.user == "guest" ? 2 : 4
+        return Account().isGuest ? 2 : 4
     }
 
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -117,6 +113,6 @@ class AccountViewController: BaseTableViewController {
         let vc = StartupViewController()
         vc.modalTransitionStyle = .FlipHorizontal
         
-        app.presentVC(vc, withToken: true)
+        app.presentVC(vc)
     }
 }

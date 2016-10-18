@@ -67,11 +67,6 @@ struct XAppToken {
 }
 
 
-
-let reachabilityManager = ReachabilityManager()
-
-
-
 class OnlineProvider<Target where Target: TargetType>: RxMoyaProvider<Target> {
     private let online: Observable<Bool>
 
@@ -117,17 +112,15 @@ extension Networking {
             return Observable.just(token.accessToken)
         }
 
-        let refreshRequest = self.provider.request(.XApp)
+        let refreshRequest = self.provider.request(.XApp(.Refresh, nil))
             .filterSuccessfulStatusCodes()
             .mapJSON()
             .map { element -> (token: String?, expiry: String?) in
                 guard let dict = element as? NSDictionary else { return (token: nil, expiry: nil) }
-
                 return (token: dict["access_token"] as? String, expiry: dict["expires_in"] as? String)
             }
             .doOn { event in
                 guard case Event.Next(let e) = event else { return }
-                
                 let formatter = ISO8601DateFormatter()
                 token.accessToken = e.0
                 token.expiry = formatter.dateFromString(e.1!)
@@ -150,10 +143,12 @@ extension Networking {
     static func endpointsClosure<T where T: TargetType>(target: T) -> Endpoint<T> {
         let endpoint = Endpoint<T>(URL: url(target), sampleResponseClosure: {.NetworkResponse(200, target.sampleData)}, method: target.method, parameters: target.parameters)
         
-        return endpoint.endpointByAddingHTTPHeaderFields(
-            ["Authorization": "bearer\(XAppToken().accessToken ?? "")",
-             "User-Agent": UIApplication.userAgent()]
-        )
+        switch target {
+        case .XAPP:
+            return endpoint.endpoitnByAddingHTTPHeaderFields(["Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"])
+        default:
+            return endpoint.endpointByAddingHTTPHeaderFields(["Authorization": "bearer\(XAppToken().accessToken ?? "")", "User-Agent": UIApplication.userAgent()])
+        }
     }
 }
 

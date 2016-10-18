@@ -10,8 +10,16 @@ import Foundation
 import RxSwift
 import Moya
 
+enum GrantType: String {
+    /// User auth
+    case Code = "authorization_code"
+    /// No user, only supports browsing
+    case Installed = "https://oauth.reddit.com/grants/installed_client"
+    case Refresh = "refresh_token"
+}
+
 enum RedditAPI {
-    case XApp
+    case XApp(grantType: GrantType, code: String?)
     
     case Me
     case FrontPage(after: String)
@@ -56,6 +64,16 @@ extension RedditAPI: TargetType {
 
     var parameters: [String: AnyObject]? {
         switch self {
+        case .XApp(let grant, let code):
+            switch grant {
+            case .Code:
+                return ["grant_type": grant.rawValue, "code": code, "redirect_uri": "reddity://response"]
+            case .Installed:
+                return ["grant_type": grant.rawValue, "device_id": NSUUID().UUIDString]
+            default:
+                return ["grant_type": grant.rawValue, "refresh_token": XAppToken().refreshToken]
+            }
+
         case .FrontPage(let after):
             return ["raw_json": "1", "after": after]
 
