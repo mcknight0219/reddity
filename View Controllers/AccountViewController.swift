@@ -57,11 +57,11 @@ class AccountViewController: BaseTableViewController {
                 cell.selectionStyle = .None
 
             case 1:
-                if app.user == "guest" {
+                if Account().isGuest {
                     cell.textLabel?.text = "Log In"
                 } else {
                     cell.textLabel?.text = "Log Out"
-                    cell.detailTextLabel?.text = app.user
+                    cell.detailTextLabel?.text = "User"
                 }
             case 2:
                 cell.backgroundColor = UIColor.clearColor()
@@ -82,14 +82,7 @@ class AccountViewController: BaseTableViewController {
         guard row == 1 else { return }
 
         // Guest out. Remove all search histories for `guest`.
-        if app.user == "guest" {
-            dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0)) {
-                do {
-                    try self.app.database?.executeUpdate("DELETE FROM search_history WHERE user = ?", values: [self.app.user])
-                } catch let error as NSError {
-                    print("failed: \(error.localizedDescription)")
-                }
-            }
+        if Account().isGuest {
             gotoLogin()
             return
         }
@@ -100,7 +93,9 @@ class AccountViewController: BaseTableViewController {
         logoutController.addAction(cancelAction)
 
         let logoutAction = UIAlertAction(title: "Log Out", style: .Default) { [unowned self] (action) in
-            self.app.user = "guest"      // reset current user to `guest`
+
+            var account = Account()
+            account.user = .Guest
             NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isLoggedIn")
             self.gotoLogin()
         }
@@ -113,6 +108,6 @@ class AccountViewController: BaseTableViewController {
         let vc = StartupViewController()
         vc.modalTransitionStyle = .FlipHorizontal
         
-        app.presentVC(vc)
+        (UIApplication.sharedApplication().delegate as! AppDelegate).presentVC(vc)
     }
 }

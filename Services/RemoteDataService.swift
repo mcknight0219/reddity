@@ -43,7 +43,7 @@ func apiRequest<A>(base: NSURL, resource: Resource<A>, params: [String:String]?,
     }
     
     let request = NSMutableURLRequest(URL: url!)
-    request.addValue("bearer \(TokenService.sharedInstance.token)", forHTTPHeaderField: "Authorization")
+    request.addValue("bearer \(XAppToken().accessToken!)", forHTTPHeaderField: "Authorization")
     request.addValue(UIApplication.userAgent(), forHTTPHeaderField: "User-Agent")
     
     NetworkActivityIndicator.incrementActivityCount()

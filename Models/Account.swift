@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum AccountType: String {
+enum AccountType {
     case Guest
     case LoggedInUser(name: String)
 }
@@ -27,15 +27,19 @@ struct Account {
     var user: AccountType? {
         get {
             if let u = defaults.stringForKey(DefaultsKeys.User.rawValue) {
-                return u == "guest" ? .Guest : .LoggedInUser(u)
+                if u == "guest" {
+                    return .Guest
+                } else {
+                    return .LoggedInUser(name: u)
+                }
             }
-
+            return nil
         }
         set(newUser) {
-            switch newUser {
-            case Guest:
+            switch newUser! {
+            case .Guest:
                 defaults.setObject("guest", forKey: DefaultsKeys.User.rawValue)
-            case LoggedInUser(u):
+            case .LoggedInUser(let u):
                 defaults.setObject(u, forKey: DefaultsKeys.User.rawValue)
             }
         }
@@ -55,5 +59,11 @@ struct Account {
             }
         }
         return false
+    }
+}
+
+extension Account {
+    func forget() {
+        defaults.removeObjectForKey(DefaultsKeys.User.rawValue)
     }
 }

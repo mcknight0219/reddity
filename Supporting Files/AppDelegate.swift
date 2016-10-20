@@ -7,8 +7,11 @@
 //
 
 import UIKit
-import ChameleonFramework
+import Moya
+import RxSwift
 import FMDB
+import ChameleonFramework
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -32,6 +35,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             NSNotificationCenter.defaultCenter().postNotificationName(kUserChangedNotification, object: self.user)
         }
     }
+    
+    var disposeBag = DisposeBag()
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
         let result = url.query?.componentsSeparatedByString("&").reduce([:]) { (result: [String: String], q: String) in
@@ -44,32 +49,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let queryParams = result, let code = queryParams["code"] {
             /// time to acquire refresh token
             let networking = Networking.newNetworking()
-            let token = XAppToken()
-            networking.request(.XApp(.Refresh, code))
-                .filterSuccessfulStatusCode()
+            var token = XAppToken()
+            networking.request(.XApp(grantType: .Code, code: code))
+                .filterSuccessfulStatusCodes()
                 .mapJSON()
-                .doOn { element in
-                    guard let dict = element as? NSDictionary else { return }
-                    token.refreshToken = dict["refresh_token"] as? String
-                    token.accessToken  = dict["access_token"] as? String
-                    token.expiry = dict["expire_in"] as? NSDate
+                .map { element -> (refresh: String?, access: String?, expiry: Int?) in
+                    guard let dict = (element as? NSDictionary) else { return (nil, nil, nil) }
                     
-                    networking.request(.XApp(.Me))
-                        .filterSuccessfulStatusCode()
+                    return (refresh: dict["refresh_token"] as? String, access: dict["access_token"] as? String, expiry: dict["expires_in"] as? Int)
+                }
+                .doOn { event in
+                    guard case Event.Next(let e) = event else { return }
+      
+                    token.refreshToken = e.0
+                    token.accessToken  = e.1
+                    token.expiry = NSDate().dateByAddingTimeInterval(Double(e.2!))
+                }
+                .subscribeNext { _, _, _ in
+                    networking.request(.Me)
+                        .filterSuccessfulStatusCodes()
                         .mapJSON()
                         .map { element -> String? in
                             guard let dict = element as? NSDictionary else { return "guest" }
                             return dict["name"] as? String
                         }
-                        .doOn { [weak self] name in 
-                            if let delegate = self {
-                                Account().user = .LoggedInUser(name) 
-                            } 
-
+                        .subscribeNext { name in
+                            var account = Account()
+                            account.user = AccountType.LoggedInUser(name: name!)
+                            
                             NSNotificationCenter.defaultCenter().postNotificationName("OAuthFinishedNotification", object: NSNumber(int: 1))
                         }
+                        .addDisposableTo(self.disposeBag)
                 }
-                
+                .addDisposableTo(self.disposeBag)
+            
 
         } else {
 
@@ -84,12 +97,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = UIWindow(frame: UIScreen.mainScreen().bounds)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AppDelegate.pushTabbar), name: "PushInTabBarAfterStartup", object: nil)
         
-        let isPristine = Account().isPristine
+        var account = Account()
+        
+        let isPristine = account.isPristine
         self.openDB(isPristine)
         self.newStorage(isPristine)
         
         if isPristine {
-            Account().user = .Guest
+    
+            account.user = .Guest
+            
             let startVC = StartupViewController()
             startVC.modalTransitionStyle = .FlipHorizontal
             presentVC(startVC)

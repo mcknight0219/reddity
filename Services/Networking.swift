@@ -96,6 +96,14 @@ struct Networking {
 
     func request(action: RedditAPI, defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()) -> Observable<Moya.Response> {
         let actualRequest = self.provider.request(action)
+        // request for refresh token
+        switch action {
+        case .XApp(grantType: .Code, code: _):
+            return actualRequest
+        default:
+            break
+        }
+        
         return self.XAppTokenRequest(defaults)
             .flatMap { _ in actualRequest }
     }
@@ -112,18 +120,18 @@ extension Networking {
             return Observable.just(token.accessToken)
         }
 
-        let refreshRequest = self.provider.request(.XApp(.Refresh, nil))
+        let refreshRequest = self.provider.request(.XApp(grantType: .Refresh, code: nil))
             .filterSuccessfulStatusCodes()
             .mapJSON()
-            .map { element -> (token: String?, expiry: String?) in
+            .map { element -> (token: String?, expiry: Int?) in
                 guard let dict = element as? NSDictionary else { return (token: nil, expiry: nil) }
-                return (token: dict["access_token"] as? String, expiry: dict["expires_in"] as? String)
+                return (token: dict["access_token"] as? String, expiry: dict["expires_in"] as? Int)
             }
             .doOn { event in
                 guard case Event.Next(let e) = event else { return }
-                let formatter = ISO8601DateFormatter()
+            
                 token.accessToken = e.0
-                token.expiry = formatter.dateFromString(e.1!)
+                token.expiry = NSDate().dateByAddingTimeInterval(Double(e.1!))
             }
             .map { (token, _) -> String? in
                 return token
@@ -143,11 +151,16 @@ extension Networking {
     static func endpointsClosure<T where T: TargetType>(target: T) -> Endpoint<T> {
         let endpoint = Endpoint<T>(URL: url(target), sampleResponseClosure: {.NetworkResponse(200, target.sampleData)}, method: target.method, parameters: target.parameters)
         
-        switch target {
-        case .XAPP:
-            return endpoint.endpoitnByAddingHTTPHeaderFields(["Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"])
+        switch target as! RedditAPI {
+        case .XApp:
+            
+            let credential = "oJcxJfNvAUDpOQ:".dataUsingEncoding(NSUTF8StringEncoding)!.base64EncodedStringWithOptions(.Encoding76CharacterLineLength)
+            return endpoint.endpointByAddingHTTPHeaderFields(
+                ["Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                 "Authorization": "Basic \(credential)"]
+            )
         default:
-            return endpoint.endpointByAddingHTTPHeaderFields(["Authorization": "bearer\(XAppToken().accessToken ?? "")", "User-Agent": UIApplication.userAgent()])
+            return endpoint.endpointByAddingHTTPHeaderFields(["Authorization": "bearer \(XAppToken().accessToken ?? "")", "User-Agent": UIApplication.userAgent()])
         }
     }
 }

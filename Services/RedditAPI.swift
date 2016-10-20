@@ -67,11 +67,11 @@ extension RedditAPI: TargetType {
         case .XApp(let grant, let code):
             switch grant {
             case .Code:
-                return ["grant_type": grant.rawValue, "code": code, "redirect_uri": "reddity://response"]
+                return ["grant_type": grant.rawValue, "code": code!, "redirect_uri": "reddity://response"]
             case .Installed:
                 return ["grant_type": grant.rawValue, "device_id": NSUUID().UUIDString]
             default:
-                return ["grant_type": grant.rawValue, "refresh_token": XAppToken().refreshToken]
+                return ["grant_type": grant.rawValue, "refresh_token": XAppToken().refreshToken!]
             }
 
         case .FrontPage(let after):
