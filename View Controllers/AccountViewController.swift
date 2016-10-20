@@ -57,11 +57,11 @@ class AccountViewController: BaseTableViewController {
                 cell.selectionStyle = .None
 
             case 1:
-                if Account().isGuest {
-                    cell.textLabel?.text = "Log In"
-                } else {
+                if case(.LoggedInUser(let name)) = Account().user {
                     cell.textLabel?.text = "Log Out"
-                    cell.detailTextLabel?.text = "User"
+                    cell.detailsTextLabel?.text = name
+                } else {
+                    cell.textLabel?.text = "Log In"
                 }
             case 2:
                 cell.backgroundColor = UIColor.clearColor()

@@ -14,72 +14,23 @@ import RxCocoa
 import RxDataSources
 #endif
 
-enum TableContent {
-    case History
-    case Subreddit
-    case Link
-    case Empty
-    
-    var background: UIView? {
-        switch self {
-        case .Empty:
-            let background = UIView()
-            
-            let image: UIImageView = {
-                $0.center = CGPoint(x: UIScreen.mainScreen().bounds.width / 2, y: UIScreen.mainScreen().bounds.height / 2 - 150)
-                return $0
-            }(UIImageView(image: UIImage.fontAwesomeIconWithName(.Search, textColor: FlatWhiteDark(), size: CGSizeMake(50, 50))))
-            background.addSubview(image)
-            
-            let label: UILabel = {
-                $0.text = "You can search subreddits name and title"
-                $0.font = UIFont(name: "Lato-Regular", size: 18)!
-                $0.textColor = FlatWhiteDark()
-                $0.numberOfLines = 0
-                $0.textAlignment = .Center
-                
-                return $0
-            }(UILabel())
-            background.addSubview(label)
-            
-            label.snp_makeConstraints { make in
-                make.leading.equalTo(background).offset(30)
-                make.trailing.equalTo(background).offset(-30)
-                make.top.equalTo(image.snp_bottom).offset(5)
-            }
-            
-            return background
-        default:
-            return nil
-        }
-    }
-    
-    var footer: UIView? {
-        switch self {
-        case .Subreddit, .Link :
-            return nil
-        default:
-            return nil
-        }
-    }
-    
-    var rowHeight: CGFloat {
-        switch self {
-        case .History:
-            return 44
-        default:
-            return 100
-        }
-    }
-}
+let TitleCellIdentifier = "TitleCell"
+let SubredditCellIdentifier = "SubredditCell"
+let HistoryCellIdentifier = "HistoryCell"
 
 class SearchViewController: UIViewController {
 
-    private let searchController = UISearchController(searchResultsController: nil)
+    private var searchController: UISearchController!
 
-    var tableContent: TableContent = .History
-    
     private var resultsTableView: UITableView!
+
+    private var scopeSegmentedControl: UISegmentedControl!
+
+    var cellIdentifier: Variable(HistoryCellIdentifier)
+
+    lazy var viewModel: SearchViewModelType = {
+        return SearchViewModel(provider: provider, selectedScope)
+    }()
     
     private var disposeBag = DisposeBag()
 
@@ -87,6 +38,19 @@ class SearchViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        searchController = {
+            $0.hidesNavigationBarDuringPresentation = false
+        }(UISearchController(searchResultsController: nil))
+
+        scopeSegmentedControl = {
+            
+        }(UISegmentedControl(SearchViewModel.ScopeValues.allScopeValueNames()))
+
+        var selectedScope = Variable(0)
+        scopeSegmentedControl.rx_value <-> selectedScope
+        viewModel.selectedScope = selectedScope.asObservable()
+
         resultsTableView = {
             $0.delegate = nil
             $0.dataSource = nil
@@ -102,7 +66,7 @@ class SearchViewController: UIViewController {
     }
     
     func configureTableDataSource() {
-        ["SubredditCell", "TitleCell"].forEach { name in
+        [SubredditCellIdentifier, TitleCellIdentifier, HistoryCellIdentifier].forEach { name in
             resultsTableView.registerNib(UINib(nibName: name, bundle: nil), forCellReuseIdentifier: name)
         }
         resultsTableView.dataSource = nil
@@ -118,7 +82,7 @@ class SearchViewController: UIViewController {
                     .startWith([])
                     .asDriver(onErrorJustReturn: [])
             }
-            .drive(resultsTableView.rx_itemsWithCellIdentifier("SubredditCell", cellType: SubredditCell.self)) { (_, subreddit, cell) in
+            .drive(resultsTableView.rx_itemsWithCellIdentifier(cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
                 cell.loadCell(subreddit)
             }
             .addDisposableTo(self.disposeBag)
