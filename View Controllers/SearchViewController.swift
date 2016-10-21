@@ -21,15 +21,17 @@ let HistoryCellIdentifier = "HistoryCell"
 class SearchViewController: UIViewController {
 
     private var searchController: UISearchController!
-
     private var resultsTableView: UITableView!
-
     private var scopeSegmentedControl: UISegmentedControl!
 
+    var provider: Networking!
+    
     var cellIdentifier: Variable(HistoryCellIdentifier)
 
+    var _selectedScope = Variable(0)
+
     lazy var viewModel: SearchViewModelType = {
-        return SearchViewModel(provider: provider, selectedScope)
+        return SearchViewModel(provider: self.provider, selectedScope.value)
     }()
     
     private var disposeBag = DisposeBag()
@@ -38,18 +40,16 @@ class SearchViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
         
         searchController = {
             $0.hidesNavigationBarDuringPresentation = false
         }(UISearchController(searchResultsController: nil))
 
         scopeSegmentedControl = {
-            
+            // bind scope selection
+            $0.rx_value <-> _selectedScope    
         }(UISegmentedControl(SearchViewModel.ScopeValues.allScopeValueNames()))
-
-        var selectedScope = Variable(0)
-        scopeSegmentedControl.rx_value <-> selectedScope
-        viewModel.selectedScope = selectedScope.asObservable()
 
         resultsTableView = {
             $0.delegate = nil
@@ -59,10 +59,28 @@ class SearchViewController: UIViewController {
         }(UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height)))
         view.addSubview(resultsTableView)
         self.setupUI()
+
+        // Map scope selection to cell reuse identifier
+        viewModel
+            .selectedScope
+            .map { scope -> String in
+                switch scope {
+                case .Title:
+                    return TitleCellIdentifier
+                case .Subreddit:
+                    return SubredditCellIdentifier
+                default:
+                    return HistoryCellIdentifier
+                } 
+            }
+            .bindTo(cellIdentifier)
+            .addDisposableTo(self.disposeBag)
         
+        Observable.combineLatest(searchController.rx_textDidBeginEditing.asObservable(), viewModel.hasHistory)
+            .map 
+
         configureTableDataSource()
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
     
     func configureTableDataSource() {
@@ -78,9 +96,8 @@ class SearchViewController: UIViewController {
             .throttle(0.3)
             .distinctUntilChanged()
             .flatMapLatest { query in
-                SearchAPI.sharedAPI.getSearchRestults(query)
-                    .startWith([])
-                    .asDriver(onErrorJustReturn: [])
+                self.viewModel
+                    .getSearchResults(query)
             }
             .drive(resultsTableView.rx_itemsWithCellIdentifier(cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
                 cell.loadCell(subreddit)
