@@ -25,11 +25,10 @@ enum SelfType {
 var afterName: String?
 
 
-struct Link: ResourceType {
+struct Link: Listing {
     let title: String
     let id: String
     let url: NSURL
-    let listType: ListType = .Link
     let numberOfComments: Int
     let name: String
     let ups: Int
@@ -38,6 +37,8 @@ struct Link: ResourceType {
     let subreddit: String
     let createdAt: NSDate
     let ratio: Float
+    
+    let listType: ListType = .Link
     
     typealias Width = String
     typealias ThumbnailUrl = String

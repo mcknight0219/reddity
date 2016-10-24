@@ -1,5 +1,5 @@
 //
-//  ListType.swift
+//  Listing.swift
 //  Reddity
 //
 //  Created by Qiang Guo on 2016-07-12.
@@ -20,6 +20,6 @@ enum ListType: String, CustomStringConvertible {
     }
 }
 
-protocol ResourceType {
+protocol Listing {
     var listType: ListType { get }
 }

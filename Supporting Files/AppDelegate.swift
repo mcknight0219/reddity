@@ -124,7 +124,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let searchVC: SearchViewController = {
             $0.modalTransitionStyle = .CoverVertical
             $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
-            
+            $0.provider = Networking.newNetworking()
             return $0
         }(SearchViewController())
         

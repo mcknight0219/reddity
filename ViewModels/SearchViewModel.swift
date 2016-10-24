@@ -3,12 +3,14 @@ import RxSwift
 import Moya
 
 protocol SearchViewModelType {
-    var hasHistory: Observable<Bool>
-    func getSearchResults(_ query: String) -> Observable<[(Subreddit?, Link?)]>
+    var hasHistory: Observable<Bool> { get }
+    var selectedScope: Observable<Int>! { get }
+    func getSearchResults(query: String) -> Observable<[(Subreddit?, Link?)]>
 }
 
 class SearchViewModel: NSObject, SearchViewModelType {
-    var selectedScope: Observable<ScopeValues>!
+    var selectedScope: Observable<Int>!
+    
     var provider: Networking!
 
     var hasHistory: Observable<Bool> {
@@ -19,36 +21,30 @@ class SearchViewModel: NSObject, SearchViewModelType {
 
     var searchHistory = Variable([String]())
 
-    init(provider: Networking, selectedScope: Observale<ScopeValues>) {
+    init(provider: Networking, selectedScope: Observable<Int>) {
+        super.init()
+        
         self.provider = provider
         self.selectedScope = selectedScope
     }
     
-    func getSearchResults(_ query: String) -> Observable<[(Subreddit?, Link?)]> {
-        guard !query.isEmpty else { return NoDisposable.instance }    
+    func getSearchResults(query: String) -> Observable<[(Subreddit?, Link?)]> {
+        guard !query.isEmpty else { return Observable.never() }
         
-        selectedScope
-        .map { scope -> (RedditAPI, ScopeValues) in
-            switch scope {
-            case .Title:
-                return (.SearchTitle(query: query), .Title)
-            case .Subreddit:
-                return (.SearchSubreddit(query: query), .Subreddit)
-            }
-        }
-        .map { e -> [(Subreddit?, Link?)] in
-            self.provider.request(e.0)
-                .filterSuccessfulStatusCodes()
-                .mapJSON()
-                .map { json -> (Subreddit?, Link?) in
-                    switch e.1 {
-                    case .Title:
-                        return linkParser(json: JSON(json)).map { (nil, $0) }
-                    case .Subreddit:
-                        return subredditsParser(json: JSON(json)).map { ($0, nil) }
-                    }
+        return selectedScope
+            .map { ScopeValues.init(rawValue: $0) }
+            .map { scope -> (RedditAPI, ScopeValues) in
+                switch scope! {
+                case .Title:
+                    return (RedditAPI.SearchTitle(query: query, limit: nil, after: nil), .Title)
+                case .Subreddit:
+                    return (.SearchSubreddit(query: query, limit: nil, after: nil), .Subreddit)
                 }
-        }
+            }
+            .map { (endpoint, scope) -> [(Subreddit?, Link?)] in
+                return [(nil, nil)]
+            }
+       
     }
 
 

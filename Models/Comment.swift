@@ -10,7 +10,7 @@ import Foundation
 import SwiftyJSON
 
 
-struct Comment: ResourceType, Equatable {
+struct Comment: Listing, Equatable {
        
     let listType: ListType = .Comment
     let id: String

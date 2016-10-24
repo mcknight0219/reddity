@@ -7,13 +7,17 @@
 //
 
 import UIKit
-import ChameleonFramework
+#if !RX_NO_MODULE
+import RxSwift
+#endif
 
 /**
  A customized view controller that listens to theme changed notification
  and change its tab bar appearance
  */
 class BaseViewController: UIViewController {
+    let disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 

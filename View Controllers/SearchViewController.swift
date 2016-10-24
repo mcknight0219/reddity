@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SnapKit
 import ChameleonFramework
 #if !RX_NO_MODULE
 import RxSwift
@@ -26,12 +27,12 @@ class SearchViewController: UIViewController {
 
     var provider: Networking!
     
-    var cellIdentifier: Variable(HistoryCellIdentifier)
+    var cellIdentifier = Variable(HistoryCellIdentifier)
 
     var _selectedScope = Variable(0)
 
     lazy var viewModel: SearchViewModelType = {
-        return SearchViewModel(provider: self.provider, selectedScope.value)
+        return SearchViewModel(provider: self.provider, selectedScope: self._selectedScope.asObservable())
     }()
     
     private var disposeBag = DisposeBag()
@@ -44,13 +45,12 @@ class SearchViewController: UIViewController {
         
         searchController = {
             $0.hidesNavigationBarDuringPresentation = false
+            $0.searchBar.scopeButtonTitles = SearchViewModel.ScopeValues.allScopeValueNames()
+            $0.searchBar.rx_selectedScopeButtonIndex <-> _selectedScope
+            
+            return $0
         }(UISearchController(searchResultsController: nil))
-
-        scopeSegmentedControl = {
-            // bind scope selection
-            $0.rx_value <-> _selectedScope    
-        }(UISegmentedControl(SearchViewModel.ScopeValues.allScopeValueNames()))
-
+        
         resultsTableView = {
             $0.delegate = nil
             $0.dataSource = nil
@@ -63,21 +63,17 @@ class SearchViewController: UIViewController {
         // Map scope selection to cell reuse identifier
         viewModel
             .selectedScope
+            .map { SearchViewModel.ScopeValues(rawValue: $0) }
             .map { scope -> String in
-                switch scope {
+                switch scope! {
                 case .Title:
                     return TitleCellIdentifier
                 case .Subreddit:
                     return SubredditCellIdentifier
-                default:
-                    return HistoryCellIdentifier
                 } 
             }
             .bindTo(cellIdentifier)
             .addDisposableTo(self.disposeBag)
-        
-        Observable.combineLatest(searchController.rx_textDidBeginEditing.asObservable(), viewModel.hasHistory)
-            .map 
 
         configureTableDataSource()
         
@@ -96,11 +92,11 @@ class SearchViewController: UIViewController {
             .throttle(0.3)
             .distinctUntilChanged()
             .flatMapLatest { query in
-                self.viewModel
-                    .getSearchResults(query)
+                self.viewModel.getSearchResults(query)
+                    .asDriver(onErrorJustReturn: [])
             }
             .drive(resultsTableView.rx_itemsWithCellIdentifier(cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
-                cell.loadCell(subreddit)
+                //cell.loadCell(subreddit)
             }
             .addDisposableTo(self.disposeBag)
     }

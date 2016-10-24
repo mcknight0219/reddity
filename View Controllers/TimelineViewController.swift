@@ -9,25 +9,38 @@
 import UIKit
 import ChameleonFramework
 import FontAwesome_swift
+#if !RX_NO_MODULE
+import RxSwift
+import RxCocoa
+#endif
+
+extension UIScrollView {
+    func isNearBottomEdge(edgeOffset: CGFloat = 20.0) -> Bool {
+        return self.contentOffset.y + self.frame.size.height + edgeOffset > self.contentSize.height
+    }
+}
+
 
 class TimelineViewController: BaseViewController {
 
     var topicTableViewController: TopicTableViewController!
-    
     var topicDataSource: TopicDataSource!
-    
     var topicController: TopicController!
     
-    /**
-     The subreddit name.
-
-     @discussion The empty channel means 
-     */
     var subredditName: String = ""
-
-    var subreddit: Subreddit?
-    
     var isFromSearch: Bool = false
+    
+    var provider: Networking!
+    lazy var viewModel: TimelineViewModelType = {
+        let nextPageTrigger =  self.topicTableViewController.tableView.rx_contentOffset
+            .flatMap { _ in
+                self.topicTableViewController.tableView.isNearBottomEdge()
+                    ? Observable.just(())
+                    : Observable.empty()
+        }
+
+        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, fetchNextPage: nextPageTrigger)
+    }()
     
     init(subredditName: String) {
         super.init(nibName: nil, bundle: nil)
@@ -65,10 +78,18 @@ class TimelineViewController: BaseViewController {
         view.addSubview(topicTableViewController.view)
         topicTableViewController.didMoveToParentViewController(self)
         
-        NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.prefetch), name: "NeedTopicPrefetchNotification", object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(topicController, selector: #selector(TopicController.changeSubreddit), name: "NeedLoadSubreddit", object: nil)
+        // Map showSpinner to HUD status
+        viewModel
+            .showSpinner
+            .subscribeNext { show in
+                if show {
+                    HUDManager.sharedInstance.showCentralActivityIndicator()
+                } else {
+                    HUDManager.sharedInstance.hideCentralActivityIndicator()
+                }
+            }
+            .addDisposableTo(disposeBag)
         
-        HUDManager.sharedInstance.showCentralActivityIndicator()
         // Assign to subreddit will trigger loading of data
         topicController.subreddit = subredditName
     }

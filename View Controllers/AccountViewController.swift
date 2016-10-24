@@ -57,9 +57,9 @@ class AccountViewController: BaseTableViewController {
                 cell.selectionStyle = .None
 
             case 1:
-                if case(.LoggedInUser(let name)) = Account().user {
+                if case(.LoggedInUser(let name)) = Account().user! {
                     cell.textLabel?.text = "Log Out"
-                    cell.detailsTextLabel?.text = name
+                    cell.detailTextLabel?.text = name
                 } else {
                     cell.textLabel?.text = "Log In"
                 }

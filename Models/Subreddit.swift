@@ -11,7 +11,7 @@ import SwiftyJSON
 import FMDB
 
 
-struct Subreddit: ResourceType, Equatable {
+struct Subreddit: Listing, Equatable {
     enum SortOrder: String, CustomStringConvertible {
         case Popular = "popular"
         case New = "new"
