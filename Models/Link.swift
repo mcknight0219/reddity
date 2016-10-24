@@ -60,21 +60,6 @@ struct Link: Listing {
         self.name = "\(self.listType.description)\(self.id)"
 
         var URL = url
-        if URL.isShortcutImgurURL() { URL = URL + ".png" }
-        if URL.isGifvURL() {
-            URL = URL.substringToIndex(URL.endIndex.advancedBy(-5)) + ".mp4"
-        }
-        
-        self.url = NSURL(string: URL.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)!
-    }
-
-    func isURLGif() -> Bool {
-        if let components = NSURLComponents(URL: self.url, resolvingAgainstBaseURL: false), 
-            let path = components.path {
-                return NSString(string: path).pathExtension == "gif"
-            }
-
-        return false
     }
     
     func type() -> LinkType {
