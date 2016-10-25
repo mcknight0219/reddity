@@ -7,31 +7,31 @@
 //
 
 import Foundation
+import SwiftyJSON
 #if !RX_NO_MODULE
 import RxSwift
-import RxCocoa
 #endif
 import Moya
 
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
-    var fetchNextPage: Observable<Void>! { get }
+    var trigger: Observable<Void>! { get }
 }
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
-    
+    private let disposeBag = DisposeBag()
     private var links = Variable([Link]())
     
     let subreddit: String
     let provider: Networking
     
     var showSpinner: Observable<Bool>!
-    var fetchNextPage: Observable<Void>!
+    var trigger: Observable<Void>!
     
-    init(subreddit: String, provider: Networking, fetchNextPage: Observable<Void>) {
+    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>) {
         self.subreddit = subreddit
         self.provider = provider
-        self.fetchNextPage = fetchNextPage
+        self.trigger = loadNextPageTrigger
         
         super.init()
         setup()
@@ -40,8 +40,35 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     // MARK: Private Methods
     
     private func setup() {
+        
+        recursiveLinkRequest()
+            .takeUntil(rx_deallocated)
+            .bindTo(links)
+            .addDisposableTo(disposeBag)
+        
         showSpinner = links.asObservable().map { $0.count == 0 }
         
+    }
+    
+    private func recursiveLinkRequest() -> Observable<[Link]> {
+        return linkRequest([], after: "", loadNextPageTrigger: self.trigger)
+            .startWith([])
+    }
+    
+    private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<Void>) -> Observable<[Link]> {
+        return self.provider.request(.Subreddit(name: self.subreddit, after: after))
+            .filterSuccessfulStatusCodes()
+            .flatMap { response -> Observable<[Link]> in
+                
+                let jsonObject = JSON(data: response.data)
+                let afterName = jsonObject["data"]["after"].string ?? ""
+                let newLinks = linkParser(jsonObject)
+                let updatedLinks = loadedSoFar + newLinks
+                
+                return Observable.just(updatedLinks)
+                    .concat(Observable.never().takeUntil(loadNextPageTrigger))
+                    .concat(self.linkRequest(updatedLinks, after: afterName, loadNextPageTrigger: loadNextPageTrigger))
+            }
     }
     
     

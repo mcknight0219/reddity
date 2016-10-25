@@ -1,21 +1,32 @@
 import Foundation
+#if !RX_NO_MODULE
+import RxSwift
+import RxCocoa
+#endif
 
 protocol LinkViewModelType {
-   var title: Driver<String> 
-   var image: Driver<NSURL>!
 
-   var mediaType: Media
 }
 
-class LinkViewModel: NSObject, LinkViewModel {
+class LinkViewModel: NSObject, LinkViewModelType {
     let link: Link!
 
-    let allSupportedImage = ["png", "jpg", "jpeg", "bmp"]
-    let allSupportedVideo = ["mp4", "gifv"]
+    static let allSupportedImage = ["png", "jpg", "jpeg", "bmp"]
+    static let allSupportedVideo = ["mp4", "gifv"]
+    
+    lazy var media: Media = {
+        return Media(self.link.url)!
+    }()
     
     init(link: Link) {
         self.link = link
-   
+        super.init()
+        
+        setup()
+    }
+    
+    private func setup() {
+        
     }
 
     
@@ -28,46 +39,57 @@ class LinkViewModel: NSObject, LinkViewModel {
         init?(_ aString: String?) {
             guard var url = aString where !url.isEmpty else {
                 self = .Unsupported
+                return
             }
             
             let ext = NSString(string: url).pathExtension.lowercaseString
             if !ext.isEmpty {
                 if allSupportedImage.contains(ext) {
-                    return .Image(url)
+                    self = .Image(URL: url)
                 }
 
                 if allSupportedVideo.contains(ext) {
+                    // replacing extension will play gifv file
                     if ext == "gifv" {
-                        url = url.substringToIndex(url.endIndex.advanceBy(-4)) + "mp4"
+                        url = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
                     }
-                    return .Video(url)
+                    self = .Video(URL: url)
                 }
 
                 if ext == "gif" {
-                    return Gif(url)
+                    self = Gif(URL: url)
                 }
 
-                return .Unsupported
-            } eles {
+                self =  .Unsupported
+            } else {
                 // Some url of format `https://www.imgur.com/aXfgd` actually
                 // can be appended '.png' to make legit url
                 if url.test(Config.ImgurResourcePattern) {
                     
                     url = url + ".png"
-                    return .Image(url)
+                    self = .Image(URL: url)
                 }
 
-                return .Unsupported
+                self = .Unsupported
             }
         } 
 
         var URL: NSURL? {
-            switch self {
-            case .Image(let url), .Video(let url), .Gif(let url):
-                return NSURL(string: URL.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
-            default:
-                return nil
+            var url: String?
+            if case .Image(let final) = self {
+                url = final
             }
+            else if case .Video(let final) = self {
+                url = final
+            }
+            else if case .Gif(let final) = self {
+                url = final
+            }
+            
+            if let url = url {
+                return NSURL(string: url.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
+            }
+            return nil
         }
 
     }
