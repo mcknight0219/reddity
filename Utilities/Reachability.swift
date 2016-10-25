@@ -7,9 +7,12 @@
 //
 
 import Foundation
+
+#if !RX_NO_MODULE
 import RxSwift
-import Reachability
+#endif
 import Moya
+import Reachability
 
 class ReachabilityManager: NSObject {
     let _reach = ReplaySubject<Bool>.create(bufferSize: 1)

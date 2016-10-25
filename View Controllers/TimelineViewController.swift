@@ -25,27 +25,32 @@ class TimelineViewController: BaseViewController {
 
     var topicTableViewController: TopicTableViewController!
     var topicDataSource: TopicDataSource!
+
+    lazy var tableView: UITableView = {
+        return topicTableViewController.tableView
+    }()
+
+    lazy var refresh: UIRefreshControl = {
+        return topicTableViewController.refreshControl!
+    }()
     
     var subredditName: String = ""
     var isFromSearch: Bool = false
     
     var provider: Networking!
     lazy var viewModel: TimelineViewModelType = {
-        let nextPageTrigger =  self.topicTableViewController.tableView.rx_contentOffset
+        let nextPageTrigger = tableView.rx_contentOffset
             .flatMap { _ in
-                self.topicTableViewController.tableView.isNearBottomEdge()
+                self.tableView.isNearBottomEdge()
                     ? Observable.just(())
                     : Observable.empty()
         }
         
-        let reloadTrigger = self.topicTableViewController.refreshControl?.rx_controlEvent(.ValueChanged)
-
-        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, loadNextPageTrigger: nextPageTrigger, reloadTrigger: reloadTrigger!.asObservable())
+        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, loadNextPageTrigger: nextPageTrigger))
     }()
     
     init(subredditName: String) {
         super.init(nibName: nil, bundle: nil)
-        
         self.subredditName = subredditName
     }
     
@@ -55,25 +60,24 @@ class TimelineViewController: BaseViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupUI()
+        navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
+        automaticallyAdjustsScrollViewInsets = true
         
         topicTableViewController = {
             $0.view.frame = view.bounds
-            $0.dataSource = topicDataSource
-            $0.tableView.registerNib(UINib(nibName: "NewsCell", bundle: nil),  forCellReuseIdentifier: "NewsCell")
-            $0.tableView.registerNib(UINib(nibName: "ImageCell", bundle: nil), forCellReuseIdentifier: "ImageCell")
-            $0.tableView.registerNib(UINib(nibName: "TextCell", bundle: nil),  forCellReuseIdentifier: "TextCell")
-            $0.refreshControl?.addTarget(topicController, action: #selector(TopicController.reload), forControlEvents: .
-            ValueChanged)
+            $0.dataSource = self
+            $0.delegate = self
+            $0.refreshControl = UIRefreshControl()
             $0.tableView.tableFooterView = UIView()
+            
             return $0
         }(TopicTableViewController())
-
+        ["NewsCell", "ImageCell", "TextCell"].map {
+            tableView.registerNib(UINib(nibName: $0, bundle: nil), forCellReuseIdentifier: $0)
+        }
         addChildViewController(topicTableViewController)
         view.addSubview(topicTableViewController.view)
         topicTableViewController.didMoveToParentViewController(self)
-        
         
         // Map showSpinner to HUD status
         viewModel
@@ -86,75 +90,71 @@ class TimelineViewController: BaseViewController {
                 }
             }
             .addDisposableTo(disposeBag)
-        
+
+        viewModel
+            .isRefreshing
+            .drive(refresh.refreshing)
+            .addDisposableTo(disposeBag)
+
+        refresh
+            .rx_controlEvent(.ValueChanged)
+            .map {[weak self] _ in 
+                self.viewModel.reload()
+            }
+            .addDisposableTo(disposeBag)
+
+        viewModel
+            .updatedContents
+            .mapReplace(tableView)
+            .doOnNext { tableView in
+                tableView.reloadData()
+            }
+            .dispatchAsyncMainScheduler()
+            .subscribeNext { [weak self] tableView in 
+                tableView.scrollToTop()
+            }
+            .addDisposableTo(disposeBag)
     }
-    
-    func setupUI() {
-        navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
-        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
-    
-        if !isFromSearch {
-            navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        }
-        
-        automaticallyAdjustsScrollViewInsets = true
-    }
-    
-    func backToSearch() {
-        self.dismissViewControllerAnimated(true, completion: nil)
-    }
-    
 }
 
-// MARK: TopicController delegate
+// MARK: Table view data source delegate
 
-extension TimelineViewController: TopicControllerDelegate {
-    
-    func topicControllerDidFinishLoading(topicController: TopicController) {
-        if self.topicTableViewController.refreshControl!.refreshing {
-            self.topicTableViewController.refreshControl?.endRefreshing()
-        }
-        
-        if HUDManager.sharedInstance.isShowing {
-            HUDManager.sharedInstance.hideCentralActivityIndicator()
-        }
-        
-        self.topicDataSource.topics = self.topicController.topics
-        dispatch_async(dispatch_get_main_queue()) {
-            self.topicTableViewController.tableView.reloadData()
-        }
+extension TimelineViewController {
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 15
     }
-    
-    func topicControllerDidFailedLoading(topicController: TopicController) {
-        if self.topicTableViewController.refreshControl!.refreshing {
-            self.topicTableViewController.refreshControl?.endRefreshing()
-        }
-        
-        if HUDManager.sharedInstance.isShowing {
-            HUDManager.sharedInstance.hideCentralActivityIndicator()
-        }
-        
-        let badLoadingAlert = UIAlertController(title: "Server Error", message: "Reddit returns malform response", preferredStyle: .Alert)
-        let okAction = UIAlertAction(title: "OK", style: .Cancel, handler: nil)
-        badLoadingAlert.addAction(okAction)
-        badLoadingAlert.view.tintColor = FlatOrange()
-        self.presentViewController(badLoadingAlert, animated: true, completion: nil)
+
+    override func tableView(tableView: UITableView, numberOfRowsInsection section: Int) -> Int {
+        return self.viewModel.numberOfLinks
     }
-    
-    func topicControllerNoNetworkConnection() {
-        if self.topicTableViewController.refreshControl!.refreshing {
-            self.topicTableViewController.refreshControl?.endRefreshing()
+
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
+        let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellIndentifier, forIndexPath: indexPath)
+        
+        if let linkCell = cell as? LinkTableViewCell {
+            linkCell.viewModel = linkViewModel
         }
         
-        if HUDManager.sharedInstance.isShowing {
-            HUDManager.sharedInstance.hideCentralActivityIndicator()
-        }
-        
-        let label = UILabel()
-        label.text = "No Internet conneciton"
-        dispatch_async(dispatch_get_main_queue()) {
-            self.topicTableViewController.tableView.tableHeaderView = label
+        switch linkVoewModel.cellIdentifier {
+        case "ImageCell":
+            return linkCell as! ImageCell
+        case "NewsCell":
+            return linkCell as! NewsCell
+        case "TextCell":
+            return linkCell as! TextCell
         }
     }
 }
 
+// MARK: Table view delegate
+
+extension TimelineViewController {
+    
+    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        return self.viewModel.linkViewModelAtIndexPath(indexPath).height    
+    }
+
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    }
+}

@@ -23,6 +23,7 @@ class NavigationController: UINavigationController {
 
     func applyTheme() {
         self.navigationBar.tintColor = FlatBlue()
+        self.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
         if ThemeManager.defaultManager.currentTheme == "Default" {
             self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor.whiteColor()), forBarMetrics: .Default)
             if let _ = self.navigationBar.titleTextAttributes {

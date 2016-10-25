@@ -16,52 +16,65 @@ import Moya
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
     var loadNextPageTrigger: Observable<Void>! { get }
-    var reloadTrigger: Observable<Void>! { get }
+    var isRefreshing: Variable<Bool> { get } 
+
+    var numberOfLinks: Int
+    var updatedContents: Observable<NSDate> { get }
 }
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
     private let disposeBag = DisposeBag()
-    private var links = Variable([Link]())
+    var links = Variable([Link]())
+
+    var isRefreshing: Variable<Bool> = Driver.never()
+
+    var numberOfLinks: Int {
+        return links.value.count
+    }
+
+    var updatedContents: Observable<NSDate> {
+        return links
+            .asObservable()
+            .map { $0.count > 0 }
+            .ignore(false)
+            .map { _ in NSDate() }
+    }
     
     let subreddit: String
     let provider: Networking
     
+    var distinctLinks: Observable<[Link]>!
     var showSpinner: Observable<Bool>!
-    var showRefreshing: Observable<Bool>!
-    
     var loadNextPageTrigger: Observable<Void>!
-    var reloadTrigger: Observable<Void>!
     
-    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>, reloadTrigger: Observable<Void>) {
+    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>) {
         self.subreddit = subreddit
         self.provider = provider
         self.loadNextPageTrigger = loadNextPageTrigger
-        self.reloadTrigger = reloadTrigger
         
         super.init()
         setup()
+    }
+
+    func reload() {
+        isRefreshing.value = true
+        links.value = []
+        recursiveLinkRequest()
+            .map { updated in
+                self.links.value = updated
+                self.isRefreshing.value = false
+            }
+            .addDisposableTo(disposeBag)
     }
     
     // MARK: Private Methods
     
     private func setup() {
-        
-        let loading = recursiveLinkRequest().takeUntil(reloadTrigger)
-        
-        showSpinner = links.asObservable().map { $0.count == 0 }
-        
-        reloadTrigger
-            .subscribeNext() { _ in
-                self.links = Variable([Link]())
-                loading
-                    .bindTo(self.links)
-                    .addDisposableTo(self.disposeBag)
-            }
-            .addDisposableTo(disposeBag)
-        
-        loading
+        let loading = recursiveLinkRequest()
             .bindTo(links)
             .addDisposableTo(disposeBag)
+
+        showSpinner = links.asObservable().map { $0.count == 0 }
     }
     
     private func recursiveLinkRequest() -> Observable<[Link]> {
@@ -85,5 +98,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
             }
     }
     
-    
+    func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel {
+        return links.value[indexPath.item].viewModel    
+    }
 }

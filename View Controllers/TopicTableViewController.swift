@@ -49,10 +49,6 @@ extension TopicTableViewController {
 // MARK Table view delegate
 
 extension TopicTableViewController {
-    override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
-        
-    }
-    
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         let aLink = self.dataSource.topicAtIndexPath(indexPath)!
         
@@ -87,11 +83,5 @@ extension TopicTableViewController {
         if offsetY > scrollView.contentSize.height - scrollView.frame.size.height - 350 {
             NSNotificationCenter.defaultCenter().postNotificationName("NeedTopicPrefetchNotification", object: nil)
         }
-    }
-    
-    override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        
-        NSNotificationCenter.defaultCenter().postNotificationName("NeedsUpdateRefreshStateNotification", object: nil)
-    
     }
 }

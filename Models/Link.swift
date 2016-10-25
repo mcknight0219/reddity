@@ -32,6 +32,10 @@ struct Link: Listing {
         }
     }
     
+    lazy var viewModel: LinkViewModel = {
+        return LinkViewModel(self)
+    }()
+
     let listType: ListType = .Link
 
     var rawJsonString: String?
@@ -48,7 +52,6 @@ struct Link: Listing {
         self.selfType = selfType
         self.thumbnail = thumbnail
     }
-    
 }
 
 func linkParser(json: JSON) -> [Link] {

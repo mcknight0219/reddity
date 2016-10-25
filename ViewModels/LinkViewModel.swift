@@ -14,8 +14,21 @@ class LinkViewModel: NSObject, LinkViewModelType {
     static let allSupportedImage = ["png", "jpg", "jpeg", "bmp"]
     static let allSupportedVideo = ["mp4", "gifv"]
     
-    lazy var media: Media = {
-        return Media(self.link.url)!
+    lazy var media: Media? = {
+        return Media(self.link.url)
+    }()
+
+    // Very ugly and buggy
+    lazy var cellIdentifier: String = {
+        if case SelfType.SelfText(_) = link.selfType {
+            return "TextCell"
+        }
+        
+        if let _ = self.media {
+            return "ImageCell"
+        }
+
+        return "NewsCell"
     }()
     
     init(link: Link) {
@@ -29,7 +42,6 @@ class LinkViewModel: NSObject, LinkViewModelType {
         
     }
 
-    
     enum Media {
         case Image(URL: String)
         case Gif(URL: String)
@@ -70,7 +82,7 @@ class LinkViewModel: NSObject, LinkViewModelType {
                     self = .Image(URL: url)
                 }
 
-                self = .Unsupported
+                self = nil
             }
         } 
 
