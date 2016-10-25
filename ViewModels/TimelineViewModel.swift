@@ -15,7 +15,8 @@ import Moya
 
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
-    var trigger: Observable<Void>! { get }
+    var loadNextPageTrigger: Observable<Void>! { get }
+    var reloadTrigger: Observable<Void>! { get }
 }
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
@@ -26,12 +27,16 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     let provider: Networking
     
     var showSpinner: Observable<Bool>!
-    var trigger: Observable<Void>!
+    var showRefreshing: Observable<Bool>!
     
-    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>) {
+    var loadNextPageTrigger: Observable<Void>!
+    var reloadTrigger: Observable<Void>!
+    
+    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>, reloadTrigger: Observable<Void>) {
         self.subreddit = subreddit
         self.provider = provider
-        self.trigger = loadNextPageTrigger
+        self.loadNextPageTrigger = loadNextPageTrigger
+        self.reloadTrigger = reloadTrigger
         
         super.init()
         setup()
@@ -41,17 +46,26 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     
     private func setup() {
         
-        recursiveLinkRequest()
-            .takeUntil(rx_deallocated)
-            .bindTo(links)
-            .addDisposableTo(disposeBag)
+        let loading = recursiveLinkRequest().takeUntil(reloadTrigger)
         
         showSpinner = links.asObservable().map { $0.count == 0 }
         
+        reloadTrigger
+            .subscribeNext() { _ in
+                self.links = Variable([Link]())
+                loading
+                    .bindTo(self.links)
+                    .addDisposableTo(self.disposeBag)
+            }
+            .addDisposableTo(disposeBag)
+        
+        loading
+            .bindTo(links)
+            .addDisposableTo(disposeBag)
     }
     
     private func recursiveLinkRequest() -> Observable<[Link]> {
-        return linkRequest([], after: "", loadNextPageTrigger: self.trigger)
+        return linkRequest([], after: "", loadNextPageTrigger: self.loadNextPageTrigger)
             .startWith([])
     }
     

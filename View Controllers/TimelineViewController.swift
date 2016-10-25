@@ -25,7 +25,6 @@ class TimelineViewController: BaseViewController {
 
     var topicTableViewController: TopicTableViewController!
     var topicDataSource: TopicDataSource!
-    var topicController: TopicController!
     
     var subredditName: String = ""
     var isFromSearch: Bool = false
@@ -38,8 +37,10 @@ class TimelineViewController: BaseViewController {
                     ? Observable.just(())
                     : Observable.empty()
         }
+        
+        let reloadTrigger = self.topicTableViewController.refreshControl?.rx_controlEvent(.ValueChanged)
 
-        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, fetchNextPage: nextPageTrigger)
+        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, loadNextPageTrigger: nextPageTrigger, reloadTrigger: reloadTrigger!.asObservable())
     }()
     
     init(subredditName: String) {
@@ -57,11 +58,6 @@ class TimelineViewController: BaseViewController {
         
         setupUI()
         
-        topicDataSource = TopicDataSource()
-        topicDataSource.cellIdentifier = "Cell"
-        
-        topicController = TopicController()
-        topicController.delegate = self
         topicTableViewController = {
             $0.view.frame = view.bounds
             $0.dataSource = topicDataSource
@@ -78,6 +74,7 @@ class TimelineViewController: BaseViewController {
         view.addSubview(topicTableViewController.view)
         topicTableViewController.didMoveToParentViewController(self)
         
+        
         // Map showSpinner to HUD status
         viewModel
             .showSpinner
@@ -90,8 +87,6 @@ class TimelineViewController: BaseViewController {
             }
             .addDisposableTo(disposeBag)
         
-        // Assign to subreddit will trigger loading of data
-        topicController.subreddit = subredditName
     }
     
     func setupUI() {
