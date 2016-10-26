@@ -4,11 +4,8 @@ import RxSwift
 import RxCocoa
 #endif
 
-protocol LinkViewModelType {
 
-}
-
-class LinkViewModel: NSObject, LinkViewModelType {
+class LinkViewModel: NSObject {
     let link: Link!
 
     static let allSupportedImage = ["png", "jpg", "jpeg", "bmp"]
@@ -20,7 +17,7 @@ class LinkViewModel: NSObject, LinkViewModelType {
 
     // Very ugly and buggy
     lazy var cellIdentifier: String = {
-        if case SelfType.SelfText(_) = link.selfType {
+        if case SelfType.SelfText(_) = self.link.selfType {
             return "TextCell"
         }
         
@@ -29,6 +26,10 @@ class LinkViewModel: NSObject, LinkViewModelType {
         }
 
         return "NewsCell"
+    }()
+    
+    lazy var cellHeight: CGFloat = {
+       return 88
     }()
     
     init(link: Link) {
@@ -58,6 +59,7 @@ class LinkViewModel: NSObject, LinkViewModelType {
             if !ext.isEmpty {
                 if allSupportedImage.contains(ext) {
                     self = .Image(URL: url)
+                    return
                 }
 
                 if allSupportedVideo.contains(ext) {
@@ -66,13 +68,16 @@ class LinkViewModel: NSObject, LinkViewModelType {
                         url = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
                     }
                     self = .Video(URL: url)
+                    return
                 }
 
                 if ext == "gif" {
                     self = Gif(URL: url)
+                    return
                 }
 
                 self =  .Unsupported
+                return
             } else {
                 // Some url of format `https://www.imgur.com/aXfgd` actually
                 // can be appended '.png' to make legit url
@@ -80,10 +85,12 @@ class LinkViewModel: NSObject, LinkViewModelType {
                     
                     url = url + ".png"
                     self = .Image(URL: url)
+                    return
                 }
 
-                self = nil
             }
+            
+            return nil
         } 
 
         var URL: NSURL? {

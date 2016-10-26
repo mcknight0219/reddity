@@ -33,7 +33,7 @@ struct Link: Listing {
     }
     
     lazy var viewModel: LinkViewModel = {
-        return LinkViewModel(self)
+        return LinkViewModel(link: self)
     }()
 
     let listType: ListType = .Link

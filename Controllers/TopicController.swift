@@ -69,7 +69,7 @@ class TopicController: NSObject {
         self.busy = true
         
         let linksResource = Resource(url: self.subredditPath, method: .GET, parser: linkParser)
-        apiRequest(Config.ApiBaseURL, resource: linksResource, params: ["raw_json": "1", "after": afterName ?? ""]) { links -> Void in
+        apiRequest(Config.ApiBaseURL, resource: linksResource, params: ["raw_json": "1", "after": ""]) { links -> Void in
             if let links = links {
                 self.topics.appendContentsOf(links)
                 self.delegate?.topicControllerDidFinishLoading?(self)

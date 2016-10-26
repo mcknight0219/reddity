@@ -13,6 +13,7 @@ import FontAwesome_swift
 import RxSwift
 import RxCocoa
 #endif
+import Moya
 
 extension UIScrollView {
     func isNearBottomEdge(edgeOffset: CGFloat = 20.0) -> Bool {
@@ -23,15 +24,15 @@ extension UIScrollView {
 
 class TimelineViewController: BaseViewController {
 
-    var topicTableViewController: TopicTableViewController!
+    var topicTableViewController: BaseTableViewController!
     var topicDataSource: TopicDataSource!
 
     lazy var tableView: UITableView = {
-        return topicTableViewController.tableView
+        return self.topicTableViewController.tableView
     }()
 
     lazy var refresh: UIRefreshControl = {
-        return topicTableViewController.refreshControl!
+        return self.topicTableViewController.refreshControl!
     }()
     
     var subredditName: String = ""
@@ -39,14 +40,14 @@ class TimelineViewController: BaseViewController {
     
     var provider: Networking!
     lazy var viewModel: TimelineViewModelType = {
-        let nextPageTrigger = tableView.rx_contentOffset
+        let nextPageTrigger = self.tableView.rx_contentOffset
             .flatMap { _ in
                 self.tableView.isNearBottomEdge()
                     ? Observable.just(())
                     : Observable.empty()
         }
         
-        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, loadNextPageTrigger: nextPageTrigger))
+        return TimelineViewModel(subreddit: self.subredditName, provider: self.provider, loadNextPageTrigger: nextPageTrigger)
     }()
     
     init(subredditName: String) {
@@ -65,14 +66,14 @@ class TimelineViewController: BaseViewController {
         
         topicTableViewController = {
             $0.view.frame = view.bounds
-            $0.dataSource = self
-            $0.delegate = self
             $0.refreshControl = UIRefreshControl()
             $0.tableView.tableFooterView = UIView()
             
             return $0
         }(TopicTableViewController())
-        ["NewsCell", "ImageCell", "TextCell"].map {
+        tableView.delegate = self
+        tableView.dataSource = self
+        ["NewsCell", "ImageCell", "TextCell"].forEach {
             tableView.registerNib(UINib(nibName: $0, bundle: nil), forCellReuseIdentifier: $0)
         }
         addChildViewController(topicTableViewController)
@@ -93,25 +94,28 @@ class TimelineViewController: BaseViewController {
 
         viewModel
             .isRefreshing
-            .drive(refresh.refreshing)
+            .asDriver()
+            .drive(refresh.rx_refreshing)
             .addDisposableTo(disposeBag)
 
         refresh
             .rx_controlEvent(.ValueChanged)
-            .map {[weak self] _ in 
+            .subscribeNext { _ in
                 self.viewModel.reload()
             }
             .addDisposableTo(disposeBag)
+        
 
         viewModel
             .updatedContents
-            .mapReplace(tableView)
+            .map { _ in
+                return self.tableView
+            }
             .doOnNext { tableView in
                 tableView.reloadData()
             }
-            .dispatchAsyncMainScheduler()
-            .subscribeNext { [weak self] tableView in 
-                tableView.scrollToTop()
+            .subscribeNext { _ in
+                // scroll up table
             }
             .addDisposableTo(disposeBag)
     }
@@ -119,42 +123,30 @@ class TimelineViewController: BaseViewController {
 
 // MARK: Table view data source delegate
 
-extension TimelineViewController {
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 15
-    }
-
-    override func tableView(tableView: UITableView, numberOfRowsInsection section: Int) -> Int {
+extension TimelineViewController: UITableViewDataSource {
+    
+    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.viewModel.numberOfLinks
     }
 
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
-        let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellIndentifier, forIndexPath: indexPath)
+        let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellIdentifier, forIndexPath: indexPath)
         
-        if let linkCell = cell as? LinkTableViewCell {
-            linkCell.viewModel = linkViewModel
-        }
-        
-        switch linkVoewModel.cellIdentifier {
-        case "ImageCell":
-            return linkCell as! ImageCell
-        case "NewsCell":
-            return linkCell as! NewsCell
-        case "TextCell":
-            return linkCell as! TextCell
-        }
+        return cell
+     
     }
 }
 
 // MARK: Table view delegate
 
-extension TimelineViewController {
+extension TimelineViewController: UITableViewDelegate {
     
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return self.viewModel.linkViewModelAtIndexPath(indexPath).height    
+    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        let vm = self.viewModel.linkViewModelAtIndexPath(indexPath)
+        return vm.cellHeight
     }
 
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
     }
 }

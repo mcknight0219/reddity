@@ -10,23 +10,27 @@ import Foundation
 import SwiftyJSON
 #if !RX_NO_MODULE
 import RxSwift
+import RxCocoa
 #endif
 import Moya
 
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
     var loadNextPageTrigger: Observable<Void>! { get }
-    var isRefreshing: Variable<Bool> { get } 
+    var isRefreshing: Variable<Bool> { get }
 
-    var numberOfLinks: Int
+    var numberOfLinks: Int { get }
     var updatedContents: Observable<NSDate> { get }
+    
+    func reload()
+    func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel
 }
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
     private let disposeBag = DisposeBag()
     var links = Variable([Link]())
 
-    var isRefreshing: Variable<Bool> = Driver.never()
+    var isRefreshing = Variable<Bool>(false)
 
     var numberOfLinks: Int {
         return links.value.count
@@ -60,17 +64,18 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         isRefreshing.value = true
         links.value = []
         recursiveLinkRequest()
-            .map { updated in
-                self.links.value = updated
+            .doOnNext { _ in
                 self.isRefreshing.value = false
             }
+            .bindTo(links)
             .addDisposableTo(disposeBag)
     }
     
     // MARK: Private Methods
     
     private func setup() {
-        let loading = recursiveLinkRequest()
+        // start loading upon creation
+        recursiveLinkRequest()
             .bindTo(links)
             .addDisposableTo(disposeBag)
 
