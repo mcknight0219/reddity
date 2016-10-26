@@ -9,16 +9,12 @@
 import UIKit
 import ChameleonFramework
 
-class NewsCell: BaseTableViewCell {
+class NewsCell: ListingTableViewCell {
 
     lazy var titleLabel: UILabel! = {
        return self.viewWithTag(1) as! UILabel
     }()
     
-    lazy var descriptionLabel: UILabel! = {
-        return self.viewWithTag(2) as! UILabel
-    }()
-
     lazy var infoLabel: UILabel! = {
         return self.viewWithTag(3) as! UILabel
     }()
@@ -48,13 +44,12 @@ class NewsCell: BaseTableViewCell {
         
         self.picture.image = .None
         self.titleLabel.text = .None
-        self.descriptionLabel.text = .None
     }
     
     func loadTopic(aTopic: Link) {
         self.titleLabel.text = aTopic.title
         self.titleLabel.numberOfLines = 4
-        self.infoLabel.text = "\(aTopic.subreddit)"
+        self.infoLabel.text = "\(opic.subreddit)"
         self.dateLabel.text = "\(NSDate.describePastTimeInDays(aTopic.createdAt))・\(String(aTopic.numberOfComments))"
         self.picture.contentMode = .ScaleAspectFill
         self.picture.clipsToBounds = true
@@ -103,13 +98,11 @@ class NewsCell: BaseTableViewCell {
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.titleLabel?.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
-            self.descriptionLabel?.textColor = UIColor(colorLiteralRed: 113/255, green: 115/255, blue: 130/255, alpha: 1.0)
             self.infoLabel?.textColor = UIColor.lightGrayColor()
             self.dateLabel?.textColor = UIColor.lightGrayColor()
         } else {
             self.backgroundColor = UIColor.whiteColor()
             self.titleLabel?.textColor = UIColor.blackColor()
-            self.descriptionLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
             self.infoLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
             self.dateLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
         }

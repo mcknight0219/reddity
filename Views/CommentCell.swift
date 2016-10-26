@@ -10,7 +10,7 @@ import UIKit
 import ChameleonFramework
 import FontAwesome_swift
 
-class CommentCell: BaseTableViewCell {
+class CommentCell: UITableViewCell {
 
     @IBOutlet weak var leadingMarginConstraint: NSLayoutConstraint!
 
@@ -85,7 +85,6 @@ class CommentCell: BaseTableViewCell {
     }
     
     override func applyTheme() {
-        super.applyTheme()
         
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.commentLabel?.textColor = UIColor(colorLiteralRed: 113/255, green: 115/255, blue: 130/255, alpha: 1.0)
