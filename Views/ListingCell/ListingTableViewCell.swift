@@ -11,39 +11,6 @@ import UIKit
 import RxSwift
 #endif
 
-enum ListingCellAppearance {
-    case Dark
-    case Light
-
-    init?(themeManager: ThemeManager = ThemeManager.defaultManager()) {
-        self = themManager.currentTheme == "Default"
-            ? Light
-            : Dark
-    }
-
-    var backgroundColor: UIColor {
-        switch self {
-        case Light: 
-            return UIColor.whiteColor()
-        case Dark:
-            return UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
-        }
-    }
-
-    var mainTextColor: UIColor {
-        switch self {
-        case Light:
-            return UIColor.blackColor()
-        case Dark:
-            return UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
-        }
-    }
-
-    var accessoryTextColor: UIColor {
-        return UIColor.lightGrayColor()
-    }
-}
-
 class ListingTableViewCell: UITableViewCell {
 
     // The title of link
@@ -60,10 +27,12 @@ class ListingTableViewCell: UITableViewCell {
     lazy var preview: UIImageView? = {
          return self.viewWithTag(3) as? UIImageView 
     }()
+
+    private var disposeBag = DisposeBag()
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        setup()
+        configure()
     }
 
     var viewModel = PublishSubject<LinkViewModel>()
@@ -71,16 +40,16 @@ class ListingTableViewCell: UITableViewCell {
         self.viewModel.onNext(viewModel)
     }
     
-    private func setup() {
+    func configure() {
         self.applyTheme()
         self.selectionStyle = .None
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     private func applyTheme() {
-        let appearance = ListingCellAppearance()
-        self.backgroundColor      = appearance.backgroundColor
-        self.title?.textColor     = appearance.mainTextColor
-        self.accessory?.textColor = appearance.accessoryTextColor
+        let theme = CellTheme()
+        self.backgroundColor      = theme.backgroundColor
+        self.title?.textColor     = theme.mainTextColor
+        self.accessory?.textColor = theme.accessoryTextColor
     }
 }

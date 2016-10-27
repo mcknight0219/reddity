@@ -10,40 +10,8 @@ import UIKit
 import ChameleonFramework
 
 class NewsCell: ListingTableViewCell {
-
-    lazy var titleLabel: UILabel! = {
-       return self.viewWithTag(1) as! UILabel
-    }()
-    
-    lazy var infoLabel: UILabel! = {
-        return self.viewWithTag(3) as! UILabel
-    }()
-
-    lazy var picture: UIImageView! = {
-        return self.viewWithTag(4) as! UIImageView
-    }()
-    
-    lazy var dateLabel: UILabel! = {
-       return self.viewWithTag(5) as! UILabel
-    }()
-    
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(NewsCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
-    }
-
-    override func setSelected(selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
-    }
-
     override func prepareForReuse() {
         super.prepareForReuse()
-        
-        self.picture.image = .None
-        self.titleLabel.text = .None
     }
     
     func loadTopic(aTopic: Link) {

@@ -12,6 +12,13 @@ import SwiftyJSON
 enum SelfType {
     case NotSelf
     case SelfText(text: String)
+
+    var associatedValue() -> String? {
+        if case SelfText(let x) = self {
+            return x
+        }
+        return nil
+    }
 }
 
 struct Link: Listing {

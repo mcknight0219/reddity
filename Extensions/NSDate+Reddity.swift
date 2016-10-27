@@ -9,8 +9,8 @@
 import Foundation
 
 extension NSDate {
-    class func describePastTimeInDays(past: NSDate) -> String {
-        let days = Int(abs(past.timeIntervalSinceNow) / (24 * 3600))
+    func daysAgo() -> String {
+        let days = Int(abs(self.timeIntervalSinceNow) / (24 * 3600))
         
         if days == 0 {
             return "Today"
@@ -20,7 +20,7 @@ extension NSDate {
         } else if 31...365 ~= days {
             let formatter = NSDateFormatter()
             formatter.dateFormat = "MM-dd"
-            return formatter.stringFromDate(past)
+            return formatter.stringFromDate(self)
         } else {
             return "One year ago"
         }

@@ -13,7 +13,6 @@ import FontAwesome_swift
 class CommentCell: UITableViewCell {
 
     @IBOutlet weak var leadingMarginConstraint: NSLayoutConstraint!
-
     @IBOutlet weak var bottomSectHeightConstraint: NSLayoutConstraint!
     
     lazy var commentLabel: CommentLabel! = {
@@ -57,15 +56,8 @@ class CommentCell: UITableViewCell {
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        // Initialization code
         self.applyTheme()
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CommentCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
-    }
-
-    override func setSelected(selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
     }
 
     /**
@@ -76,6 +68,7 @@ class CommentCell: UITableViewCell {
         self.leadingMarginConstraint.constant = CGFloat(self.comment.level) * self.marginUnit
         self.separatorInset = UIEdgeInsetsMake(0, self.leadingMarginConstraint.constant - 10, 0, 0)
 
+        commentLabel.font = UIFont(name: "Lato-Regular", size: 18)
         commentLabel.text = aComment.text
         infoLabel.attributedText = NSMutableAttributedString(string: "・Reply・\(NSDate.describePastTimeInDays(aComment.createdAt))", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
         userLabel.text = aComment.user
@@ -85,14 +78,9 @@ class CommentCell: UITableViewCell {
     }
     
     override func applyTheme() {
-        
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.commentLabel?.textColor = UIColor(colorLiteralRed: 113/255, green: 115/255, blue: 130/255, alpha: 1.0)
-        } else {
-            self.commentLabel?.textColor = UIColor.blackColor()
-        }
-
-        self.commentLabel?.font = UIFont(name: "Lato-Regular", size: 18)
+        let theme = CellTheme()
+        self.backgroundColor         = theme.backgroundColor
+        self.commentLabel?.textColor = theme.mainTextColor
     }
 
     func voteIconClicked() {
