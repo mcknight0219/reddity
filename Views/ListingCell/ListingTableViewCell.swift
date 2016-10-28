@@ -19,21 +19,24 @@ class ListingTableViewCell: UITableViewCell {
     }()
 
     // The date, subreddit and subreddit of link
-    lazy var accesory: UILabel? = {
+    lazy var accessory: UILabel? = {
         return self.viewWithTag(2) as? UILabel 
     }()
 
     // Only specific to NewsCell and ImageCell
-    lazy var preview: UIImageView? = {
+    lazy var picture: UIImageView? = {
          return self.viewWithTag(3) as? UIImageView 
     }()
 
-    private var disposeBag = DisposeBag()
+    var disposeBag = DisposeBag()
     
     override func awakeFromNib() {
         super.awakeFromNib()
         configure()
     }
+    
+    // This is the thumbnail image fetched from
+    var thumbnailURL = Variable<String?>()
 
     var viewModel = PublishSubject<LinkViewModel>()
     func setViewModel(viewModel: LinkViewModel) {
@@ -43,11 +46,26 @@ class ListingTableViewCell: UITableViewCell {
     func configure() {
         self.applyTheme()
         self.selectionStyle = .None
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ListingTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+    
+        // Common to all listing table view cell
+        viewModel
+            .map { viewModel -> String in
+                return viewModel.title
+            }
+            .bindTo(self.title!.rx_text)
+            .addDisposableTo(disposeBag)
+        
+        viewModel
+            .map { viewModel -> String in
+                return viewModel.accessory
+            }
+            .bindTo(self.accessory!.rx_text)
+            .addDisposableTo(disposeBag)
     }
 
-    private func applyTheme() {
-        let theme = CellTheme()
+    @objc private func applyTheme() {
+        let theme = CellTheme()!
         self.backgroundColor      = theme.backgroundColor
         self.title?.textColor     = theme.mainTextColor
         self.accessory?.textColor = theme.accessoryTextColor

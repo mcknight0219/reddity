@@ -70,20 +70,17 @@ class CommentCell: UITableViewCell {
 
         commentLabel.font = UIFont(name: "Lato-Regular", size: 18)
         commentLabel.text = aComment.text
-        infoLabel.attributedText = NSMutableAttributedString(string: "・Reply・\(NSDate.describePastTimeInDays(aComment.createdAt))", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
+        infoLabel.attributedText = NSMutableAttributedString(string: "・Reply・\(aComment.createdAt.daysAgo)", attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 15)!])
         userLabel.text = aComment.user
         score.text = "\(aComment.score)"
         up.image = UIImage.fontAwesomeIconWithName(.ArrowUp, textColor: FlatGreenDark(), size: CGSizeMake(15, 15))
         down.image = UIImage.fontAwesomeIconWithName(.ArrowDown, textColor: FlatRedDark(), size: CGSizeMake(15, 15))
     }
     
-    override func applyTheme() {
-        let theme = CellTheme()
+    func applyTheme() {
+        let theme = CellTheme()!
         self.backgroundColor         = theme.backgroundColor
         self.commentLabel?.textColor = theme.mainTextColor
     }
 
-    func voteIconClicked() {
-        print("Vote clicked ")
-    }
 }

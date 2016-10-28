@@ -13,30 +13,31 @@ class LinkViewModel: NSObject {
     // MARK: Public properties
 
     lazy var cellIdentifier: String = {
-        if _ = self.link.selfType.associatedValue {
+        if let _ = self.link.selfType.associatedValue {
             return "TextCell"
         }
-        
         if let _ = self.media {
             return "ImageCell"
         }
 
         return "NewsCell"
     }()
+    
     lazy var cellHeight: CGFloat = {
-       return 88
+        return self.cellIdentifier == "ImageCell" ? 270.0 : 180.0
     }()
+    
     lazy var title: String = {
         return self.link.title
-    }
+    }()
     lazy var accessory: String = {
         let link = self.link
-        let score = link.up - link.down
+        let score = link.ups - link.downs
         return "\(link.subreddit)・\(link.createdAt.daysAgo)・\(score)"
-    }
+    }()
     lazy var previewURL: NSURL? = {
         return self.media?.URL   
-    } 
+    } ()
     
     private let media: Media! 
     private let link: Link!
@@ -52,7 +53,7 @@ class LinkViewModel: NSObject {
         case Video(URL: String)
 
         var associatedValue: String {
-            swithc self {
+            switch self {
             case Image(let x):
                 return x
             case Video(let x):
@@ -61,10 +62,7 @@ class LinkViewModel: NSObject {
         }
 
         var URL: NSURL? {
-            if let url = self.associatedValue {
-                return NSURL(string: url.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
-            }
-            return nil
+            return NSURL(string: self.associatedValue.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
         }
 
 
@@ -75,15 +73,15 @@ class LinkViewModel: NSObject {
                 if allSupportedImage.contains(ext) {
                     self = .Image(URL: url)
                 } else if allSupportedVideo.contains(ext) {
+                    var tmp: String = url
                     if ext == "gifv" {
-                        url = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
+                        tmp = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
                     }
-                    self = .Video(URL: url)
+                    self = .Video(URL: tmp)
                 } 
             } else {
                 if url.test(Config.ImgurResourcePattern) {
-                    url = url + ".png"
-                    self = .Image(URL: url)
+                    self = .Image(URL: url + ".png")
                 } else {
                     return nil
                 }
@@ -91,9 +89,5 @@ class LinkViewModel: NSObject {
             }
         } 
     }
-}
-
-extension LinkViewModel {
-
 }
 

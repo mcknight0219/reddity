@@ -12,78 +12,21 @@ import ChameleonFramework
 
 class ImageCell: ListingTableViewCell {
     
-    lazy var picture: UIImageView! = {
-        return self.viewWithTag(1) as! UIImageView
-    }()
-    
-    lazy var titleLabel: UILabel! = {
-        return self.viewWithTag(2) as! UILabel
-    }()
-    
-    lazy var infoLabel: UILabel! = {
-        return self.viewWithTag(3) as! UILabel
-    }()
-    
-    lazy var dateLabel: UILabel! = {
-        return self.viewWithTag(4) as! UILabel
-    }()
-    
-    override func awakeFromNib() {
-        super.awakeFromNib()
-        self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ImageCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
-    }
-
-    override func setSelected(selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-    }
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        self.picture.image = .None
-        self.titleLabel.text = .None
-    }
-    
-    func loadTopic(aTopic: Link) {
-        self.titleLabel.text = aTopic.title
-        self.infoLabel.text = "\(aTopic.subreddit)"
-        self.dateLabel.text = "\(NSDate.describePastTimeInDays(aTopic.createdAt))・\(String(aTopic.numberOfComments))"
+    override func configure() {
+        super.configure()
         
-        let placeholder = UIImage.imageFilledWithColor(FlatWhite())
-        var url: NSURL = aTopic.url
-        
-        let _thumbnail = aTopic.mostSuitableThumbnailUrl(Int(UIScreen.mainScreen().bounds.width))
-        if aTopic.isURLGif() {
-            /*
-            self.progressView = ProgressPieView(frame: CGRectMake(0, 0, 35, 35))
-            self.picture.addSubview(self.progressView)
-            self.progressView.center = self.picture.center
-
-            _progress = { [weak self] (received, expected) in
-                self?.progressView?.progress = Float(received) / Float(expected)
+        viewModel
+            .map { viewModel in
+                return (viewModel.pictureURL, UIImage.imageFilledWithColor(FlatWhite()))
             }
-
-            _completion = { [weak self] (_, error, _, _)  in
-                self?.progressView?.removeFromSuperview()
+            .doOn { _ in
+                self.picture?.contentMode = .ScaleAspectFill
+                self.picture?.clipsToBounds = true
             }
-            */
-        } else {
-            if let thumbnail = _thumbnail { url = thumbnail }
-        }
-
-        self.picture.sd_setImageWithURL(url, placeholderImage: placeholder, options: [], progress: nil, completed: nil)
+            .subscribeNext { (URL, placeholder) in
+                self.picture?.sd_setImageWithURL(URL, placeholderImage: placeholder, options: [], progress: nil, completed: nil)
+            }
+            .addDisposableTo(disposeBag)
     }
     
-    override func applyTheme() {
-        super.applyTheme()
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.titleLabel?.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
-            self.infoLabel?.textColor = UIColor.lightGrayColor()
-            self.dateLabel?.textColor = UIColor.lightGrayColor()
-        } else {
-            self.titleLabel?.textColor = UIColor.blackColor()
-            self.infoLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
-            self.dateLabel?.textColor = UIColor(colorLiteralRed: 0.6, green: 0.6, blue: 0.6, alpha: 1.0)
-        }
-    }
 }

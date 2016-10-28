@@ -13,7 +13,7 @@ enum SelfType {
     case NotSelf
     case SelfText(text: String)
 
-    var associatedValue() -> String? {
+    var associatedValue: String? {
         if case SelfText(let x) = self {
             return x
         }
