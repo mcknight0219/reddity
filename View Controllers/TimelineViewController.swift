@@ -131,7 +131,7 @@ extension TimelineViewController: UITableViewDataSource {
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
-        if let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellIdentifier, forIndexPath: indexPath) as? ListingTableViewCell {
+        if let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as? ListingTableViewCell {
             cell.setViewModel(linkViewModel)
         }
         

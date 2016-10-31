@@ -32,6 +32,7 @@ class BaseTableViewController: UITableViewController {
     }
 
     func applyTheme() {
+        
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.tableView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
             self.tableView.separatorColor = UIColor.darkGrayColor()

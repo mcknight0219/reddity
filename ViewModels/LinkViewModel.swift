@@ -5,6 +5,23 @@ import RxCocoa
 #endif
 
 
+enum CellType {
+    case Text
+    case News
+    case Image
+
+    var identifier: String {
+        switch self {
+        case Text:
+            return "TextCell"
+        case News:
+            return "NewsCell"
+        case Image:
+            return "ImageCell"
+        }
+    }
+}
+
 class LinkViewModel: NSObject {
 
     static let allSupportedImage = ["png", "jpg", "jpeg", "bmp", "gif"]
@@ -12,24 +29,28 @@ class LinkViewModel: NSObject {
     
     // MARK: Public properties
 
-    lazy var cellIdentifier: String = {
+    lazy var cellType: CellType = {
         if let _ = self.link.selfType.associatedValue {
-            return "TextCell"
+            return .Text
         }
         if let _ = self.resource.value {
-            return "ImageCell"
+            return .Image
         }
-
-        return "NewsCell"
+        return .News
     }()
     
     lazy var cellHeight: CGFloat = {
-        return self.cellIdentifier == "ImageCell" ? 270.0 : 180.0
+        if case .Image = self.cellType { 
+            return 270.0
+        } else {
+            return 180.0
+        }
     }()
     
     lazy var title: String = {
         return self.link.title
     }()
+
     lazy var accessory: String = {
         let link = self.link
         let score = link.ups - link.downs
@@ -40,19 +61,24 @@ class LinkViewModel: NSObject {
         return self.link.url
     } ()
     
-    var resource: Variable<Media?>
-    var thumbnail: Variable<Media?>
+    var resourceURL:  NSURL? 
+    var thumbnailURL: NSURL?
+    // For external links we try to fetch the content and parse out
+    // thumbnail url.
+    var websiteThumbnailURL: Observable<NSURL?> = Observable.empty()
     
     private let link: Link!
     init(link: Link) {
-        self.link = link
-        resource = Variable<Media?>(Media.init(URL))
-        thumbnail = Variable<Media?>(Media.init(link.thumbnail ?? ""))
-        
         super.init()
+        self.link = link
+        self.resourceURL  = Media.init(URL)?.URL
+        self.thumbnailURL = Media.init(link.thumbnail ?? "")?.URL
+
+        if case .News = self.cellType {
+            websiteThumbnailURL = LightBoxNetworkModel(URL).thumbnailURL.asObservable()
+        } 
     }
 
-    
     enum Media {
         case Image(URL: String)
         case Video(URL: String)
@@ -69,7 +95,6 @@ class LinkViewModel: NSObject {
         var URL: NSURL? {
             return NSURL(string: self.associatedValue.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
         }
-
 
         init?(_ url: String) {
             let ext = NSString(string: url).pathExtension.lowercaseString

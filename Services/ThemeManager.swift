@@ -37,6 +37,42 @@ enum CellTheme {
     var accessoryTextColor: UIColor {
         return UIColor.lightGrayColor()
     }
+
+    var placeholderImageColor: UIColor {
+        return UIColor.darkGrayColor()
+    }
+}
+
+enum TableViewTheme {
+    case Dark
+    case Light
+
+    var backgroundColor: UIColor {
+        switch self {
+        case Dark:
+            return UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
+        case Light:
+            return UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
+        }
+    }
+
+    var separatorColor: UIColor {
+        switch self {
+        case Dark:
+            return UIColor.darkGrayColor()
+        case Light:
+            return UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
+        }
+    }
+
+    var indicatorStyle: UIScrollViewIndicatorStyle {
+        switch self {
+        case Dark:
+            return .White
+        case Light:
+            return .Default
+        } 
+    }
 }
 
 let kThemeManagerDidChangeThemeNotification = "ThemeManagerDidChangeThemeNotification"

@@ -11,6 +11,5 @@ import UIKit
 class DownloadViewController: BaseTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.title = 
     }
 }

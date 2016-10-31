@@ -7,36 +7,39 @@
 //
 
 import UIKit
+import ChameleonFramework
 #if !RX_NO_MODULE
 import RxSwift
 #endif
 
 
 class ImageCell: ListingTableViewCell {
+
+    lazy var placeholderImage: UIImage = {
+        return UIImage.imageFilledWithColor(FlatWhite())
+    }()
     
     override func configure() {
         super.configure()
-        
+    
         viewModel
-            .asObservable()
-            .map { viewModel in
-                viewModel.thumbnail.value ?? viewModel.resource.value
-            }
-            .subscribeNext { media in
-            }
-        
-        
-        
-        viewModel
-            .map { viewModel in
-                return view
-            }
-            .doOn { _ in
+            .map { viewModel -> NSURL? in
+                return viewModel.thumbnailURL ?? viewModel.resourceURL 
+            } 
+            .doOn {[weak self] _ in
                 self.picture?.contentMode = .ScaleAspectFill
                 self.picture?.clipsToBounds = true
+                self.picture?.image = placeholderImage 
             }
-            .subscribeNext { (URL, placeholder) in
-                self.picture?.sd_setImageWithURL(URL, placeholderImage: placeholder, options: [], progress: nil, completed: nil)
+            .flatMap { (element) -> NSURL in
+                if let value = element {
+                    return Observable.just(element)
+                } else {
+                    return Observable.just()
+                }
+            }
+            .subscribeNext {[weak self] url in
+                self.picture?.sd_setImageWithURL(url)    
             }
             .addDisposableTo(disposeBag)
     }

@@ -10,8 +10,7 @@ import UIKit
 import ChameleonFramework
 import SDWebImage
 
-class TitleCell: BaseTableViewCell {
-
+class TitleCell: UITableViewCell {
     lazy var thumbnail: UIImageView! = {
        return self.viewWithTag(1) as! UIImageView
     }()
@@ -29,37 +28,14 @@ class TitleCell: BaseTableViewCell {
         // Initialization code
     }
 
-    override func setSelected(selected: Bool, animated: Bool) {
-        super.setSelected(selected, animated: animated)
-    }
-
     override func applyTheme() {
-        super.applyTheme()
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.title?.textColor = FlatWhiteDark()
-            self.info?.textColor  = UIColor.lightGrayColor()
-
-            let bg = UIView()
-            bg.backgroundColor = UIColor(white: 1.0, alpha: 0.15)
-            self.selectedBackgroundView = bg
-        } else {
-            self.title?.textColor = UIColor.blackColor()
-            self.info?.textColor  = UIColor.darkGrayColor()
-
-            let bg = UIView()
-            bg.backgroundColor = UIColor(colorLiteralRed: 252/255, green: 126/255, blue: 15/255, alpha: 0.05)
-            self.selectedBackgroundView = bg
-        }
+        theme = CellTheme()
+        self.title?.textColor = theme.mainTextColor
+        self.info?.textColor = theme.accessoryTextColor
+        self.backgroundColor = theme.backgroundColor
     }
 
     func loadTitle(aLink: Link) {
-        self.title.text = aLink.title
-        self.info.text  = "\(aLink.subreddit)・\(NSDate.describePastTimeInDays(aLink.createdAt))"
-
-        let placeholder = UIImage.imageFilledWithColor(FlatWhite())
-        self.thumbnail.contentMode = .ScaleAspectFill
-        self.thumbnail.clipsToBounds = true
-        self.thumbnail.sd_setImageWithURL(aLink.url, placeholderImage: placeholder)
     }
 
 }

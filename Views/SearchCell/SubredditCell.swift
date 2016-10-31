@@ -9,7 +9,7 @@
 import UIKit
 import ChameleonFramework
 
-class SubredditCell: BaseTableViewCell {
+class SubredditCell: UITableViewCell {
     
     lazy var titleLabel: UILabel! = {
         return self.viewWithTag(2) as! UILabel
@@ -42,9 +42,7 @@ class SubredditCell: BaseTableViewCell {
         self.descLabel.text = "\(subreddit.subscribers)"
     }
     
-    override func applyTheme() {
-        super.applyTheme()
-        
+    func applyTheme() {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.titleLabel?.textColor  = FlatWhiteDark()
             self.descLabel?.textColor   = UIColor.lightGrayColor()
