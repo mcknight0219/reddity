@@ -7,8 +7,10 @@
 //
 
 import UIKit
-import SDWebImage
-import ChameleonFramework
+#if !RX_NO_MODULE
+import RxSwift
+#endif
+
 
 class ImageCell: ListingTableViewCell {
     
@@ -16,8 +18,18 @@ class ImageCell: ListingTableViewCell {
         super.configure()
         
         viewModel
+            .asObservable()
             .map { viewModel in
-                return (viewModel.pictureURL, UIImage.imageFilledWithColor(FlatWhite()))
+                viewModel.thumbnail.value ?? viewModel.resource.value
+            }
+            .subscribeNext { media in
+            }
+        
+        
+        
+        viewModel
+            .map { viewModel in
+                return view
             }
             .doOn { _ in
                 self.picture?.contentMode = .ScaleAspectFill

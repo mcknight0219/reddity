@@ -16,7 +16,7 @@ class LinkViewModel: NSObject {
         if let _ = self.link.selfType.associatedValue {
             return "TextCell"
         }
-        if let _ = self.media {
+        if let _ = self.resource.value {
             return "ImageCell"
         }
 
@@ -35,15 +35,20 @@ class LinkViewModel: NSObject {
         let score = link.ups - link.downs
         return "\(link.subreddit)・\(link.createdAt.daysAgo)・\(score)"
     }()
-    lazy var previewURL: NSURL? = {
-        return self.media?.URL   
+    
+    lazy var URL: String = {
+        return self.link.url
     } ()
     
-    private let media: Media! 
+    var resource: Variable<Media?>
+    var thumbnail: Variable<Media?>
+    
     private let link: Link!
     init(link: Link) {
         self.link = link
-        self.media = Media(link.url)
+        resource = Variable<Media?>(Media.init(URL))
+        thumbnail = Variable<Media?>(Media.init(link.thumbnail ?? ""))
+        
         super.init()
     }
 

@@ -34,9 +34,6 @@ class ListingTableViewCell: UITableViewCell {
         super.awakeFromNib()
         configure()
     }
-    
-    // This is the thumbnail image fetched from
-    var thumbnailURL = Variable<String?>()
 
     var viewModel = PublishSubject<LinkViewModel>()
     func setViewModel(viewModel: LinkViewModel) {
