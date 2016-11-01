@@ -35,6 +35,7 @@ class ListingTableViewCell: UITableViewCell {
         configure()
     }
 
+    let placeholder = UIImage.imageFilledWithColor(UIColor.lightGrayColor())
     var viewModel = PublishSubject<LinkViewModel>()
     func setViewModel(viewModel: LinkViewModel) {
         self.viewModel.onNext(viewModel)

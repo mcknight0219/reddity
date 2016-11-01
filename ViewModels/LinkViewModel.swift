@@ -75,7 +75,7 @@ class LinkViewModel: NSObject {
         self.thumbnailURL = Media.init(link.thumbnail ?? "")?.URL
 
         if case .News = self.cellType {
-            websiteThumbnailURL = LightBoxNetworkModel(url: URL).thumbnailURL.asObservable()
+            websiteThumbnailURL = LightBoxNetworkModel(url: URL).thumbnailURL        
         } 
     }
 

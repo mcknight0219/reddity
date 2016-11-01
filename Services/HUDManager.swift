@@ -9,14 +9,13 @@
 import UIKit
 
 final class HUDManager {
-    
     static let sharedInstance = HUDManager()
     
     var isShowing = false
-    
     let progressView: UIView
-
     let bottomView: UIView
+
+    let timer: NSTimer!
     
     init() {
         progressView = UINib(nibName: "CentralProgressView", bundle: nil).instantiateWithOwner(nil, options: nil).first as! UIView
@@ -87,6 +86,8 @@ final class HUDManager {
         UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animations: {
             self.bottomView.transform = CGAffineTransformIdentity
         }, completion: nil)
+
+        self.timer = NSTimer.scheduledTimerWithInterval(2.0, target: self, selector: #selector(HUDManager.hideToast), userInfo: nil , repeats: false)
     }
 
     func hideToast() {
@@ -96,5 +97,7 @@ final class HUDManager {
             self.bottomView.removeFromSuperview()
             self.bottomView.transform = CGAffineTransformIdentity
         }
+
+        self.timer.invalidat()
     }
 }

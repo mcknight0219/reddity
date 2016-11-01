@@ -21,10 +21,13 @@ class BaseViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        //NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        reachabilityManager.reach
+            .take(1)
+            .subscribeNext { connected in
+                let hud = HudManager.sharedInstance
+                if !connected {
+                    hud.showToast(withTitle: "No Internet Connection.")
+                }             
+            }
     } 
-
-    func applyTheme() {
-        
-    }
 }

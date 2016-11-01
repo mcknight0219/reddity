@@ -20,8 +20,7 @@ class AccountViewController: BaseTableViewController {
         tableView.layoutMargins =  UIEdgeInsetsZero
         tableView.separatorInset = UIEdgeInsetsZero
 
-        let footer = UIView()
-        tableView.tableFooterView = footer
+        self.hideFooter()
     }
 
     // MARK: - Table view data source

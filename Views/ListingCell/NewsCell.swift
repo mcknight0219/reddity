@@ -19,7 +19,7 @@ class NewsCell: ListingTableViewCell {
         super.configure()
         
         viewModel
-            .map { viewModel in
+            .flatMap { viewModel in
                 return Observable.combineLatest(Observable.just(viewModel.thumbnailURL), viewModel.websiteThumbnailURL) {
                     return ($0, $1)
                 }
@@ -30,10 +30,7 @@ class NewsCell: ListingTableViewCell {
                 self.picture?.image = UIImage.imageFilledWithColor(FlatWhite())
             }
             .subscribeNext { thumbnails in
-                thumbnails.subscribeNext { thumbnail, websiteThumbnail in
-                    self.picture?.sd_setImageWithURL(thumbnail ?? websiteThumbnail, placeholderImage: nil)
-                }
-                .addDisposableTo(self.disposeBag)
+                self.picture?.sd_setImageWithURL(thumbnail.0 ?? websiteThumbnail.1, placeholderImage: self.placeholder)
             }
             .addDisposableTo(disposeBag)
     }
