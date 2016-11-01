@@ -25,7 +25,6 @@ extension UIScrollView {
 class TimelineViewController: BaseViewController {
 
     var topicTableViewController: BaseTableViewController!
-    var topicDataSource: TopicDataSource!
 
     lazy var tableView: UITableView = {
         return self.topicTableViewController.tableView
@@ -70,7 +69,7 @@ class TimelineViewController: BaseViewController {
             $0.tableView.tableFooterView = UIView()
             
             return $0
-        }(TopicTableViewController())
+        }(BaseTableViewController())
         tableView.delegate = self
         tableView.dataSource = self
         ["NewsCell", "ImageCell", "TextCell"].forEach {
@@ -131,11 +130,11 @@ extension TimelineViewController: UITableViewDataSource {
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
-        if let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as? ListingTableViewCell {
-            cell.setViewModel(linkViewModel)
-        }
+        let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
+        cell.setViewModel(linkViewModel)
         
         return cell
+        
     }
 }
 

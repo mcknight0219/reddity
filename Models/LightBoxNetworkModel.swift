@@ -11,20 +11,20 @@ class LightBoxNetworkModel: NSObject {
     var thumbnailURL: Variable<NSURL?>!
 
     init(url: String) {
-        if URL = NSURL(url) {
+        if let URL = NSURL(string: url) {
             NSURLSession.sharedSession()
-                .rx_response(NSURLRequest())
-                .map { data, _ -> NSURL?
-                    if let html = String(data: data!, encoding: NSUTF8StringEncoding),
-                    let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
+                .rx_response(NSURLRequest(URL: URL))
+                .map { (data, _) -> NSURL? in
+                    if let html = String(data: data, encoding: NSUTF8StringEncoding),
+                        let doc = Kanna.HTML(html: html, encoding: NSUTF8StringEncoding) {
                         if let url = doc.at_xpath("//meta[@property='og:image']/@content")?.text ?? doc.at_xpath("//meta[@name=\"thumbnail\"]/@content")?.text {
                             return NSURL(string: url)
                         }
-                        return nil
                     }
+                    return nil
                 }
                 .bindTo(thumbnailURL)
-                .addToDisposable(self.disposeBag)
+                .addDisposableTo(disposeBag)
 
         } else {
             thumbnailURL.value = nil

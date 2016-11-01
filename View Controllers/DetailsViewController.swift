@@ -80,11 +80,16 @@ class DetailsViewController: UIViewController {
     
     init(aSubject: Link) {
 
-        self.subject = aSubject
-        if subject.type()       == .News { layout = .External }
-        else if subject.type()  == .Text { layout = .Text }
-        else                             { layout = .Media }
-        
+        let viewModel = LinkViewModel(link: aSubject)
+        switch viewModel.cellType {
+        case .Image:
+            layout = .Media
+        case .News:
+            layout = .External
+        case .Text:
+            layout = .Text
+        }
+        subject = aSubject
         super.init(nibName: nil, bundle: nil)
         
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DetailsViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
@@ -276,7 +281,7 @@ class DetailsViewController: UIViewController {
             style.alignment = .Center
             style.lineBreakMode = .ByCharWrapping
             
-            let link = NSMutableAttributedString(string: " \(self.subject.url.host!)", attributes: [
+            let link = NSMutableAttributedString(string: " \(self.subject.url)", attributes: [
                 NSFontAttributeName: UIFont(name: "Lato-Bold", size: 16)!,
                 NSUnderlineStyleAttributeName: NSUnderlineStyle.StyleSingle.rawValue,
                 NSParagraphStyleAttributeName: style,
@@ -328,7 +333,7 @@ class DetailsViewController: UIViewController {
             self.topView.addGestureRecognizer(tap)
             
             let placeholder = UIImage.imageFilledWithColor(ThemeManager.defaultManager.currentTheme == "Dark" ? UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0) : UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0))
-            imageView.sd_setImageWithURL(self.subject.url, placeholderImage: placeholder, options: [], progress: nil, completed: { (_, _, _, _)  in
+            imageView.sd_setImageWithURL(NSURL(string: self.subject.url)!, placeholderImage: placeholder, options: [], progress: nil, completed: { (_, _, _, _)  in
                 
                 self.topIndicatorView.stopAnimating()
                 
@@ -359,7 +364,7 @@ class DetailsViewController: UIViewController {
         ac.addAction(cancelAction)
 
         let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
-            let safariViewController = SFSafariViewController(URL: self.subject.url)
+            let safariViewController = SFSafariViewController(URL: NSURL(string: self.subject.url)!)
             self.presentViewController(safariViewController, animated: true, completion: nil)
         }
         
@@ -369,7 +374,7 @@ class DetailsViewController: UIViewController {
 
     @objc private func handleImageTap(sender: UITapGestureRecognizer) {
         
-        let imageDetailVC = ImageDetailViewController(URL: self.subject.url)
+        let imageDetailVC = ImageDetailViewController(URL: NSURL(string: self.subject.url)!)
         
         imageDetailVC.modalTransitionStyle = .CrossDissolve
         imageDetailVC.modalPresentationStyle = .FullScreen

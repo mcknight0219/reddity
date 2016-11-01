@@ -85,7 +85,7 @@ class SubscriptionViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCellWithIdentifier("SubscriptionCell")
         if cell == nil {
-            cell = BaseTableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")    
+            cell = UITableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")
         }
 
         let sub = self.subscriptions[indexPath.row]
@@ -97,7 +97,6 @@ class SubscriptionViewController: BaseTableViewController {
         let subreddit = subscriptions[indexPath.row]
         let timelineVC = TimelineViewController(subredditName: subreddit.displayName)
         timelineVC.hidesBottomBarWhenPushed = true
-        timelineVC.subreddit = subreddit
 
         navigationController?.pushViewController(timelineVC, animated: true)
     }

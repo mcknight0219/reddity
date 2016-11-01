@@ -28,11 +28,12 @@ class TitleCell: UITableViewCell {
         // Initialization code
     }
 
-    override func applyTheme() {
-        theme = CellTheme()
+    func applyTheme() {
+        let theme = CellTheme()!
+    
         self.title?.textColor = theme.mainTextColor
-        self.info?.textColor = theme.accessoryTextColor
-        self.backgroundColor = theme.backgroundColor
+        self.info?.textColor  = theme.accessoryTextColor
+        self.backgroundColor  = theme.backgroundColor
     }
 
     func loadTitle(aLink: Link) {

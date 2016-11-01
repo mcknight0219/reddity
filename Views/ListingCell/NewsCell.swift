@@ -20,27 +20,22 @@ class NewsCell: ListingTableViewCell {
         
         viewModel
             .map { viewModel in
-                return Observable.combineLatest(Observable.just(viewModel.thumbnailURL), viewModel.websiteThumbnailURL)
-            }
-            .map { 
-                return $0 ?? $1
-            }
-            .flatMap { (element) -> NSURL in
-                if let value = element {
-                    return Observable.just(element)
-                } else {
-                    return Observable.just()
+                return Observable.combineLatest(Observable.just(viewModel.thumbnailURL), viewModel.websiteThumbnailURL) {
+                    return ($0, $1)
                 }
             }
-            .observeOn(MainScheduler)
             .doOn { _ in
                 self.picture?.contentMode = .ScaleAspectFill
                 self.picture?.clipsToBounds = true
                 self.picture?.image = UIImage.imageFilledWithColor(FlatWhite())
             }
-            .subscribeNext { [weak self] URL in 
-                self.picture?.image = URL
+            .subscribeNext { thumbnails in
+                thumbnails.subscribeNext { thumbnail, websiteThumbnail in
+                    self.picture?.sd_setImageWithURL(thumbnail ?? websiteThumbnail, placeholderImage: nil)
+                }
+                .addDisposableTo(self.disposeBag)
             }
+            .addDisposableTo(disposeBag)
     }
     
 }

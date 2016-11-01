@@ -88,7 +88,11 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     }
     
     private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<Void>) -> Observable<[Link]> {
-        return self.provider.request(.Subreddit(name: self.subreddit, after: after))
+        let endpoint = self.subreddit.isEmpty
+            ? RedditAPI.FrontPage(after: after)
+            : RedditAPI.Subreddit(name: self.subreddit, after: after)
+        
+        return self.provider.request(endpoint)
             .filterSuccessfulStatusCodes()
             .flatMap { response -> Observable<[Link]> in
                 

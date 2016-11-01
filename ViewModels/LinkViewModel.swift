@@ -33,7 +33,7 @@ class LinkViewModel: NSObject {
         if let _ = self.link.selfType.associatedValue {
             return .Text
         }
-        if let _ = self.resource.value {
+        if let _ = self.resourceURL {
             return .Image
         }
         return .News
@@ -67,7 +67,7 @@ class LinkViewModel: NSObject {
     // thumbnail url.
     var websiteThumbnailURL: Observable<NSURL?> = Observable.empty()
     
-    private let link: Link!
+    private var link: Link!
     init(link: Link) {
         super.init()
         self.link = link
@@ -75,7 +75,7 @@ class LinkViewModel: NSObject {
         self.thumbnailURL = Media.init(link.thumbnail ?? "")?.URL
 
         if case .News = self.cellType {
-            websiteThumbnailURL = LightBoxNetworkModel(URL).thumbnailURL.asObservable()
+            websiteThumbnailURL = LightBoxNetworkModel(url: URL).thumbnailURL.asObservable()
         } 
     }
 
@@ -108,14 +108,14 @@ class LinkViewModel: NSObject {
                         tmp = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
                     }
                     self = .Video(URL: tmp)
-                } 
+                }
+                return nil
             } else {
                 if url.test(Config.ImgurResourcePattern) {
                     self = .Image(URL: url + ".png")
                 } else {
                     return nil
                 }
-                
             }
         } 
     }

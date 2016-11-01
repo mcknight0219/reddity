@@ -27,19 +27,21 @@ class ImageCell: ListingTableViewCell {
                 return viewModel.thumbnailURL ?? viewModel.resourceURL 
             } 
             .doOn {[weak self] _ in
-                self.picture?.contentMode = .ScaleAspectFill
-                self.picture?.clipsToBounds = true
-                self.picture?.image = placeholderImage 
+                self?.picture?.contentMode = .ScaleAspectFill
+                self?.picture?.clipsToBounds = true
+                self?.picture?.image = self?.placeholderImage
             }
-            .flatMap { (element) -> NSURL in
+            .map { element -> NSURL? in
                 if let value = element {
-                    return Observable.just(element)
+                    return value
                 } else {
-                    return Observable.just()
+                    return nil
                 }
             }
-            .subscribeNext {[weak self] url in
-                self.picture?.sd_setImageWithURL(url)    
+            .subscribeNext {[weak self] URL in
+                if let URL = URL {
+                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholderImage)
+                }
             }
             .addDisposableTo(disposeBag)
     }

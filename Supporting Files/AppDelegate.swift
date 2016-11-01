@@ -131,6 +131,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let homeVC: TimelineViewController = {
             $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
+            $0.provider = Networking.newNetworking()
             
             return $0
         }(TimelineViewController(subredditName: ""))
@@ -148,7 +149,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return $0
         }(MeViewController())
 
-        tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].flatMap { NavigationController(rootViewController: $0) }
+        tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].map {
+            NavigationController(rootViewController: $0)
+        }
         // Select Browse tab on starup
         tabBarVC.selectedIndex = 0
         tabBarVC.tabBar.tintColor = FlatBlue()

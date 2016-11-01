@@ -8,7 +8,7 @@
 
 import UIKit
 
-class LoadmoreCell: BaseTableViewCell {
+class LoadmoreCell: UITableViewCell {
     @IBOutlet weak var leadingConstraint: NSLayoutConstraint!
     
     lazy var content: UILabel! = {
@@ -35,8 +35,7 @@ class LoadmoreCell: BaseTableViewCell {
         img.contentMode = .ScaleAspectFill
     }
     
-    override func applyTheme() {
-        super.applyTheme()
+    func applyTheme() {
         content.textColor = UIColor.blueColor()
     }
 

@@ -12,8 +12,9 @@ enum CellTheme {
     case Dark
     case Light
 
-    init?(themeManager: ThemeManager = ThemeManager.defaultManager()) {
-        self = themManager.currentTheme == "Default"? Light : Dark
+    init?(themeManager: ThemeManager = ThemeManager.defaultManager) {
+        self = themeManager.currentTheme == "Default"
+            ? Light : Dark
     }
 
     var backgroundColor: UIColor {

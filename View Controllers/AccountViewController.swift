@@ -40,7 +40,7 @@ class AccountViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCellWithIdentifier("Cell")
         if cell == nil {
-            cell = BaseTableViewCell(style: .Value1, reuseIdentifier: "Cell")
+            cell = UITableViewCell(style: .Value1, reuseIdentifier: "Cell")
         }
 
         if let cell = cell {

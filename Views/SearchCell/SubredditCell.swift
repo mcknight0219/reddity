@@ -22,7 +22,7 @@ class SubredditCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ImageCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubredditCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     override func setSelected(selected: Bool, animated: Bool) {

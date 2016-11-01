@@ -26,7 +26,7 @@ class MeViewController: BaseTableViewController {
         self.navigationItem.title = "Settings"
         self.navigationController?.navigationBar.titleTextAttributes![ NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
         
-        self.tableView.registerClass(BaseTableViewCell.self, forCellReuseIdentifier: "SettingCell")
+        self.tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "SettingCell")
         self.tableView.layoutMargins = UIEdgeInsetsZero
         self.tableView.separatorInset = UIEdgeInsetsZero
         self.clearsSelectionOnViewWillAppear = true
