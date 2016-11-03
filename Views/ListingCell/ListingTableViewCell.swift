@@ -25,7 +25,12 @@ class ListingTableViewCell: UITableViewCell {
 
     // Only specific to NewsCell and ImageCell
     lazy var picture: UIImageView? = {
-         return self.viewWithTag(3) as? UIImageView 
+         let imageView =  self.viewWithTag(3) as? UIImageView 
+         imageView?.addGestureRecognizer(tap)
+    }()
+    
+    lazy var tap: UITapGestureRecognizer = {
+        return UITapGestureRecognizer()
     }()
 
     var disposeBag = DisposeBag()
@@ -59,6 +64,22 @@ class ListingTableViewCell: UITableViewCell {
                 return viewModel.accessory
             }
             .bindTo(self.accessory!.rx_text)
+            .addDisposableTo(disposeBag)
+
+        tap
+            .rx_event
+            .flatMap { _ in
+                return self.viewModel
+                    .map { viewModel -> NSURL? in
+                        return viewModel.resourceURL
+                    }
+            }
+            .subscribeNext { [weak self] URL in
+                let vc = ImageDetailViewController(URL: URL) 
+                vc.modalTransitionStyle = .CrossDissovle
+                vc.modalPresentationStyle = .FullScreen
+                self?.navigationController?.presentViewController(vc, animated: true, completion: nil)
+            }
             .addDisposableTo(disposeBag)
     }
 
