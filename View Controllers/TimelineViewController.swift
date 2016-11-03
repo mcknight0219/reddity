@@ -91,8 +91,15 @@ class TimelineViewController: BaseViewController {
 
         refresh
             .rx_controlEvent(.ValueChanged)
-            .subscribeNext { _ in
-                self.viewModel.reload()
+            .flatMap { () -> Observable<Bool> in
+                return reachabilityManager.reach
+            }
+            .subscribeNext { on in
+                if on {
+                    self.viewModel.reload()
+                } else {
+                    self.refresh.endRefreshing()
+                }
             }
             .addDisposableTo(disposeBag)
         
