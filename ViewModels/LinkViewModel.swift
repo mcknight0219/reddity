@@ -54,7 +54,7 @@ class LinkViewModel: NSObject {
     lazy var accessory: String = {
         let link = self.link
         let score = link.ups - link.downs
-        return "\(link.subreddit)・\(link.createdAt.daysAgo)・\(score)"
+        return "\(link.subreddit)・\(link.createdAt.daysAgo())・\(score)"
     }()
     
     lazy var URL: String = {
@@ -108,8 +108,9 @@ class LinkViewModel: NSObject {
                         tmp = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
                     }
                     self = .Video(URL: tmp)
+                } else {
+                    return nil
                 }
-                return nil
             } else {
                 if url.test(Config.ImgurResourcePattern) {
                     self = .Image(URL: url + ".png")

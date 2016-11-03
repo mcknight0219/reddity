@@ -30,7 +30,7 @@ class NewsCell: ListingTableViewCell {
                 self.picture?.image = UIImage.imageFilledWithColor(FlatWhite())
             }
             .subscribeNext { thumbnails in
-                self.picture?.sd_setImageWithURL(thumbnail.0 ?? websiteThumbnail.1, placeholderImage: self.placeholder)
+                self.picture?.sd_setImageWithURL(thumbnails.0 ?? thumbnails.1, placeholderImage: self.placeholder)
             }
             .addDisposableTo(disposeBag)
     }

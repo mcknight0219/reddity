@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import SnapKit
+import ChameleonFramework
 
 final class HUDManager {
     static let sharedInstance = HUDManager()
@@ -14,8 +16,9 @@ final class HUDManager {
     var isShowing = false
     let progressView: UIView
     let bottomView: UIView
+    let text: UILabel!
 
-    let timer: NSTimer!
+    var timer: NSTimer!
     
     init() {
         progressView = UINib(nibName: "CentralProgressView", bundle: nil).instantiateWithOwner(nil, options: nil).first as! UIView
@@ -23,20 +26,28 @@ final class HUDManager {
         label.text = "Loading"
         
         bottomView = {
-            $0.frame = CGRectMake(0, UIScreen.mainScreen().bounds.height - 120, UIScreen.mainScreen().bounds.width, 120)
-            $0.transform = CGAffineTransformMakeTranslation(0, 120)
-            $0.backgroundColor = UIColor.clearColor().colorWithAlphaComponent(0.7)
-            let label: UILabel = {
-                $0.frame = CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 80)
-                $0.textAlignment = .Center
-                $0.numberOfLines = 1
-                return $0
-            }(UILabel())
-            $0.addSubview(label)
-            label.center = $0.center
+            $0.frame = CGRectMake(0, 64, UIScreen.mainScreen().bounds.width, 35)
+            $0.backgroundColor = UIColor.clearColor()
+            $0.clipsToBounds = true
             
             return $0
         }(UIView())
+        
+        text = {
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.whiteColor()
+            $0.backgroundColor = FlatRed()
+            $0.textAlignment = .Center
+            
+            return $0
+        }(UILabel())
+        bottomView.addSubview(text)
+        
+        text.snp_makeConstraints { make in
+            make.left.right.bottom.top.equalTo(bottomView)
+        }
+        
+        text.transform = CGAffineTransformMakeTranslation(0, -35)
     }
     
     func showCentralActivityIndicator() {
@@ -79,25 +90,23 @@ final class HUDManager {
 
     func showToast(withTitle title: String) {
         let win = UIApplication.sharedApplication().keyWindow!
-        let label = self.bottomView.subviews[0] as! UILabel
-        label.text = title
+        text.text = title
 
         win.addSubview(self.bottomView)
         UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animations: {
-            self.bottomView.transform = CGAffineTransformIdentity
+            self.text.transform = CGAffineTransformIdentity
         }, completion: nil)
 
-        self.timer = NSTimer.scheduledTimerWithInterval(2.0, target: self, selector: #selector(HUDManager.hideToast), userInfo: nil , repeats: false)
+        self.timer = NSTimer.scheduledTimerWithTimeInterval(2.0, target: self, selector: #selector(HUDManager.hideToast), userInfo: nil , repeats: false)
     }
 
-    func hideToast() {
+    @objc func hideToast() {
         UIView.animateWithDuration(0.6, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0, options: [.CurveEaseOut], animations: {
-            self.bottomView.transform = CGAffineTransformMakeTranslation(0, 50)
+            self.text.transform = CGAffineTransformMakeTranslation(0, -35)
         }) { finished in
             self.bottomView.removeFromSuperview()
-            self.bottomView.transform = CGAffineTransformIdentity
         }
 
-        self.timer.invalidat()
+        self.timer.invalidate()
     }
 }

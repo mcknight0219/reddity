@@ -52,7 +52,7 @@ struct XAppToken {
     /// excess token expires in 2 hours, we use 119 minutes for caution purpose
     var expired: Bool {
         if let expiry = expiry {
-            return abs(expiry.timeIntervalSinceNow) > 60 * 119
+            return expiry.compare(NSDate()) == .OrderedAscending
         }
         return true
     }

@@ -42,22 +42,22 @@ class MeViewController: BaseTableViewController {
             return $0
         }(UISwitch())
         
-        let disposeBag = DisposeBag()
-        
         let darkThemeOn = Variable(ThemeManager.defaultManager.currentTheme == "Dark")
         themeSwitch.rx_value <-> darkThemeOn
-        darkThemeOn.asObservable()
+        
+        darkThemeOn
+            .asObservable()
             .subscribeNext { x in
                 ThemeManager.defaultManager.setTheme(x ? "Dark" : "Default")
             }
-        .addDisposableTo(disposeBag)
+            .addDisposableTo(disposeBag)
         
         let offlineOn = Variable(true)
         themeSwitch.rx_value <-> offlineOn
         offlineOn.asObservable()
             .subscribeNext { _ in
-        }
-        .addDisposableTo(disposeBag)
+            }
+            .addDisposableTo(disposeBag)
     }
     
     // MARK: - Table view data source

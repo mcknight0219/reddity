@@ -28,26 +28,30 @@ protocol TimelineViewModelType {
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
     private let disposeBag = DisposeBag()
-    var links = Variable([Link]())
+    var links = Variable<[Link]>([])
 
     var isRefreshing = Variable<Bool>(false)
 
     var numberOfLinks: Int {
-        return links.value.count
+        return distinctLinks.value.count
     }
 
     var updatedContents: Observable<NSDate> {
         return links
             .asObservable()
-            .map { $0.count > 0 }
+            .map {
+                $0.count > 0
+            }
             .ignore(false)
-            .map { _ in NSDate() }
+            .map { _ in
+                return NSDate()
+            }
     }
     
     let subreddit: String
     let provider: Networking
     
-    var distinctLinks: Observable<[Link]>!
+    var distinctLinks = Variable<[Link]>([])
     var showSpinner: Observable<Bool>!
     var loadNextPageTrigger: Observable<Void>!
     
@@ -64,6 +68,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         isRefreshing.value = true
         links.value = []
         recursiveLinkRequest()
+            .takeUntil(rx_deallocated)
             .doOnNext { _ in
                 self.isRefreshing.value = false
             }
@@ -76,15 +81,25 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     private func setup() {
         // start loading upon creation
         recursiveLinkRequest()
+            .takeUntil(rx_deallocated)
             .bindTo(links)
             .addDisposableTo(disposeBag)
+        
+        links
+            .asObservable()
+            .distinctUntilChanged { (lhs, rhs) -> Bool in
+                return lhs.count == rhs.count
+            }
+            .bindTo(distinctLinks)
+            .addDisposableTo(disposeBag)
 
-        showSpinner = links.asObservable().map { $0.count == 0 }
+        showSpinner = Observable.combineLatest(distinctLinks.asObservable(), isRefreshing.asObservable(), reachabilityManager.reach) { (o1, o2, o3) in
+            return o1.count == 0 && !o2 && o3
+        }
     }
     
     private func recursiveLinkRequest() -> Observable<[Link]> {
         return linkRequest([], after: "", loadNextPageTrigger: self.loadNextPageTrigger)
-            .startWith([])
     }
     
     private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<Void>) -> Observable<[Link]> {
@@ -108,6 +123,10 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     }
     
     func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel {
-        return links.value[indexPath.item].viewModel    
+        return distinctLinks.value[indexPath.item].viewModel
+    }
+    
+    func clear() {
+        self.links.value.removeAll()
     }
 }

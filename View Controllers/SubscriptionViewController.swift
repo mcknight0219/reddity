@@ -96,6 +96,7 @@ class SubscriptionViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         let subreddit = subscriptions[indexPath.row]
         let timelineVC = TimelineViewController(subredditName: subreddit.displayName)
+        timelineVC.provider = Networking.newNetworking()
         timelineVC.hidesBottomBarWhenPushed = true
 
         navigationController?.pushViewController(timelineVC, animated: true)

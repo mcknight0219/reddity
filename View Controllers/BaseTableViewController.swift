@@ -7,8 +7,13 @@
 //
 
 import UIKit
+#if !RX_NO_MODULE
+import RxSwift
+#endif
 
 class BaseTableViewController: UITableViewController {
+    var disposeBag = DisposeBag()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -16,11 +21,12 @@ class BaseTableViewController: UITableViewController {
             .reach
             .take(1)
             .subscribeNext { connected in
-                let hud = HudManager.sharedInstance
+                let hud = HUDManager.sharedInstance
                 if !connected {
                     hud.showToast(withTitle: "No Internet Connection.")
                 }             
             }
+            .addDisposableTo(disposeBag)
 
         self.applyTheme()
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)

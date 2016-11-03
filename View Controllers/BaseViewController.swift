@@ -22,12 +22,12 @@ class BaseViewController: UIViewController {
         super.viewDidLoad()
 
         reachabilityManager.reach
-            .take(1)
             .subscribeNext { connected in
-                let hud = HudManager.sharedInstance
+                let hud = HUDManager.sharedInstance
                 if !connected {
                     hud.showToast(withTitle: "No Internet Connection.")
                 }             
             }
+            .addDisposableTo(disposeBag)
     } 
 }

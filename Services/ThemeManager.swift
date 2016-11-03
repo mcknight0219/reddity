@@ -47,6 +47,11 @@ enum CellTheme {
 enum TableViewTheme {
     case Dark
     case Light
+    
+    init?(themeManager: ThemeManager = ThemeManager.defaultManager) {
+        self = themeManager.currentTheme == "Default"
+            ? Light : Dark
+    }
 
     var backgroundColor: UIColor {
         switch self {

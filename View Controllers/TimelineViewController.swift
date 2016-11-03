@@ -79,22 +79,14 @@ class TimelineViewController: BaseViewController {
         view.addSubview(topicTableViewController.view)
         topicTableViewController.didMoveToParentViewController(self)
         
-        // Map showSpinner to HUD status
-        viewModel
-            .showSpinner
-            .subscribeNext { show in
-                if show {
-                    HUDManager.sharedInstance.showCentralActivityIndicator()
-                } else {
-                    HUDManager.sharedInstance.hideCentralActivityIndicator()
-                }
-            }
-            .addDisposableTo(disposeBag)
-
         viewModel
             .isRefreshing
-            .asDriver()
-            .drive(refresh.rx_refreshing)
+            .asObservable()
+            .subscribeNext { refreshing in
+                if !refreshing {
+                    self.refresh.endRefreshing()
+                }
+            }
             .addDisposableTo(disposeBag)
 
         refresh
@@ -107,6 +99,7 @@ class TimelineViewController: BaseViewController {
 
         viewModel
             .updatedContents
+            .subscribeOn(MainScheduler.instance)
             .map { _ in
                 return self.tableView
             }
@@ -114,7 +107,7 @@ class TimelineViewController: BaseViewController {
                 tableView.reloadData()
             }
             .subscribeNext { _ in
-                // scroll up table
+                
             }
             .addDisposableTo(disposeBag)
     }
@@ -134,7 +127,6 @@ extension TimelineViewController: UITableViewDataSource {
         cell.setViewModel(linkViewModel)
         
         return cell
-        
     }
 }
 

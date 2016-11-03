@@ -7,23 +7,24 @@ import Moya
 #endif
 
 class LightBoxNetworkModel: NSObject {
-    class let _cache = NSCache<NSURL, NSURL>()
-
+    static let _cache = NSCache()
     var disposeBag = DisposeBag()
 
-    var thumbnailURL: Observable<NSURL?>
+    var thumbnailURL: Observable<NSURL?>!
 
     init(url: String) {
+        super.init()
+        
         if let URL = NSURL(string: url) {
             thumbnailURL = self.thumbnailURL(URL) 
         } else {
-            thumbnailURL = Observale<NSURL?>.empty()
+            thumbnailURL = Observable<NSURL?>.empty()
         }
     }
 
-    private func thumbnailURL(URL: NSURL) {
+    private func thumbnailURL(URL: NSURL) -> Observable<NSURL?> {
         return Observable.deferred {
-            let maybeURL = LightBoxNetworkModel._cache.objectForiKey(URL) as? NSURL
+            let maybeURL = LightBoxNetworkModel._cache.objectForKey(URL) as? NSURL
             let resultURL: Observable<NSURL?>
 
             if let u = maybeURL {
@@ -43,9 +44,12 @@ class LightBoxNetworkModel: NSObject {
                     }
             }
 
-            return resultURL.doNext { u in 
-                LightBoxNetworkModel._cache.setObject(u, forKey: URL)        
-            }    
+            return resultURL.doOnNext({
+                if let obj = $0 {
+                    LightBoxNetworkModel._cache.setObject(obj, forKey: URL)
+                }
+                
+            })
         }    
     }
 }
