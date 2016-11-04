@@ -9,6 +9,7 @@ protocol SubscriptionViewModelType {
     var numberOfSubscriptions: Int { get }
     var updatedContents: Observable<NSDate> { get }
     var selectedOrder: Observable<Int> { get }
+    var showBackground: Observable<Bool>! { get }
 
     func subredditModelAtIndexPath(indexPath: NSIndexPath) -> Subreddit
 }
@@ -33,6 +34,8 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
             .ignore(false)
             .map { _ in NSDate() }
     }
+
+    var showBackground: Observable<Bool>!
     
     private let disposeBag = DisposeBag()
     init(provider: Networking, selectedOrder: Observable<Int>) {
@@ -84,6 +87,10 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
             .bindTo(sortedSubs)
             .addDisposableTo(disposeBag)
         
+        showBackground = subs
+            .asObservable()
+            .map { $0.count == 0 }
+            .startWith(false)
     }
 
     enum SortOrder: Int {

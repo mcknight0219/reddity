@@ -13,6 +13,27 @@ import RxSwift
 class SubscriptionViewController: BaseTableViewController {
     var provider: Networking!
     
+    // Show if no subscription 
+    lazy var backgroundView: UIView = {
+        return {
+            let label = {
+                $0.text = "You don't have any subscription yet."
+                $0.font = UIFont(name: "Lato-Regular", size: 18)
+                $0.textColor = UIColor.grayColor()
+                $0.numberOfLines = 0
+                $0.textAlignment = .Center
+            }(UILabel())
+            $0.addSubview(label)
+            label.snp_makeConstraints { make in
+                make.leading.equalTo($0).offset(25)
+                make.trailing.equalTo($0).offset(-25)
+                make.top.equalTo(UIScreen.mainScreen().bounds.height / 2 - 150)
+            }
+
+            return $0
+        }(UIView())
+    }()
+
     private var selectedOrderIndex = Variable<Int>(0)
     var viewModel: SubscriptionViewModelType {
         return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable())
@@ -20,13 +41,32 @@ class SubscriptionViewController: BaseTableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         hideFooter()
         
         navigationItem.title = "Subscription"
         navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Sort", style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
 
+        viewModel
+            .updatedContents
+            .subscribeOn(MainScheduler.instance)
+            .map { _ in 
+                return self.tableView
+            }
+            .doOnNext { tableView in 
+                tableView.reloadData()
+            }
+            .subscribeNext { _ in }
+            .addDisposableTo(disposeBag)
+
+        viewModel
+            .showBackground
+            .subscribeOn(MainScheduler.instance)
+            .filter(false)
+            .subscribeNext { [weak self] _ in 
+                self?.tableView.backgroundView = self?.backgroundView
+            }
+            .addDisposableTo(disposeBag)
     }
 
     // MARK: - Table view data source
@@ -78,29 +118,28 @@ class SubscriptionViewController: BaseTableViewController {
     }
 }
 
+// MARK: Sort Functionality
 extension SubscriptionViewController {
     func sortItemTapped() {
-        presentViewController(self.sortOrderAlertController, animated: true, completion: nil)
+        let alert = self.sortOrderAlertController()
+        presentViewController(alert, animated: true, completion: nil)
     }
-}
 
-extension SubscriptionViewController {
-    var sortOrderAlertController: UIAlertController {
+    func sortOrderAlertController() -> UIAlertController {
         let sortOrderController = UIAlertController(title: "Choose order of subscribed subreddits", message: nil, preferredStyle: .ActionSheet)
         
         let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
         sortOrderController.addAction(cancelAction)
         
-        let sortByAlpha = UIAlertAction.Action("Alphabetical", style: .Default)
-        sortOrderController.addAction(sortByAlpha)
-        
-        let sortByPopularity = UIAlertAction.Action("Popularity", style: .Default)
-        sortOrderController.addAction(sortByPopularity)
-        
-        let sortByFavorite = UIAlertAction.Action("Favorite", style: .Default)
-        sortOrderController.addAction(sortByFavorite)
-        
-        sortOrderController
+        ["Alphabetical", "Popularity", "Favorite"].enumerate().map { (index, name) in 
+            let mod = name + (self.selectedOrderIndex.value == index) ? "✓" : ""
+            let option = UIAlertAction.Action(mod, style: .Default)
+            option.rx_action = CocoaAction {
+                self.selectedOrderIndex.value = index
+                return Observable.empty()
+            }
+            sortOrderController.addAction(option)
+        }
         
         return sortOrderController
     }

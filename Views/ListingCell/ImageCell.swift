@@ -21,7 +21,8 @@ class ImageCell: ListingTableViewCell {
     
     override func configure() {
         super.configure()
-    
+        let reuseBag = DisposeBag()
+
         viewModel
             .map { viewModel -> NSURL? in
                 return viewModel.thumbnailURL ?? viewModel.resourceURL 
@@ -43,7 +44,7 @@ class ImageCell: ListingTableViewCell {
                     self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholderImage)
                 }
             }
-            .addDisposableTo(disposeBag)
+            .addDisposableTo(reuseBag)
     }
     
 }

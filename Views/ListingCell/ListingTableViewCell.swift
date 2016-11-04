@@ -23,15 +23,22 @@ class ListingTableViewCell: UITableViewCell {
         return self.viewWithTag(2) as? UILabel 
     }()
 
-    lazy var tapOnPicture: UITapGestureRecognizer = {
-        return UITapGestureRecognizer()
-    }()
+    lazy var tapOnPicture: Observable<NSURL?> = {
+        let tap = UITapGestureRecognizer()
+        self.picture?.addGestureRecognizer(tap)
+        return tap.rx_event
+                .flatMap { _ in 
+                    self
+                        .viewModel
+                        .map { viewModel -> NSURL?
+                            return viewMode.resourceURL
+                        } 
+                }
+    }
+
     // Only specific to NewsCell and ImageCell
     lazy var picture: UIImageView? = {
-        let imageView =  self.viewWithTag(3) as? UIImageView
-        imageView?.addGestureRecognizer(self.tapOnPicture)
-        
-        return imageView
+        return self.viewWithTag(3) as? UIImageView
     }()
 
 
@@ -48,7 +55,14 @@ class ListingTableViewCell: UITableViewCell {
         self.viewModel.onNext(viewModel)
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        configure()
+    }
+
     func configure() {
+        let reuseBag = DisposeBag()
+
         self.applyTheme()
         self.selectionStyle = .None
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ListingTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
@@ -59,16 +73,14 @@ class ListingTableViewCell: UITableViewCell {
                 return viewModel.title
             }
             .bindTo(self.title!.rx_text)
-            .addDisposableTo(disposeBag)
+            .addDisposableTo(reuseBag)
         
         viewModel
             .map { viewModel -> String in
                 return viewModel.accessory
             }
             .bindTo(self.accessory!.rx_text)
-            .addDisposableTo(disposeBag)
-        
-
+            .addDisposableTo(reuseBag)
     }
 
     @objc private func applyTheme() {

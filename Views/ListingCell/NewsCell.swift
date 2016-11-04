@@ -17,7 +17,8 @@ import Moya
 class NewsCell: ListingTableViewCell {
     override func configure() {
         super.configure()
-        
+        let reuseBag = DisposeBag()        
+
         viewModel
             .flatMap { viewModel in
                 return Observable.combineLatest(Observable.just(viewModel.thumbnailURL), viewModel.websiteThumbnailURL) {
@@ -32,7 +33,7 @@ class NewsCell: ListingTableViewCell {
             .subscribeNext { thumbnails in
                 self.picture?.sd_setImageWithURL(thumbnails.0 ?? thumbnails.1, placeholderImage: self.placeholder)
             }
-            .addDisposableTo(disposeBag)
+            .addDisposableTo(reuseBag)
     }
     
 }

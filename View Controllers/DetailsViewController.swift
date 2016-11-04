@@ -7,17 +7,9 @@
 //
 
 import UIKit
-import SafariServices
 import ChameleonFramework
 import FontAwesome_swift
 import SnapKit
-
-enum LayoutType {
-    case Media
-    case Text
-    case External
-}
-
 
 class InsetLabel: UILabel {
     var inset = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
@@ -39,27 +31,16 @@ class InsetLabel: UILabel {
     }
 }
 
-/**
- Implements the detail view. There are 3 types of layouts: Image, Text, and External link.
- All three layouts have the same comments view. 
-
- */
 class DetailsViewController: UIViewController {
     
     var commentsVC: UITableViewController!
     
-    var topView:  UIView!
-
     lazy var indicatorView: UIActivityIndicatorView = {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             return UIActivityIndicatorView(activityIndicatorStyle: .White)
         } else {
             return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
         }
-    }()
-    
-    lazy var topIndicatorView: UIActivityIndicatorView = {
-        return UIActivityIndicatorView(activityIndicatorStyle: .WhiteLarge)
     }()
     
     var layout: LayoutType!
@@ -72,23 +53,11 @@ class DetailsViewController: UIViewController {
     // The comments that are actullay displayed in tableview.
     var commentsOSD = [Comment]()
     
-    var topViewHeight: CGFloat = 200
-    
     lazy var lastContentOffset: CGFloat = {
         return self.commentsVC.tableView.contentOffset.y
     }()
     
     init(aSubject: Link) {
-
-        let viewModel = LinkViewModel(link: aSubject)
-        switch viewModel.cellType {
-        case .Image:
-            layout = .Media
-        case .News:
-            layout = .External
-        case .Text:
-            layout = .Text
-        }
         subject = aSubject
         super.init(nibName: nil, bundle: nil)
         
@@ -124,19 +93,6 @@ class DetailsViewController: UIViewController {
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
     
-        if layout == .External {
-            topViewHeight = 120 // titleLabel: 44 + button: 50 + gap: 6
-        } else if layout == .Text {
-            topViewHeight = 150 // titleLabel: 44 + text: 80 + gap:6
-        } else {
-            topViewHeight = 240
-        }
-        
-        topView = UIView(frame: CGRectMake(0, 0, view.bounds.width, topViewHeight))
-        topView.backgroundColor = UIColor.clearColor()
-        self.configTopView()
-        commentsVC.tableView.tableHeaderView = topView
-
         // indicator for comments table 
         
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
@@ -145,7 +101,7 @@ class DetailsViewController: UIViewController {
         indicatorView.startAnimating()
 
         let navTitle: UILabel = {
-            $0.text = subject.subreddit
+            $0.text = subject.title
             $0.font = UIFont(name: "Lato-Regular", size: 20)
             $0.textAlignment = .Center
             $0.backgroundColor = UIColor.clearColor()
@@ -157,10 +113,6 @@ class DetailsViewController: UIViewController {
         }(UILabel(frame: CGRectMake(0, 0, 200, 40)))
         
         self.navigationItem.titleView = navTitle
-        if self.layout != .Text {
-            self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .Action, target: self, action: nil)
-        } 
-
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) { comments in
@@ -222,165 +174,6 @@ class DetailsViewController: UIViewController {
        
     }
     
-    private func configTopView() {
-        let titleLabel: InsetLabel = {
-            $0.text = subject.title
-            $0.adjustsFontSizeToFitWidth = true
-            $0.minimumScaleFactor = 0.8
-            $0.numberOfLines = 2
-            $0.font = UIFont(name: "Lato-Bold", size: 18)
-            $0.textAlignment = .Justified
-            return $0
-        }(InsetLabel())
-        
-        
-        let separator = UIView(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 15))
-        separator.backgroundColor = UIColor.clearColor()
-        
-        if self.layout == .Text {
-            let quoteMark = UIImage.fontAwesomeIconWithName(.QuoteLeft, textColor: UIColor.whiteColor(), size: CGSize(width: 20, height: 20))
-            let attachment = NSTextAttachment()
-            attachment.image = quoteMark
-          
-            let attachmentString = NSAttributedString(attachment: attachment)
-            
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.alignment = .Justified
-            let title = NSMutableAttributedString(string: self.subject.title, attributes: [NSFontAttributeName: UIFont(name: "Lato-Regular", size: 18)!, NSParagraphStyleAttributeName: paragraphStyle])
-            
-            title.insertAttributedString(attachmentString, atIndex: 0)
-            
-            let textLabel: InsetLabel = {
-                $0.numberOfLines = 0
-                $0.textAlignment = .Left
-                $0.text = "Self text ..."
-                return $0
-            }(InsetLabel())
-            
-            topView.addSubview(titleLabel)
-            titleLabel.snp_makeConstraints { make in
-                make.top.left.equalTo(self.topView).offset(5)
-                make.right.equalTo(self.topView).offset(-5)
-                make.height.equalTo(64)
-            }
-            
-            self.topView.addSubview(textLabel)
-            textLabel.snp_makeConstraints { make in
-                make.left.equalTo(self.topView).offset(5)
-                make.right.equalTo(self.topView).offset(-5)
-                make.top.equalTo(titleLabel.snp_bottom)
-                make.bottom.equalTo(self.topView).offset(-15)
-            }
-
-        } else if self.layout == .External {
-            
-            let button = UIButton()
-            button.setImage(UIImage.fontAwesomeIconWithName(.ExternalLink, textColor: UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0), size: CGSize(width: 20, height: 20)), forState: .Normal)
-            
-            let style = NSMutableParagraphStyle()
-            style.alignment = .Center
-            style.lineBreakMode = .ByCharWrapping
-            
-            let link = NSMutableAttributedString(string: " \(self.subject.url)", attributes: [
-                NSFontAttributeName: UIFont(name: "Lato-Bold", size: 16)!,
-                NSUnderlineStyleAttributeName: NSUnderlineStyle.StyleSingle.rawValue,
-                NSParagraphStyleAttributeName: style,
-                NSForegroundColorAttributeName: UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
-                ])
-
-            button.setAttributedTitle(link, forState: .Normal)
-            button.addTarget(self, action: #selector(DetailsViewController.openExternalLink), forControlEvents: UIControlEvents.TouchUpInside)
-            button.sizeToFit()
-            
-            topView.addSubview(titleLabel)
-            titleLabel.snp_makeConstraints { make in
-                make.top.left.equalTo(self.topView).offset(5)
-                make.right.equalTo(self.topView).offset(-5)
-                make.height.equalTo(64)
-            }
-            
-            let linkView = UIView()
-            topView.addSubview(linkView)
-            linkView.snp_makeConstraints { make in
-                make.top.equalTo(titleLabel.snp_bottom)
-                make.right.equalTo(topView).offset(-5)
-                make.left.equalTo(topView).offset(5)
-                make.bottom.equalTo(topView).offset(-15)
-            }
-            
-            linkView.addSubview(button)
-            button.snp_makeConstraints { make in
-                make.center.equalTo(linkView)
-            }
-            
-        } else {
-            
-            let imageView = UIImageView()
-            imageView.contentMode = .ScaleAspectFill
-            imageView.clipsToBounds = true
-            self.topView.addSubview(imageView)
-            imageView.snp_makeConstraints { make in
-                make.left.top.equalTo(self.topView).offset(5)
-                make.right.equalTo(self.topView).offset(-5)
-                make.bottom.equalTo(self.topView).offset(-79)
-            }
-            
-            self.topView.addSubview(self.topIndicatorView)
-            self.topIndicatorView.center = self.topView.center
-            self.topIndicatorView.startAnimating()
-            
-            let tap = UITapGestureRecognizer(target: self, action: #selector(DetailsViewController.handleImageTap(_:)))
-            self.topView.addGestureRecognizer(tap)
-            
-            let placeholder = UIImage.imageFilledWithColor(ThemeManager.defaultManager.currentTheme == "Dark" ? UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0) : UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0))
-            imageView.sd_setImageWithURL(NSURL(string: self.subject.url)!, placeholderImage: placeholder, options: [], progress: nil, completed: { (_, _, _, _)  in
-                
-                self.topIndicatorView.stopAnimating()
-                
-                self.topIndicatorView.removeFromSuperview()
-                
-            })
-            
-            topView.addSubview(titleLabel)
-            titleLabel.snp_makeConstraints { make in
-                make.left.equalTo(self.topView).offset(5)
-                make.right.equalTo(self.topView).offset(-5)
-                make.top.equalTo(imageView.snp_bottom)
-                make.bottom.equalTo(self.topView).offset(-15)
-            }
-        }
-
-        self.topView.addSubview(separator)
-        separator.snp_makeConstraints { make in
-            make.bottom.equalTo(self.topView)
-            make.centerY.equalTo(self.topView)
-        }
-    }
-
-    @objc private func openExternalLink() {
-        let ac = UIAlertController(title: nil, message: nil, preferredStyle: .ActionSheet)
-        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
-        }
-        ac.addAction(cancelAction)
-
-        let openAction = UIAlertAction(title: "Open in Safari", style: .Default) { [unowned self] (action) in
-            let safariViewController = SFSafariViewController(URL: NSURL(string: self.subject.url)!)
-            self.presentViewController(safariViewController, animated: true, completion: nil)
-        }
-        
-        ac.addAction(openAction)
-        presentViewController(ac, animated: true) {}
-    }
-
-    @objc private func handleImageTap(sender: UITapGestureRecognizer) {
-        
-        let imageDetailVC = ImageDetailViewController(URL: NSURL(string: self.subject.url)!)
-        
-        imageDetailVC.modalTransitionStyle = .CrossDissolve
-        imageDetailVC.modalPresentationStyle = .FullScreen
-        
-        self.navigationController?.presentViewController(imageDetailVC, animated: true, completion: nil)
-    }
 }
 
 
@@ -420,53 +213,6 @@ extension DetailsViewController: UITableViewDelegate {
         }
     }
 
-    func scrollViewDidScroll(scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let startOffsetY:CGFloat!
-        let endOffsetY: CGFloat!
-        switch self.layout! {
-        case .Media:
-            startOffsetY = 180
-            endOffsetY = 280
-            break
-        default:
-            startOffsetY = 5
-            endOffsetY = 80
-        }
-        
-        let totalHeight = endOffsetY - startOffsetY
-        
-        if offsetY > startOffsetY && offsetY < endOffsetY {
-            if lastContentOffset < offsetY {    // Scroll down
-                if offsetY - startOffsetY < totalHeight / 2 {
-                    UIView.animateWithDuration(0.2) {
-                        self.navigationItem.titleView!.alpha = 1.0 - (offsetY - startOffsetY) / (totalHeight / 2)
-                    }
-                    
-                } else {
-                    
-                    (self.navigationItem.titleView as? UILabel)?.text = subject.title
-                    UIView.animateWithDuration(0.2) {
-                        self.navigationItem.titleView!.alpha = (offsetY - startOffsetY - totalHeight / 2) / (totalHeight / 2)
-                    }
-                }
-            } else {    // Scroll up
-                if endOffsetY - offsetY < totalHeight / 2 {
-                    UIView.animateWithDuration(0.2) {
-                        self.navigationItem.titleView!.alpha = 1.0 - (endOffsetY - offsetY) / (totalHeight / 2)
-                    }
-                } else {
-                    (self.navigationItem.titleView as? UILabel)?.text = subject.subreddit
-                    
-                    UIView.animateWithDuration(0.2) {
-                        self.navigationItem.titleView!.alpha = (endOffsetY - offsetY - totalHeight / 2) / (totalHeight / 2)
-                    }
-                }
-            }
-        }
-        
-        self.lastContentOffset = offsetY
-    }
 }
 
 // MARK: - Table view data source

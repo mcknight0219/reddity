@@ -27,6 +27,7 @@ enum RedditAPI {
     case SearchTitle(query: String, limit: Int?, after: String?)
     case SearchSubreddit(query: String, limit: Int?, after: String?)
     case Subscriptions
+    case Comment(subreddit: String, id: String)
 }
 
 extension RedditAPI: TargetType {
@@ -52,6 +53,9 @@ extension RedditAPI: TargetType {
 
         case .Subscriptions:
             return "/subreddits/mine/subscriber"
+
+        case .Comment(let subreddit, let id):
+            return "/r/\(subreddit)/comments/\(id)"
         }
     }
 
@@ -89,6 +93,9 @@ extension RedditAPI: TargetType {
 
         case .SearchSubreddit(let q, let limit, let after):
             return ["q": q, "limit": limit ?? 45, "after": after ?? ""]
+
+        case .Comment:
+            return ["raw_json": "1"]
         default:
             return nil
         }

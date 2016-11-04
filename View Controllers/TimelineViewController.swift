@@ -133,10 +133,8 @@ extension TimelineViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
         cell.setViewModel(linkViewModel)
         // Map tapping on image
-        cell.tapOnPicture.rx_event
-            .map { _ in
-                return linkViewModel.thumbnailURL
-            }
+        cell
+            .tapOnPicture
             .subscribeNext { [weak self] URL in
                 if let URL = URL {
                     let vc = ImageDetailViewController(URL: URL)
