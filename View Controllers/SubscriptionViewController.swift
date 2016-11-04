@@ -123,9 +123,3 @@ class SubscriptionViewController: BaseTableViewController {
     }
 }
 
-
-extension SubscriptionViewController {
-    func mixTimelines() {
-
-    }
-}

@@ -7,18 +7,33 @@
 //
 
 import UIKit
+#if !RX_NO_MOUDLE
+import RxSwift
+import RxCocoa
+#endif
 
 class ImageDetailViewController: UIViewController {
 
-    var url: NSURL?
-
-    var closeButton: UIImageView!
+    var URL: NSURL?
+    var scrollView: UIScrollView!
+    var imageView: UIImageView!
     
+    var tap = UITagGestureRecognizer()
+    
+    var swipeUp: UISwipeGestureRecognizer = {
+        $0.direction = .Up
+        return $0
+    }(UISwipeGestureRecognizer())
+    
+    var swipeDown: UISwipeGestureRecognizer = {
+        $0.direction = .Down
+        return $0
+    }(UISwipeGestureRecognizer())
+
+    private let disposeBag = DisposeBag()
     init(URL: NSURL) {
         super.init(nibName: nil, bundle: nil)
-        
-        self.url = URL
-        
+        self.URL = URL    
     }
     
     override func prefersStatusBarHidden() -> Bool {
@@ -31,39 +46,62 @@ class ImageDetailViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         self.view.backgroundColor = UIColor.blackColor()
 
-        self.closeButton = UIImageView(frame: CGRectMake(10, 25, 30, 30))
-        
-        self.closeButton.image = UIImage.fontAwesomeIconWithName(.Times, textColor: UIColor.whiteColor(), size: CGSize(width: 25, height: 25))
-        
-        let g = UITapGestureRecognizer(target: self, action: #selector(ImageDetailViewController.closeButtonTapped(_:)))
-        
-        self.closeButton.userInteractionEnabled = true
-        self.closeButton.addGestureRecognizer(g)
-        
-        self.view.addSubview(self.closeButton)
-        
-        let imageView = UIImageView(frame: CGRectMake(0, 0, view.bounds.width, view.bounds.height))
-        
-        imageView.center = self.view.center
-        imageView.contentMode = .ScaleAspectFit
-        
-        imageView.sd_setImageWithURL(url!)
-        view.addSubview(imageView)
-        
-    }
+        scrollView = {
+            $0.delegate = self
+            $0.backgroundColor = UIColor.clearColor()
+            $0.maximumZoomScale = 4
+            $0.minimumzoomScale = 0.5
+            $0.bounceZoom = true
+            $0.showVerticalScrollIndicator = false
+            $0.showHorizontalScrollIndicator = false
 
-    /**
-     Animate image frame 
-     */
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-    }
+            return $0
+        }(UIScrollView(frame: self.view.bounds))
+        self.view.addSubview(scrollView)
 
-    @objc private func closeButtonTapped(sender: UITapGestureRecognizer) {
-        self.dismissViewControllerAnimated(true, completion: nil)    
+        imageView = {
+            $0.center = self.view.center
+            $0.contentMode = .ScaleAspectFit
+
+            return $0
+        }(UIImageView(frame: self.view.bounds))
+        scrollView.addSubview(imageView)
+
+        // Setup gesture recognizer
+        [tap, swipeUp, swipeDown].forEach {
+            $0.addGestureRecognizer($0) 
+            $0.rx_event
+            .subscribeNext {[weak self] _ in
+                self.dismissViewControllerAnimated(true, completion: nil)    
+            }
+        }        
+        
+        // Setup image and suitable frame
+        self.imageView.sd_setImageWithURL(URL)
+    }
+}
+
+// MARK: UIScrolViewDelegate
+
+extension ImageDetailViewController: UIScrollViewDelegate {
+    func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
+        return self.imageView
+    } 
+
+    func scrollViewDidZoom(scrollView: UIScrollView) {
+        let originalSize = self.scrollView.bounds.size
+        let contentSize  = self.scrollView.contentSize
+        let offsetX = originalSize.width > contentSize.width
+            ? (originalSize.width - contentSize.width) / 2
+            : 0
+
+        let offsetY = originalSize.height > contentSize.height
+            ? (originalSize.height - cotnentSize.height) / 2
+            : 0
+
+        self.imageView.center = CGPointMake(contentSize.width / 2 + offsetX, contentSize.height / 2 + offsetY)
     }
 }
 

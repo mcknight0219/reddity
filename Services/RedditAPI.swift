@@ -26,6 +26,7 @@ enum RedditAPI {
     case Subreddit(name: String, after: String)
     case SearchTitle(query: String, limit: Int?, after: String?)
     case SearchSubreddit(query: String, limit: Int?, after: String?)
+    case Subscriptions
 }
 
 extension RedditAPI: TargetType {
@@ -48,6 +49,9 @@ extension RedditAPI: TargetType {
 
         case .SearchSubreddit:
             return "/subreddits/search"
+
+        case .Subscriptions:
+            return "/subreddits/mine/subscriber"
         }
     }
 
