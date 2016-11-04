@@ -66,7 +66,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
 
     func reload() {
         isRefreshing.value = true
-        links.value = []
+        
         recursiveLinkRequest()
             .takeUntil(rx_deallocated)
             .doOnNext { _ in
