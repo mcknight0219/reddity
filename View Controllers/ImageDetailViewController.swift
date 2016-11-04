@@ -18,7 +18,7 @@ class ImageDetailViewController: UIViewController {
     var scrollView: UIScrollView!
     var imageView: UIImageView!
     
-    var tap = UITagGestureRecognizer()
+    var tap = UITapGestureRecognizer()
     
     var swipeUp: UISwipeGestureRecognizer = {
         $0.direction = .Up
@@ -52,10 +52,7 @@ class ImageDetailViewController: UIViewController {
             $0.delegate = self
             $0.backgroundColor = UIColor.clearColor()
             $0.maximumZoomScale = 4
-            $0.minimumzoomScale = 0.5
-            $0.bounceZoom = true
-            $0.showVerticalScrollIndicator = false
-            $0.showHorizontalScrollIndicator = false
+            $0.minimumZoomScale = 0.5
 
             return $0
         }(UIScrollView(frame: self.view.bounds))
@@ -71,11 +68,12 @@ class ImageDetailViewController: UIViewController {
 
         // Setup gesture recognizer
         [tap, swipeUp, swipeDown].forEach {
-            $0.addGestureRecognizer($0) 
+            self.scrollView.addGestureRecognizer($0)
             $0.rx_event
             .subscribeNext {[weak self] _ in
-                self.dismissViewControllerAnimated(true, completion: nil)    
+                self?.dismissViewControllerAnimated(true, completion: nil)
             }
+            .addDisposableTo(disposeBag)
         }        
         
         // Setup image and suitable frame
@@ -98,7 +96,7 @@ extension ImageDetailViewController: UIScrollViewDelegate {
             : 0
 
         let offsetY = originalSize.height > contentSize.height
-            ? (originalSize.height - cotnentSize.height) / 2
+            ? (originalSize.height - contentSize.height) / 2
             : 0
 
         self.imageView.center = CGPointMake(contentSize.width / 2 + offsetX, contentSize.height / 2 + offsetY)

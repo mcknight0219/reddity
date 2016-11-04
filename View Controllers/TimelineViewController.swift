@@ -132,6 +132,21 @@ extension TimelineViewController: UITableViewDataSource {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
         let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
         cell.setViewModel(linkViewModel)
+        // Map tapping on image
+        cell.tapOnPicture.rx_event
+            .map { _ in
+                return linkViewModel.thumbnailURL
+            }
+            .subscribeNext { [weak self] URL in
+                if let URL = URL {
+                    let vc = ImageDetailViewController(URL: URL)
+                    vc.modalTransitionStyle = .CrossDissolve
+                    vc.modalPresentationStyle = .FullScreen
+                    
+                    self?.navigationController?.presentViewController(vc, animated: true, completion: nil)
+                }
+            }
+            .addDisposableTo(disposeBag)
         
         return cell
     }

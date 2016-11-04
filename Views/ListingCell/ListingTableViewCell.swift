@@ -23,15 +23,17 @@ class ListingTableViewCell: UITableViewCell {
         return self.viewWithTag(2) as? UILabel 
     }()
 
-    // Only specific to NewsCell and ImageCell
-    lazy var picture: UIImageView? = {
-         let imageView =  self.viewWithTag(3) as? UIImageView 
-         imageView?.addGestureRecognizer(tap)
-    }()
-    
-    lazy var tap: UITapGestureRecognizer = {
+    lazy var tapOnPicture: UITapGestureRecognizer = {
         return UITapGestureRecognizer()
     }()
+    // Only specific to NewsCell and ImageCell
+    lazy var picture: UIImageView? = {
+        let imageView =  self.viewWithTag(3) as? UIImageView
+        imageView?.addGestureRecognizer(self.tapOnPicture)
+        
+        return imageView
+    }()
+
 
     var disposeBag = DisposeBag()
     
@@ -65,22 +67,8 @@ class ListingTableViewCell: UITableViewCell {
             }
             .bindTo(self.accessory!.rx_text)
             .addDisposableTo(disposeBag)
+        
 
-        tap
-            .rx_event
-            .flatMap { _ in
-                return self.viewModel
-                    .map { viewModel -> NSURL? in
-                        return viewModel.resourceURL
-                    }
-            }
-            .subscribeNext { [weak self] URL in
-                let vc = ImageDetailViewController(URL: URL) 
-                vc.modalTransitionStyle = .CrossDissovle
-                vc.modalPresentationStyle = .FullScreen
-                self?.navigationController?.presentViewController(vc, animated: true, completion: nil)
-            }
-            .addDisposableTo(disposeBag)
     }
 
     @objc private func applyTheme() {
