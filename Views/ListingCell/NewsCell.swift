@@ -15,9 +15,10 @@ import RxCocoa
 import Moya
 
 class NewsCell: ListingTableViewCell {
+    @IBOutlet weak var revealButton: UIButton!
+    
     override func configure() {
         super.configure()
-        let reuseBag = DisposeBag()        
 
         viewModel
             .flatMap { viewModel in

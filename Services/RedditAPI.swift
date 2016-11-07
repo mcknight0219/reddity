@@ -28,6 +28,8 @@ enum RedditAPI {
     case SearchSubreddit(query: String, limit: Int?, after: String?)
     case Subscriptions
     case Comment(subreddit: String, id: String)
+    case Subscribe(name: String, skipDefault: Bool)
+    case Unsubscribe(name: String)
 }
 
 extension RedditAPI: TargetType {
@@ -56,6 +58,12 @@ extension RedditAPI: TargetType {
 
         case .Comment(let subreddit, let id):
             return "/r/\(subreddit)/comments/\(id)"
+            
+        case .Subscribe(_):
+            return "/api/subscribe"
+            
+        case .Unsubscribe:
+            return "/api/subscribe"
         }
     }
 
@@ -96,6 +104,16 @@ extension RedditAPI: TargetType {
 
         case .Comment:
             return ["raw_json": "1"]
+            
+        case .Subscriptions:
+            return ["limit": "100"]
+            
+        case .Subscribe(let name, let skip):
+            return ["action": "sub", "skip_initial_defaults": skip, "sr": name]
+            
+        case .Unsubscribe(let name):
+            return ["action": "unsub", "sr": name]
+            
         default:
             return nil
         }
@@ -103,7 +121,7 @@ extension RedditAPI: TargetType {
 
     var method: Moya.Method {
         switch self {
-        case .XApp:
+        case .XApp, .Subscribe, .Unsubscribe:
             return .POST
         default:
             return .GET

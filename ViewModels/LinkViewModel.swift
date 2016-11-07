@@ -41,9 +41,9 @@ class LinkViewModel: NSObject {
     
     lazy var cellHeight: CGFloat = {
         if case .Image = self.cellType { 
-            return 270.0
+            return 300.0
         } else {
-            return 180.0
+            return 220.0
         }
     }()
     
@@ -52,9 +52,15 @@ class LinkViewModel: NSObject {
     }()
 
     lazy var accessory: String = {
-        let link = self.link
-        let score = link.ups - link.downs
-        return "\(link.subreddit)・\(link.createdAt.daysAgo())・\(score)"
+        return "Comments: \(self.link.numberOfComments)"
+    }()
+    
+    lazy var subreddit: String = {
+        return self.link.subreddit
+    }()
+    
+    lazy var date: String = {
+        return self.link.createdAt.daysAgo()
     }()
     
     lazy var URL: String = {

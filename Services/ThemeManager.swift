@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import ChameleonFramework
 
 enum CellTheme {
     case Dark
@@ -36,11 +37,15 @@ enum CellTheme {
     }
 
     var accessoryTextColor: UIColor {
-        return UIColor.lightGrayColor()
+        return FlatBlue()
     }
 
     var placeholderImageColor: UIColor {
         return UIColor.darkGrayColor()
+    }
+    
+    var linkColor: UIColor {
+        return FlatBlue()
     }
 }
 
@@ -67,7 +72,7 @@ enum TableViewTheme {
         case Dark:
             return UIColor.darkGrayColor()
         case Light:
-            return UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
+            return UIColor.lightGrayColor()
         }
     }
 
@@ -78,6 +83,15 @@ enum TableViewTheme {
         case Light:
             return .Default
         } 
+    }
+    
+    var titleTextColor: UIColor {
+        switch self {
+        case Dark:
+            return UIColor(colorLiteralRed: 102/255, green: 102/255, blue: 102/255, alpha: 1.0)
+        case Light:
+            return UIColor(colorLiteralRed: 102/255, green: 102/255, blue: 102/255, alpha: 1.0)
+        }
     }
 }
 

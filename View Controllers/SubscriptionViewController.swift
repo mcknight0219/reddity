@@ -7,64 +7,121 @@
 //
 
 import UIKit
+import ChameleonFramework
 import Action
 import RxSwift
 
 class SubscriptionViewController: BaseTableViewController {
-    var provider: Networking!
-    
-    // Show if no subscription 
+ 
+    let _tapOnBackground = UITapGestureRecognizer()
     lazy var backgroundView: UIView = {
         return {
-            let label = {
+            let label: UILabel = {
                 $0.text = "You don't have any subscription yet."
                 $0.font = UIFont(name: "Lato-Regular", size: 18)
                 $0.textColor = UIColor.grayColor()
                 $0.numberOfLines = 0
                 $0.textAlignment = .Center
+                
+                return $0
             }(UILabel())
             $0.addSubview(label)
+            
+            let this = $0
             label.snp_makeConstraints { make in
-                make.leading.equalTo($0).offset(25)
-                make.trailing.equalTo($0).offset(-25)
+                make.leading.equalTo(this).offset(25)
+                make.trailing.equalTo(this).offset(-25)
                 make.top.equalTo(UIScreen.mainScreen().bounds.height / 2 - 150)
             }
+            
+            $0.addGestureRecognizer(self._tapOnBackground)
 
             return $0
         }(UIView())
     }()
+    
+    lazy var subtitleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Regular", size: 14)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 24, 200, 44-24)))
+    }()
+    
+    lazy var titleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Bold", size: 20)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            $0.text = "Subscription"
 
+            return $0
+        }(UILabel(frame: CGRectMake(0, 2, 200, 24)))
+    }()
+
+    var provider: Networking!
+    
     private var selectedOrderIndex = Variable<Int>(0)
-    var viewModel: SubscriptionViewModelType {
-        return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable())
-    }
+    lazy var viewModel: SubscriptionViewModelType = {
+        let trigger = self
+            ._tapOnBackground
+            .rx_event
+            .asObservable()
+            .map { _ in
+                return NSDate()
+            }
+        
+        return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable(), reload: trigger)
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         hideFooter()
         
-        navigationItem.title = "Subscription"
-        navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Sort", style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
-
+        let navTitleView =  UIView(frame: CGRectMake(0, 0, 200, 44))
+        navTitleView.backgroundColor = UIColor.clearColor()
+        navTitleView.autoresizesSubviews = true
+        navTitleView.addSubview(self.titleView)
+        navTitleView.addSubview(subtitleView)
+        navTitleView.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
+        navigationItem.titleView = navTitleView
+        
+        let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Sort), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
+        sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        navigationItem.rightBarButtonItem = sortButton
+        
+        let refreshButton = UIBarButtonItem()
+        refreshButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        refreshButton.title = String.fontAwesomeIconWithName(.Refresh)
+        navigationItem.leftBarButtonItem = refreshButton
+        
         viewModel
             .updatedContents
             .subscribeOn(MainScheduler.instance)
-            .map { _ in 
+            .map { n in
                 return self.tableView
             }
-            .doOnNext { tableView in 
+            .doOnNext { tableView in
                 tableView.reloadData()
             }
-            .subscribeNext { _ in }
+            .subscribeNext { _ in
+                self.subtitleView.text = "(\(self.viewModel.numberOfSubscriptions))"
+            }
             .addDisposableTo(disposeBag)
 
         viewModel
             .showBackground
             .subscribeOn(MainScheduler.instance)
-            .filter(false)
-            .subscribeNext { [weak self] _ in 
-                self?.tableView.backgroundView = self?.backgroundView
+            .subscribeNext { [weak self] show in
+                if show {
+                    self?.tableView.backgroundView = self?.backgroundView
+                } else {
+                    self?.tableView.backgroundView = nil
+                }
             }
             .addDisposableTo(disposeBag)
     }
@@ -76,7 +133,7 @@ class SubscriptionViewController: BaseTableViewController {
     }
     
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        return 60
+        return 80
     }
 
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -86,11 +143,13 @@ class SubscriptionViewController: BaseTableViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         var cell = tableView.dequeueReusableCellWithIdentifier("SubscriptionCell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "SubscriptionCell")
+            cell = UITableViewCell(style: .Subtitle, reuseIdentifier: "SubscriptionCell")
         }
 
         let sub = self.viewModel.subredditModelAtIndexPath(indexPath)
-        cell!.textLabel?.text = sub.title
+        cell!.textLabel?.text = sub.displayName
+        cell!.detailTextLabel?.text = "\(sub.subscribers)"
+        cell!.accessoryType = .DetailButton
         
         return cell!
     }
@@ -111,7 +170,7 @@ class SubscriptionViewController: BaseTableViewController {
     
     override func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
         let deleteAction = UITableViewRowAction(style: .Normal, title: "Unsubscribe") {action in
-            
+            self.viewModel.unsubscribe(indexPath)
         }
         
         return [deleteAction]
@@ -131,8 +190,11 @@ extension SubscriptionViewController {
         let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
         sortOrderController.addAction(cancelAction)
         
-        ["Alphabetical", "Popularity", "Favorite"].enumerate().map { (index, name) in 
-            let mod = name + (self.selectedOrderIndex.value == index) ? "✓" : ""
+        _ = ["Alphabetical", "Popularity", "Favorite"].enumerate().map { (index, name) in
+            var mod = name
+            if self.selectedOrderIndex.value == index {
+                mod = mod + "✓"
+            }
             let option = UIAlertAction.Action(mod, style: .Default)
             option.rx_action = CocoaAction {
                 self.selectedOrderIndex.value = index
@@ -142,6 +204,13 @@ extension SubscriptionViewController {
         }
         
         return sortOrderController
+    }
+}
+
+extension SubscriptionViewController {
+    override func applyTheme() {
+        let theme = TableViewTheme()
+        titleView.textColor = theme?.titleTextColor
     }
 }
 

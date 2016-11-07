@@ -37,6 +37,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     var disposeBag = DisposeBag()
+    var provider = Networking.newNetworking()
 
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
         let result = url.query?.componentsSeparatedByString("&").reduce([:]) { (result: [String: String], q: String) in
@@ -124,14 +125,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let searchVC: SearchViewController = {
             $0.modalTransitionStyle = .CoverVertical
             $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
-            $0.provider = Networking.newNetworking()
+            $0.provider = provider
             return $0
         }(SearchViewController())
         
         let homeVC: TimelineViewController = {
             $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
-            $0.provider = Networking.newNetworking()
+            $0.provider = provider
             
             return $0
         }(TimelineViewController(subredditName: ""))
@@ -139,6 +140,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         let subscriptionVC: SubscriptionViewController = {
             $0.modalTransitionStyle = .CrossDissolve
             $0.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 2)
+            $0.provider = provider
             
             return $0
         }(SubscriptionViewController())

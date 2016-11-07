@@ -22,27 +22,22 @@ class ListingTableViewCell: UITableViewCell {
     lazy var accessory: UILabel? = {
         return self.viewWithTag(2) as? UILabel 
     }()
+    
+    lazy var subreddit: UILabel? = {
+        return self.viewWithTag(4) as? UILabel
+    }()
 
-    lazy var tapOnPicture: Observable<NSURL?> = {
-        let tap = UITapGestureRecognizer()
-        self.picture?.addGestureRecognizer(tap)
-        return tap.rx_event
-                .flatMap { _ in 
-                    self
-                        .viewModel
-                        .map { viewModel -> NSURL?
-                            return viewMode.resourceURL
-                        } 
-                }
-    }
-
+    lazy var date: UILabel? = {
+       return self.viewWithTag(5) as? UILabel
+    }()
+    
     // Only specific to NewsCell and ImageCell
     lazy var picture: UIImageView? = {
         return self.viewWithTag(3) as? UIImageView
     }()
 
 
-    var disposeBag = DisposeBag()
+    var reuseBag = DisposeBag()
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -57,12 +52,12 @@ class ListingTableViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
-        configure()
+        self.configure()
     }
 
     func configure() {
-        let reuseBag = DisposeBag()
-
+        reuseBag = DisposeBag()
+        
         self.applyTheme()
         self.selectionStyle = .None
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ListingTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
@@ -81,6 +76,20 @@ class ListingTableViewCell: UITableViewCell {
             }
             .bindTo(self.accessory!.rx_text)
             .addDisposableTo(reuseBag)
+        
+        viewModel
+            .map { viewModel -> String in
+                return viewModel.subreddit
+            }
+            .bindTo(self.subreddit!.rx_text)
+            .addDisposableTo(reuseBag)
+        
+        viewModel
+            .map { viewModel -> String in
+                return  viewModel.date
+            }
+            .bindTo(self.date!.rx_text)
+            .addDisposableTo(reuseBag)
     }
 
     @objc private func applyTheme() {
@@ -88,5 +97,6 @@ class ListingTableViewCell: UITableViewCell {
         self.backgroundColor      = theme.backgroundColor
         self.title?.textColor     = theme.mainTextColor
         self.accessory?.textColor = theme.accessoryTextColor
+        self.subreddit?.textColor = theme.linkColor
     }
 }

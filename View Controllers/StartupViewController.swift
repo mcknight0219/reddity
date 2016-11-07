@@ -96,7 +96,7 @@ final class StartupViewController: UIViewController {
     }
     
     func login() {
-        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet())!)
+        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize.compact?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet())!)
         let safariViewController = SFSafariViewController(URL: authUrl!)
         self.presentViewController(safariViewController, animated: true, completion: nil)
         

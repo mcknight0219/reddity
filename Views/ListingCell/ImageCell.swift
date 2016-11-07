@@ -19,13 +19,23 @@ class ImageCell: ListingTableViewCell {
         return UIImage.imageFilledWithColor(FlatWhite())
     }()
     
+    var tapOnPicture: Observable<NSDate>!
+
     override func configure() {
         super.configure()
-        let reuseBag = DisposeBag()
-
+        
+        let tap = UITapGestureRecognizer()
+        self.picture?.addGestureRecognizer(tap)
+        
+        tapOnPicture = tap
+            .rx_event
+            .map { _ in
+                return NSDate()
+            }
+        
         viewModel
             .map { viewModel -> NSURL? in
-                return viewModel.thumbnailURL ?? viewModel.resourceURL 
+                return viewModel.resourceURL
             } 
             .doOn {[weak self] _ in
                 self?.picture?.contentMode = .ScaleAspectFill

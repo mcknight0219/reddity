@@ -31,7 +31,7 @@ class InsetLabel: UILabel {
     }
 }
 
-class DetailsViewController: UIViewController {
+class DetailsViewController: BaseViewController {
     
     var commentsVC: UITableViewController!
     
@@ -42,8 +42,6 @@ class DetailsViewController: UIViewController {
             return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
         }
     }()
-    
-    var layout: LayoutType!
 
     let subject: Link
     
@@ -60,8 +58,6 @@ class DetailsViewController: UIViewController {
     init(aSubject: Link) {
         subject = aSubject
         super.init(nibName: nil, bundle: nil)
-        
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(DetailsViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
     required init?(coder aCoder: NSCoder) {
@@ -137,43 +133,8 @@ class DetailsViewController: UIViewController {
                 self.commentsVC.tableView.reloadData()
             }
         }
-        
-        self.applyTheme()
+
     }
-    
-    func applyTheme() {
-        guard self.topView.subviews.count > 0 else { return }
-        
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            self.view.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 35/255, alpha: 1.0)
-            self.topView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
-        } else {
-            self.view.backgroundColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            self.topView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
-        }
-        
-        
-        for subview in self.topView.subviews {
-            if let v = subview as? InsetLabel {
-                if ThemeManager.defaultManager.currentTheme == "Dark" {
-                    v.backgroundColor = UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
-                    v.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
-                } else {
-                    v.backgroundColor = UIColor.whiteColor()
-                    v.textColor = UIColor.blackColor()
-                }
-            }
-            
-                if ThemeManager.defaultManager.currentTheme == "Dark" {
-                    subview.backgroundColor = UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
-                } else {
-                    subview.backgroundColor = UIColor.whiteColor()
-                }
-            
-        }
-       
-    }
-    
 }
 
 

@@ -12,7 +12,7 @@ import RxSwift
 import RxCocoa
 #endif
 
-class ImageDetailViewController: UIViewController {
+class ImageDetailViewController: BaseViewController {
 
     var URL: NSURL?
     var scrollView: UIScrollView!
@@ -30,7 +30,6 @@ class ImageDetailViewController: UIViewController {
         return $0
     }(UISwipeGestureRecognizer())
 
-    private let disposeBag = DisposeBag()
     init(URL: NSURL) {
         super.init(nibName: nil, bundle: nil)
         self.URL = URL    
@@ -56,14 +55,20 @@ class ImageDetailViewController: UIViewController {
 
             return $0
         }(UIScrollView(frame: self.view.bounds))
+    
         self.view.addSubview(scrollView)
 
         imageView = {
             $0.center = self.view.center
-            $0.contentMode = .ScaleAspectFit
+            $0.contentMode = .ScaleAspectFill
+            $0.sd_setImageWithURL(URL)
 
             return $0
         }(UIImageView(frame: self.view.bounds))
+        imageView.sd_setImageWithURL(URL, completed: { (image, _, _, _) in
+            self.scrollView.setZoomScale(UIScreen.mainScreen().bounds.width / image.size.width, animated: true)
+        })
+        
         scrollView.addSubview(imageView)
 
         // Setup gesture recognizer
@@ -76,8 +81,6 @@ class ImageDetailViewController: UIViewController {
             .addDisposableTo(disposeBag)
         }        
         
-        // Setup image and suitable frame
-        self.imageView.sd_setImageWithURL(URL)
     }
 }
 

@@ -16,8 +16,9 @@ import Moya
 
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
-    var loadNextPageTrigger: Observable<Void>! { get }
+    var loadNextPageTrigger: Observable<NSDate>! { get }
     var isRefreshing: Variable<Bool> { get }
+    var showLoadingFooter: Observable<Bool>! { get }
 
     var numberOfLinks: Int { get }
     var updatedContents: Observable<NSDate> { get }
@@ -31,6 +32,8 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     var links = Variable<[Link]>([])
 
     var isRefreshing = Variable<Bool>(false)
+    
+    var showLoadingFooter: Observable<Bool>!
 
     var numberOfLinks: Int {
         return distinctLinks.value.count
@@ -53,9 +56,9 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     
     var distinctLinks = Variable<[Link]>([])
     var showSpinner: Observable<Bool>!
-    var loadNextPageTrigger: Observable<Void>!
+    var loadNextPageTrigger: Observable<NSDate>!
     
-    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Void>) {
+    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<NSDate>) {
         self.subreddit = subreddit
         self.provider = provider
         self.loadNextPageTrigger = loadNextPageTrigger
@@ -96,13 +99,19 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         showSpinner = Observable.combineLatest(distinctLinks.asObservable(), isRefreshing.asObservable(), reachabilityManager.reach) { (o1, o2, o3) in
             return o1.count == 0 && !o2 && o3
         }
+        
+        showLoadingFooter =
+            Observable
+                .combineLatest(loadNextPageTrigger, updatedContents) {
+                    $0.1.compare($0.0) == .OrderedAscending
+                }
     }
     
     private func recursiveLinkRequest() -> Observable<[Link]> {
         return linkRequest([], after: "", loadNextPageTrigger: self.loadNextPageTrigger)
     }
     
-    private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<Void>) -> Observable<[Link]> {
+    private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<NSDate>) -> Observable<[Link]> {
         let endpoint = self.subreddit.isEmpty
             ? RedditAPI.FrontPage(after: after)
             : RedditAPI.Subreddit(name: self.subreddit, after: after)
