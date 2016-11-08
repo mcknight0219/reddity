@@ -78,26 +78,40 @@ class DetailsViewController: BaseViewController {
         }(UILabel(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 44)))
     }()
 
-    let subject: Link
-    
-    // The original comments tree
-    var comments = [Comment]()
+    lazy var selfTextView: UIView = {
+        let selfTextLabel: UILabel = {
+            $0.backgroundColor = UIColor.lightGrayColor()
+            $0.textAlignment = .Natural
+            $0.font = UIFont.SystemFontOfSize(16)
+            $0.textColor = UIColor.blackColor()
+            $0.text = self.subject.selfType.associatedValue ?? ""
 
-    // The comments that are actullay displayed in tableview.
-    var commentsOSD = [Comment]()
+            return $0
+        }(UILabel())
+
+        let view = {
+            $0.addSubview(selfTextLabel)
+        }(UIView())
+
+        selfTextLabel.snp_makeConstraint { make in 
+            make.top.bottom.left.right.equalTo(view)
+        }
+
+        return view
+    }()
     
-    var viewModel: CommentViewModelType!
+    //var commentsOSD = [Comment]()
+    var comments = [Comment]()
+    let subject: Link
+    lazy var viewModel: CommentViewModelType = {
+        return CommentViewModel(aLink: self.subject, provider: self.provider)
+    }()
+
     init(aSubject: Link, provider: Networking) {
-        subject = aSubject
-        viewModel = CommentViewModel(aLink: aSubject, provider: provider)
-        
+        self.subject = aSubject
         super.init(nibName: nil, bundle: nil)
     }
     
-    convenience init(viewModel: LinkViewModel, provider: Networking) {
-        self.init(aSubject: viewModel.link, provider: provider)
-    }
-
     required init?(coder aCoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -115,12 +129,9 @@ class DetailsViewController: BaseViewController {
             $0.tableView.tableFooterView = UIView()
             $0.edgesForExtendedLayout = .All
             $0.extendedLayoutIncludesOpaqueBars = false
-            //$0.automaticallyAdjustsScrollViewInsets = true
             $0.tableView.cellLayoutMarginsFollowReadableWidth = false
-            
             $0.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-            $0.tableView.registerNib(UINib(nibName: "LoadmoreCell", bundle: nil), forCellReuseIdentifier: "LoadmoreCell")
-            
+            $0.tableView.tableFooterView = self.footerView
             return $0
         }(BaseTableViewController())
         addChildViewController(commentsVC)
@@ -146,72 +157,34 @@ class DetailsViewController: BaseViewController {
             return $0
         }(UIView(frame: CGRectMake(0, 0, 200, 44)))
         navigationItem.titleView = navTitleView
-        
-        let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
-        apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) { comments in
-            guard comments != nil else {
-                print("Server returns zero comments")
-                return
+        let replyToPostButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Edit), style: .Plain, target: self, action: #selector(DetailsViewController.editPressed))
+        replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        navigationItem.rightBarButtonItem = replyToPostButton
+
+        // Things that change
+        viewModel.updatedContents
+            .subscribeOn(MainScheduler.instance)
+            .subscribeNext {[weak self] _ in
+                self?.commentsVC.tableView.reloadData()
             }
-            
-            self.comments = comments!
-            // Sort comments by popularity
-            self.comments.sortInPlace { $0.score > $1.score }
-            for i in 0..<self.comments.count {
-                self.comments[i].replies.sortInPlace { $0.score > $1.score }
-            }
-            self.markCommentsVisibility()
-            self.loadCommentsOSD()
-                        
-            dispatch_async(dispatch_get_main_queue()) {
-                self.indicatorView.stopAnimating()
-                self.indicatorView.removeFromSuperview()
-                
-                self.commentsVC.tableView.reloadData()
-                self.commentsVC.tableView.tableFooterView = self.footerView
-            }
-        }
+            .addDisposableTo(disposeBag)
+
+        viewModel.showSpinner
+            .map { !$0 }
+            .bindTo(self.indicatorView.rx_hidden)
+            .addDisposableTo(diseposeBag)
+    }
+
+    func replyToPostButton() {
 
     }
 }
 
 
 extension DetailsViewController: UITableViewDelegate {
-    
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        var comment = self.commentsOSD[indexPath.row]
-        if comment.isPlaceholder {
-            var r = indexPath.row - 1
-            guard r >= 0 else { return }
-            while r >= 0 {
-                if self.commentsOSD[r].level != comment.level { break }
-                else { r -= 1 }
-            }
-            
-            let parent = self.commentsOSD[r]
-            
-            commentsOSD.removeAtIndex(indexPath.row)
-            
-            let vc = self.commentsVC
-            vc.tableView.beginUpdates()
-            vc.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Top)
-            vc.tableView.endUpdates()
-            
-            var row = indexPath.row
-            vc.tableView.beginUpdates()
-            (parent.replies.filter { !$0.isShow }).forEach { c in
-                let descendants = c.flatten()
-                descendants.forEach {
-                    commentsOSD.insert($0, atIndex: row)
-                    vc.tableView.insertRowsAtIndexPaths([NSIndexPath.init(forItem: row, inSection: 0)], withRowAnimation: .Bottom)
-                    row += 1
-                }
-            }
-            
-            vc.tableView.endUpdates()
-        }
+        
     }
-
 }
 
 // MARK: - Table view data source
@@ -222,67 +195,14 @@ extension DetailsViewController : UITableViewDataSource{
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        if self.commentsOSD[indexPath.row].isPlaceholder {
-            let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("LoadmoreCell", forIndexPath: indexPath) as! LoadmoreCell
-            cell.configWith(&self.commentsOSD[indexPath.row])
-            return cell
-        } else {
-            let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-            cell.configCellWith(&self.commentsOSD[indexPath.row])
-            return cell
-        }
+        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        cell.configCellWith(&self.commentsOSD[indexPath.row])
+
+
+        return cell
     }
 
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.commentsOSD.count
+        return self.viewModel.numberOfComments
     }
 }
-
-extension DetailsViewController {
-        
-    /**
-     Extract comments which are active into OSD array.
-
-     @discussion we use commentsOSD to display in the table
-     */
-    private func loadCommentsOSD() {
-        self.commentsOSD.removeAll()
-
-        for comment in self.comments {
-            if comment.isShow {
-                self.commentsOSD.append(comment)
-                self.loadRepliesOSD(comment.replies)
-            }        
-        }
-    }
-
-    private func loadRepliesOSD(replies: [Comment]) {
-        guard replies.count > 0 else { return }
-
-        var hasHidden = false
-        var level: Int?
-        for var reply in replies {
-            if reply.isShow { 
-                self.commentsOSD.append(reply) 
-                self.loadRepliesOSD(reply.replies)
-            } else {
-                level = reply.level
-                hasHidden = true
-            }
-        }
-
-        if hasHidden {
-            self.commentsOSD.append(makePlaceholder(level!))
-        }
-    }
-
-    /**
-     @discussion The default display status is always `false` on start
-     */
-    private func markCommentsVisibility() {
-        for i in 0..<self.comments.count {
-            self.comments[i].markIsShow { $0.score >= 3 }
-        }    
-    }
-} 
-
