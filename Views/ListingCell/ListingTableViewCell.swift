@@ -18,9 +18,8 @@ class ListingTableViewCell: UITableViewCell {
         return self.viewWithTag(1) as? UILabel
     }()
 
-    // The date, subreddit and subreddit of link
     lazy var accessory: UILabel? = {
-        return self.viewWithTag(2) as? UILabel 
+        return self.viewWithTag(2) as? UILabel
     }()
     
     lazy var subreddit: UILabel? = {

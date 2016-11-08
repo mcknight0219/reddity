@@ -42,6 +42,41 @@ class DetailsViewController: BaseViewController {
             return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
         }
     }()
+    
+    lazy var subtitleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Regular", size: 14)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 24, 200, 44-24)))
+    }()
+    
+    lazy var titleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Bold", size: 18)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            $0.numberOfLines = 1
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 2, 200, 24)))
+    }()
+    
+    lazy var footerView: UILabel = {
+        return {
+            $0.backgroundColor = CellTheme()?.backgroundColor
+            $0.textAlignment = .Center
+            $0.font = UIFont.fontAwesomeOfSize(16)
+            $0.textColor = UIColor.darkGrayColor()
+            $0.text = String.fontAwesomeIconWithName(.CircleO)
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 44)))
+    }()
 
     let subject: Link
     
@@ -51,13 +86,16 @@ class DetailsViewController: BaseViewController {
     // The comments that are actullay displayed in tableview.
     var commentsOSD = [Comment]()
     
-    lazy var lastContentOffset: CGFloat = {
-        return self.commentsVC.tableView.contentOffset.y
-    }()
-    
-    init(aSubject: Link) {
+    var viewModel: CommentViewModelType!
+    init(aSubject: Link, provider: Networking) {
         subject = aSubject
+        viewModel = CommentViewModel(aLink: aSubject, provider: provider)
+        
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    convenience init(viewModel: LinkViewModel, provider: Networking) {
+        self.init(aSubject: viewModel.link, provider: provider)
     }
 
     required init?(coder aCoder: NSCoder) {
@@ -67,6 +105,7 @@ class DetailsViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        // Setup
         commentsVC = {
             $0.tableView.frame = view.bounds
             $0.tableView.delegate = self
@@ -84,31 +123,29 @@ class DetailsViewController: BaseViewController {
             
             return $0
         }(BaseTableViewController())
-        
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
     
-        // indicator for comments table 
-        
+        // indicator for comments table
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
-        indicatorView.center = view.center
+        indicatorView.center = CGPointMake(view.bounds.width / 2, 13)
         indicatorView.hidesWhenStopped = true
         indicatorView.startAnimating()
 
-        let navTitle: UILabel = {
-            $0.text = subject.title
-            $0.font = UIFont(name: "Lato-Regular", size: 20)
-            $0.textAlignment = .Center
+        // Setup navigation bar
+        titleView.text = subject.title
+        subtitleView.text = "(\(subject.numberOfComments))"
+        let navTitleView: UIView = {
             $0.backgroundColor = UIColor.clearColor()
-            $0.numberOfLines = 2
-            $0.adjustsFontSizeToFitWidth = true
-            $0.minimumScaleFactor = 0.8
-            $0.textColor = UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)
+            $0.autoresizesSubviews = true
+            $0.addSubview(self.titleView)
+            $0.addSubview(self.subtitleView)
+            $0.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
+            
             return $0
-        }(UILabel(frame: CGRectMake(0, 0, 200, 40)))
-        
-        self.navigationItem.titleView = navTitle
+        }(UIView(frame: CGRectMake(0, 0, 200, 44)))
+        navigationItem.titleView = navTitleView
         
         let commentsResource = Resource(url: "/r/\(self.subject.subreddit)/comments/\(self.subject.id)", method: .GET, parser: commentsParser)
         apiRequest(Config.ApiBaseURL, resource: commentsResource, params: ["raw_json": "1"]) { comments in
@@ -131,6 +168,7 @@ class DetailsViewController: BaseViewController {
                 self.indicatorView.removeFromSuperview()
                 
                 self.commentsVC.tableView.reloadData()
+                self.commentsVC.tableView.tableFooterView = self.footerView
             }
         }
 

@@ -76,6 +76,7 @@ class TimelineViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         automaticallyAdjustsScrollViewInsets = true
         
         topicTableViewController = {
@@ -161,8 +162,21 @@ extension TimelineViewController: UITableViewDataSource {
         
         let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
         cell.setViewModel(linkViewModel)
-        // Map tapping on image
         
+        let tap = UITapGestureRecognizer()
+        tap.numberOfTapsRequired = 1
+        cell.accessory?.addGestureRecognizer(tap)
+        cell.accessory?.userInteractionEnabled = true
+        tap.rx_event
+            .asObservable()
+            .subscribeNext { _ in
+                let vc = DetailsViewController(viewModel: linkViewModel, provider: self.provider)
+                vc.hidesBottomBarWhenPushed = true
+                self.navigationController?.pushViewController(vc, animated: true)
+            }
+            .addDisposableTo(disposeBag)
+        
+        // Map tapping on image
         if let imageCell = cell as? ImageCell {
             imageCell.tapOnPicture
                 .observeOn(MainScheduler.instance)

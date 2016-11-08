@@ -57,12 +57,6 @@ class CommentLabel : UILabel {
         self.commonInit()
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        
-        self.commonInit()
-    }
-    
     
     func commonInit() {
         self.userInteractionEnabled = true

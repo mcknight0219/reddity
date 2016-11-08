@@ -75,7 +75,7 @@ class LinkViewModel: NSObject {
     
     var presentImage: Observable<Bool>!
     
-    private var link: Link!
+    var link: Link!
     init(link: Link) {
         super.init()
         self.link = link

@@ -25,6 +25,18 @@ extension NSDate {
             return "One year ago"
         }
     }
+    
+    func minutesAgao() -> String {
+        let time = self.daysAgo()
+        guard time == "Today" else { return time }
+        
+        let hours = Int(abs(self.timeIntervalSinceNow) / (3600))
+        if hours > 1 {
+            return "\(hours) hours ago"
+        } else {
+            return "\(Int(abs(self.timeIntervalSinceNow) / 60)) minutes ago"
+        }
+    }
 
     /**
      Return the date string in sqlite format  

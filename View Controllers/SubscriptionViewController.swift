@@ -90,7 +90,7 @@ class SubscriptionViewController: BaseTableViewController {
         navTitleView.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
         navigationItem.titleView = navTitleView
         
-        let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Sort), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
+        let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Reorder), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
         sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
         navigationItem.rightBarButtonItem = sortButton
         
