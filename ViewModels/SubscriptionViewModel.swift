@@ -10,20 +10,20 @@ protocol SubscriptionViewModelType {
     var updatedContents: Observable<Int> { get }
     var selectedOrder: Observable<Int> { get }
     var showBackground: Observable<Bool>! { get }
+    var showRefresh: Observable<Bool>! { get }
 
     func subredditModelAtIndexPath(indexPath: NSIndexPath) -> Subreddit
     func unsubscribe(indexPath: NSIndexPath)
+    func reload()
 }
 
 class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     
     let provider: Networking!
     var subs = Variable([Subreddit]())
-    // We could sort subscriptions if necessary
     var sortedSubs = Variable<[Subreddit]>([])
 
     var selectedOrder: Observable<Int>
-    private var reload: Observable<NSDate>!
     
     var numberOfSubscriptions: Int {
         return self.sortedSubs.value.count
@@ -38,17 +38,34 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     }
 
     var showBackground: Observable<Bool>!
-    
+    var showRefresh = Observable<Bool>(false)
+
     private let disposeBag = DisposeBag()
-    init(provider: Networking, selectedOrder: Observable<Int>, reload: Observable<NSDate>) {
+    init(provider: Networking, selectedOrder: Observable<Int>) {
         // Get subscription from API
         self.provider = provider
         self.selectedOrder = selectedOrder
-        self.reload = reload
         
         super.init()
-        
         self.setup()
+    }
+
+    func reload() {
+        showRefresh.value = true
+        
+        self.provider
+        .request(RedditAPI.Subscriptions)
+        .filterSuccessfulStatusCodes()
+        .doOn { _ in 
+            self.showRefresh.value = false
+        }
+        .flatMap { response -> Observable<[Subreddit]> in
+            let jsonObject = JSON(data: response.data)
+            let subs = subredditsParser(jsonObject)
+            return Observable.just(subs)
+        }
+        .bindTo(subs)
+        .addDisposableTo(disposeBag)
     }
     
     private func reloadSubscriptions() {

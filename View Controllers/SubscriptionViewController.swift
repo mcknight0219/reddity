@@ -67,19 +67,12 @@ class SubscriptionViewController: BaseTableViewController {
     
     private var selectedOrderIndex = Variable<Int>(0)
     lazy var viewModel: SubscriptionViewModelType = {
-        let trigger = self
-            ._tapOnBackground
-            .rx_event
-            .asObservable()
-            .map { _ in
-                return NSDate()
-            }
-        
-        return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable(), reload: trigger)
+        return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable())
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.refreshControl = UIRefreshControl()
         hideFooter()
         
         let navTitleView =  UIView(frame: CGRectMake(0, 0, 200, 44))
@@ -92,12 +85,7 @@ class SubscriptionViewController: BaseTableViewController {
         
         let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Reorder), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
         sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
-        navigationItem.rightBarButtonItem = sortButton
-        
-        let refreshButton = UIBarButtonItem()
-        refreshButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
-        refreshButton.title = String.fontAwesomeIconWithName(.Refresh)
-        navigationItem.leftBarButtonItem = refreshButton
+        navigationItem.leftBarButtonItem = sortButton
         
         viewModel
             .updatedContents
@@ -121,6 +109,28 @@ class SubscriptionViewController: BaseTableViewController {
                     self?.tableView.backgroundView = self?.backgroundView
                 } else {
                     self?.tableView.backgroundView = nil
+                }
+            }
+            .addDisposableTo(disposeBag)
+
+        self.refreshControl
+            .rx_controlEvent(.ValueChanged)
+            .flatMap { reachabilityManager.reach }
+            .subscribeNext {[weak self] on in
+                if on {
+                    self?.viewModel.reload()
+                } else {
+                    self?.refresControl.endRefreshing()
+                }
+            }
+            .addDisposableTo(disposeBag)
+
+        viewModel
+            .showRefresh
+            .asObservable()
+            .subscribeNext {[weak self] show in
+                if !show {
+                    self?.refreshControl.endRefreshing()
                 }
             }
             .addDisposableTo(disposeBag)
