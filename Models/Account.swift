@@ -11,11 +11,21 @@ import Foundation
 enum AccountType {
     case Guest
     case LoggedInUser(name: String)
+
+    var name: String {
+        switch self {
+        case Guest:
+            return "guest"
+        case LoggedInUser(let name):
+            return name
+        }
+    }
 }
 
 struct Account {
     enum DefaultsKeys: String {
         case User = "User"
+        case Pool = "UserPool"
     }
 
     let defaults: NSUserDefaults
@@ -41,6 +51,7 @@ struct Account {
                 defaults.setObject("guest", forKey: DefaultsKeys.User.rawValue)
             case .LoggedInUser(let u):
                 defaults.setObject(u, forKey: DefaultsKeys.User.rawValue)
+                self.rememberMe()
             }
         }
     }
@@ -60,10 +71,35 @@ struct Account {
         }
         return false
     }
+    var numberOfAccounts: Int {
+        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+            return 0
+        } 
+        return pool.count
+    }
+
+    var allUserNames: [String] {
+        guar let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+            return []
+        }
+        return pool.keys()
+    }
 }
 
 extension Account {
     func forget() {
         defaults.removeObjectForKey(DefaultsKeys.User.rawValue)
+    }
+
+    // Store the refresh token for currently logged in User
+    // in case user want to switch account while browsing
+    func remeberMe(name: String) {
+        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+            pool = [String: AnyObject]()
+        }
+
+        pool[name] = XApp().refreshToken
+
+        defaults.setDictionary(pool, forKey: DefaultsKeys.Pool.rawValue)
     }
 }
