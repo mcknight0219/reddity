@@ -1,6 +1,9 @@
 import UIKit
 import ChameleonFramework
 import FontAwesome_swift
+#if !RX_NO_MODULE
+import RxSwift
+#endif
 
 class CommentCell: UITableViewCell {
     
@@ -42,18 +45,18 @@ class CommentCell: UITableViewCell {
     /**
      Load the comment and set proper left margin
      */
-    func configCellWith(inout aComment: Comment) {
+    func configCellWith(aComment: Comment) {
         self.comment = aComment
         commentLabel.text = aComment.text
 
         dateLabel.text = aComment.createdAt.minutesAgao()
         userLabel.text = aComment.user
         
-        commentButton.setImage(UIImage.fontAwesomeIconWithName(.CommentO, textColor: UIColor.lightGrayColor(), size: CGSizeMake(20, 20)), forState: .Normal)
-        commentButton.setTitle("\(aComment.numberOfReplies)", forState: .Normal)
+        commentButton.setImage(UIImage(named: "comment"), forState: .Normal)
+        commentButton.setTitle(" \(aComment.numberOfReplies)", forState: .Normal)
         
-        upButton.setImage(UIImage.fontAwesomeIconWithName(.ThumbsOUp, textColor: UIColor.lightGrayColor(), size: CGSizeMake(20, 20)), forState:  .Normal)
-        upButton.setTitle("\(aComment.ups)", forState: .Normal)
+        upButton.setImage(UIImage(named: "unlike"), forState:  .Normal)
+        upButton.setTitle(" \(aComment.ups)", forState: .Normal)
 
         // Map events
         commentButton.rx_tap

@@ -12,7 +12,7 @@ import RxSwift
 import RxCocoa
 #endif
 
-class ImageDetailViewController: BaseViewController {
+class ImageDetailViewController: UIViewController {
 
     var URL: NSURL?
     var scrollView: UIScrollView!
@@ -30,6 +30,8 @@ class ImageDetailViewController: BaseViewController {
         return $0
     }(UISwipeGestureRecognizer())
 
+    private var reuseBag = DisposeBag()
+    
     init(URL: NSURL) {
         super.init(nibName: nil, bundle: nil)
         self.URL = URL    
@@ -78,7 +80,7 @@ class ImageDetailViewController: BaseViewController {
             .subscribeNext {[weak self] _ in
                 self?.dismissViewControllerAnimated(true, completion: nil)
             }
-            .addDisposableTo(disposeBag)
+            .addDisposableTo(reuseBag)
         }        
         
     }

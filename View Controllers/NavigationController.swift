@@ -14,6 +14,7 @@ class NavigationController: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
         applyTheme()
+    
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(NavigationController.applyTheme), name: "ThemeManagerDidChangeThemeNotification", object: nil)
     }
 
@@ -21,8 +22,7 @@ class NavigationController: UINavigationController {
         return ThemeManager.defaultManager.currentTheme == "Dark" ? .LightContent : .Default
     }
 
-    func applyTheme() {
-        self.navigationBar.tintColor = FlatBlue()
+    func applyTheme() {    
         self.navigationBar.titleTextAttributes = [NSFontAttributeName:UIFont(name: "Lato-Regular", size: 20)!]
         if ThemeManager.defaultManager.currentTheme == "Default" {
             self.navigationBar.setBackgroundImage(UIImage.imageFilledWithColor(UIColor.whiteColor()), forBarMetrics: .Default)
@@ -39,6 +39,5 @@ class NavigationController: UINavigationController {
                 self.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor(colorLiteralRed: 79/255, green: 90/255, blue: 119/255, alpha: 1.0)]
             }
         }
-        
     }
 }

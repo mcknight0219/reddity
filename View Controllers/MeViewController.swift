@@ -42,7 +42,7 @@ class MeViewController: BaseTableViewController {
             return $0
         }(UISwitch())
         
-        let darkThemeOn = Variable(ThemeManager.defaultManager.currentTheme == "Dark")
+        let darkThemeOn = Variable(ThemeManager.defaultManager.currentTheme != "Dark")
         themeSwitch.rx_value <-> darkThemeOn
         
         darkThemeOn

@@ -8,6 +8,8 @@ protocol CommentViewModelType {
     var numberOfComments: Int { get }
     var showSpinner: Observable<Bool>! { get }
     var updatedContents: Observable<NSDate>! { get }
+    
+    func commentAtIndexPath(indexPath: NSIndexPath) -> Comment
 }
 
 class CommentViewModel: NSObject, CommentViewModelType {
@@ -57,4 +59,11 @@ class CommentViewModel: NSObject, CommentViewModelType {
             .map { $0.count == 0 }
         
     }
+}
+
+extension CommentViewModel {
+    func commentAtIndexPath(indexPath: NSIndexPath) -> Comment {
+        return self.comments.value[indexPath.row]
+    }
+
 }

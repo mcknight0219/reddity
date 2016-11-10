@@ -77,8 +77,9 @@ class TimelineViewController: BaseViewController {
         super.viewDidLoad()
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        automaticallyAdjustsScrollViewInsets = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .Plain, target: nil, action: nil)
         
+        automaticallyAdjustsScrollViewInsets = true
         topicTableViewController = {
             $0.view.frame = view.bounds
             $0.refreshControl = UIRefreshControl()
@@ -170,7 +171,7 @@ extension TimelineViewController: UITableViewDataSource {
         tap.rx_event
             .asObservable()
             .subscribeNext { _ in
-                let vc = DetailsViewController(viewModel: linkViewModel, provider: self.provider)
+                let vc = DetailsViewController(aSubject: linkViewModel.link, provider: self.provider)
                 vc.hidesBottomBarWhenPushed = true
                 self.navigationController?.pushViewController(vc, animated: true)
             }

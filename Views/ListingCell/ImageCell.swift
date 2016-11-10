@@ -14,10 +14,6 @@ import RxSwift
 
 
 class ImageCell: ListingTableViewCell {
-
-    lazy var placeholderImage: UIImage = {
-        return UIImage.imageFilledWithColor(FlatWhite())
-    }()
     
     var tapOnPicture: Observable<NSDate>!
 
@@ -40,7 +36,7 @@ class ImageCell: ListingTableViewCell {
             .doOn {[weak self] _ in
                 self?.picture?.contentMode = .ScaleAspectFill
                 self?.picture?.clipsToBounds = true
-                self?.picture?.image = self?.placeholderImage
+                self?.picture?.image = self?.placeholder
             }
             .map { element -> NSURL? in
                 if let value = element {
@@ -51,7 +47,7 @@ class ImageCell: ListingTableViewCell {
             }
             .subscribeNext {[weak self] URL in
                 if let URL = URL {
-                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholderImage)
+                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder)
                 }
             }
             .addDisposableTo(reuseBag)

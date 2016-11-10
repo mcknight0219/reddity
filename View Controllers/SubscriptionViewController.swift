@@ -91,11 +91,11 @@ class SubscriptionViewController: BaseTableViewController {
         navigationItem.titleView = navTitleView
         
         let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Reorder), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
-        sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
         navigationItem.rightBarButtonItem = sortButton
         
         let refreshButton = UIBarButtonItem()
-        refreshButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        refreshButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
         refreshButton.title = String.fontAwesomeIconWithName(.Refresh)
         navigationItem.leftBarButtonItem = refreshButton
         

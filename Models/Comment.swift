@@ -45,12 +45,12 @@ struct Comment: Listing, Equatable {
     let user: String
     
     var replies = [Comment]()
-    lazy var numberOfReplies: Int = {
+    var numberOfReplies: Int {
         guard replies.count > 0 else {
             return 0
         }
         return replies.reduce(0) { $0 + $1.numberOfReplies + 1 }
-    }()
+    }
 
     init(id: String, parent: Comment?, text: String, timestampString: String, ups: Int, downs: Int, user: String) {
         self.id = id

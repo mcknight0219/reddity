@@ -10,6 +10,7 @@ import UIKit
 import ChameleonFramework
 import FontAwesome_swift
 import SnapKit
+import RxSwift
 
 class InsetLabel: UILabel {
     var inset = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
@@ -31,40 +32,8 @@ class InsetLabel: UILabel {
     }
 }
 
-class DetailsViewController: BaseViewController {
-    
-    var commentsVC: UITableViewController!
-    
-    lazy var indicatorView: UIActivityIndicatorView = {
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            return UIActivityIndicatorView(activityIndicatorStyle: .White)
-        } else {
-            return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
-        }
-    }()
-    
-    lazy var subtitleView: UILabel = {
-        return {
-            $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Regular", size: 14)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
-            
-            return $0
-        }(UILabel(frame: CGRectMake(0, 24, 200, 44-24)))
-    }()
-    
-    lazy var titleView: UILabel = {
-        return {
-            $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Bold", size: 18)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
-            $0.numberOfLines = 1
-            
-            return $0
-        }(UILabel(frame: CGRectMake(0, 2, 200, 24)))
-    }()
+
+class CommentsTableViewController: BaseTableViewController {
     
     lazy var footerView: UILabel = {
         return {
@@ -77,28 +46,147 @@ class DetailsViewController: BaseViewController {
             return $0
         }(UILabel(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 44)))
     }()
+    
+    private var viewModel: CommentViewModelType
+    private var parent: Comment?
+    private var tableHeader: UIView?
+    
+    init(viewModel: CommentViewModelType, parentComment: Comment?, tableHeaderView: UIView?) {
+        self.viewModel = viewModel
+        self.parent = parentComment
+        self.tableHeader = tableHeaderView
+        
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    //  MARK: life cycle
+    
+    override func viewDidLoad() {
+        
+        tableView.frame = UIScreen.mainScreen().bounds
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.estimatedRowHeight = 40
+       
+        tableView.cellLayoutMarginsFollowReadableWidth = false
+        tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
+        tableView.tableFooterView = self.footerView
+        
+        edgesForExtendedLayout = .All
+        extendedLayoutIncludesOpaqueBars = false
 
-    lazy var selfTextView: UIView = {
+        viewModel
+            .updatedContents
+            .subscribeNext { _ in
+                self.tableView.reloadData()
+            }
+            .addDisposableTo(disposeBag)
+        
+        viewModel.showSpinner
+            .subscribeNext {[weak self] show in
+                if !show {
+                    self?.tableView.tableFooterView = self?.footerView
+                } else {
+                    self?.tableView.tableFooterView = UIView()
+                }
+            }
+            .addDisposableTo(disposeBag)
+    }
+}
+
+extension CommentsTableViewController {
+    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        
+    }
+}
+
+// MARK: - Table view data source
+
+extension CommentsTableViewController {
+    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
+        cell.configCellWith(viewModel.commentAtIndexPath(indexPath))
+        
+        return cell
+    }
+    
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.viewModel.numberOfComments
+    }
+}
+
+
+class DetailsViewController: BaseViewController {
+    
+    var commentsVC: CommentsTableViewController!
+    
+    lazy var indicatorView: UIActivityIndicatorView = {
+        if ThemeManager.defaultManager.currentTheme == "Dark" {
+            return UIActivityIndicatorView(activityIndicatorStyle: .White)
+        } else {
+            return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+        }
+    }()
+    
+    lazy var subtitleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Regular", size: 12)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 24, 160, 44-24)))
+    }()
+    
+    lazy var titleView: UILabel = {
+        return {
+            $0.backgroundColor = UIColor.clearColor()
+            $0.font = UIFont(name: "Lato-Bold", size: 16)
+            $0.textAlignment = .Center
+            $0.textColor = UIColor.darkGrayColor()
+            $0.numberOfLines = 1
+            
+            return $0
+        }(UILabel(frame: CGRectMake(0, 2, 160, 24)))
+    }()
+
+    lazy var selfTextView: UIView? = {
+        guard case .SelfText = self.subject.selfType else {
+            return nil
+        }
+        
         let selfTextLabel: UILabel = {
             $0.backgroundColor = UIColor.lightGrayColor()
             $0.textAlignment = .Natural
-            $0.font = UIFont.SystemFontOfSize(16)
+            $0.font = UIFont.systemFontOfSize(16)
             $0.textColor = UIColor.blackColor()
             $0.text = self.subject.selfType.associatedValue ?? ""
-
+            
             return $0
         }(UILabel())
-
-        let view = {
+        
+        let view: UIView = {
             $0.addSubview(selfTextLabel)
+            return $0
         }(UIView())
-
-        selfTextLabel.snp_makeConstraint { make in 
-            make.top.bottom.left.right.equalTo(view)
+        
+        selfTextLabel.snp_makeConstraints { make in
+            make.edges.equalTo(view).inset(UIEdgeInsetsMake(20, 20, 20, 20))
         }
-
+        
         return view
     }()
+
     
     //var commentsOSD = [Comment]()
     var comments = [Comment]()
@@ -107,8 +195,10 @@ class DetailsViewController: BaseViewController {
         return CommentViewModel(aLink: self.subject, provider: self.provider)
     }()
 
+    var provider: Networking!
     init(aSubject: Link, provider: Networking) {
         self.subject = aSubject
+        self.provider = provider
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -120,28 +210,14 @@ class DetailsViewController: BaseViewController {
         super.viewDidLoad()
 
         // Setup
-        commentsVC = {
-            $0.tableView.frame = view.bounds
-            $0.tableView.delegate = self
-            $0.tableView.dataSource = self
-            $0.tableView.rowHeight = UITableViewAutomaticDimension
-            $0.tableView.estimatedRowHeight = 40
-            $0.tableView.tableFooterView = UIView()
-            $0.edgesForExtendedLayout = .All
-            $0.extendedLayoutIncludesOpaqueBars = false
-            $0.tableView.cellLayoutMarginsFollowReadableWidth = false
-            $0.tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-            $0.tableView.tableFooterView = self.footerView
-            return $0
-        }(BaseTableViewController())
+        commentsVC = CommentsTableViewController(viewModel: viewModel, parentComment: .None, tableHeaderView: self.selfTextView)
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
         commentsVC.didMoveToParentViewController(self)
-    
+        
         // indicator for comments table
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
-        indicatorView.center = CGPointMake(view.bounds.width / 2, 13)
-        indicatorView.hidesWhenStopped = true
+        indicatorView.center = CGPointMake(view.bounds.width / 2, 20)
         indicatorView.startAnimating()
 
         // Setup navigation bar
@@ -155,54 +231,19 @@ class DetailsViewController: BaseViewController {
             $0.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
             
             return $0
-        }(UIView(frame: CGRectMake(0, 0, 200, 44)))
+        }(UIView(frame: CGRectMake(0, 0, 160, 44)))
         navigationItem.titleView = navTitleView
         let replyToPostButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Edit), style: .Plain, target: self, action: #selector(DetailsViewController.editPressed))
-        replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(20)], forState: .Normal)
+        replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
         navigationItem.rightBarButtonItem = replyToPostButton
-
-        // Things that change
-        viewModel.updatedContents
-            .subscribeOn(MainScheduler.instance)
-            .subscribeNext {[weak self] _ in
-                self?.commentsVC.tableView.reloadData()
-            }
-            .addDisposableTo(disposeBag)
 
         viewModel.showSpinner
             .map { !$0 }
             .bindTo(self.indicatorView.rx_hidden)
-            .addDisposableTo(diseposeBag)
+            .addDisposableTo(disposeBag)
     }
-
-    func replyToPostButton() {
-
-    }
-}
-
-
-extension DetailsViewController: UITableViewDelegate {
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    
+    func editPressed() {
         
-    }
-}
-
-// MARK: - Table view data source
-
-extension DetailsViewController : UITableViewDataSource{
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 1
-    }
-
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = commentsVC.tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        cell.configCellWith(&self.commentsOSD[indexPath.row])
-
-
-        return cell
-    }
-
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.viewModel.numberOfComments
     }
 }

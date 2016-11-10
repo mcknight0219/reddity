@@ -147,7 +147,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let meVC: MeViewController = {
             $0.modalTransitionStyle = .CrossDissolve
-            $0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.User, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
+            $0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Cog, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
             return $0
         }(MeViewController())
 

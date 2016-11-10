@@ -43,7 +43,7 @@ class ListingTableViewCell: UITableViewCell {
         configure()
     }
 
-    let placeholder = UIImage.imageFilledWithColor(UIColor.lightGrayColor())
+    let placeholder = UIImage(named: "empty_placeholder")
     var viewModel = PublishSubject<LinkViewModel>()
     func setViewModel(viewModel: LinkViewModel) {
         self.viewModel.onNext(viewModel)
@@ -51,6 +51,7 @@ class ListingTableViewCell: UITableViewCell {
     
     override func prepareForReuse() {
         super.prepareForReuse()
+        self.picture?.image = self.placeholder
         self.configure()
     }
 

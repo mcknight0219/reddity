@@ -44,8 +44,7 @@ class SearchViewController: UIViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
         
         searchController = {
-            $0.hidesNavigationBarDuringPresentation = false
-            $0.searchBar.scopeButtonTitles = SearchViewModel.ScopeValues.allScopeValueNames()
+            $0.hidesNavigationBarDuringPresentation = true
             $0.searchBar.rx_selectedScopeButtonIndex <-> _selectedScope
             
             return $0
@@ -54,6 +53,7 @@ class SearchViewController: UIViewController {
         resultsTableView = {
             $0.delegate = nil
             $0.dataSource = nil
+            $0.tableFooterView = UIView()
             $0.tableHeaderView = searchController.searchBar
             return $0
         }(UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height)))
@@ -99,11 +99,26 @@ class SearchViewController: UIViewController {
                 //cell.loadCell(subreddit)
             }
             .addDisposableTo(self.disposeBag)
+        
+        searchController.rx_present
+            .asObservable()
+            .subscribeNext { _ in
+                self.searchController.searchBar.scopeButtonTitles = SearchViewModel.ScopeValues.allScopeValueNames()
+                print("Present")
+            }
+            .addDisposableTo(disposeBag)
+        
+        searchController.rx_willDismiss
+            .asObservable()
+            .subscribeNext { _ in
+                print("Dismiss")
+            }
+            .addDisposableTo(disposeBag)
     }
     
     func setupUI() {
         definesPresentationContext = true
-        self.searchController.searchBar.searchBarStyle = .Default
+        self.searchController.searchBar.searchBarStyle = .Minimal
         
         extendedLayoutIncludesOpaqueBars = true
         automaticallyAdjustsScrollViewInsets = true
@@ -127,9 +142,9 @@ class SearchViewController: UIViewController {
 
             self.resultsTableView.separatorColor = UIColor.darkGrayColor()
             self.resultsTableView.indicatorStyle = .White
-            self.searchController.searchBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            self.searchController.searchBar.tintColor = UIColor.whiteColor()
-            (UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.whiteColor()
+            //self.searchController.searchBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
+            //self.searchController.searchBar.tintColor = UIColor.whiteColor()
+            //(UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.whiteColor()
             
         } else {
             view.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
@@ -137,9 +152,9 @@ class SearchViewController: UIViewController {
             
             self.resultsTableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
             self.resultsTableView.indicatorStyle = .Default
-            self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
-            self.searchController.searchBar.tintColor = UIColor.blackColor()
-            (UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.blackColor()
+            //self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
+            //self.searchController.searchBar.tintColor = UIColor.blackColor()
+            //(UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.blackColor()
         }
         
     }
