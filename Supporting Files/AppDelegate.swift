@@ -124,14 +124,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let searchVC: SearchViewController = {
             $0.modalTransitionStyle = .CoverVertical
-            $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
+            //$0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
+            $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage(named: "tabbar_search"), tag: 0)
             $0.provider = provider
             return $0
         }(SearchViewController())
         
         let homeVC: TimelineViewController = {
             $0.modalTransitionStyle = .CrossDissolve
-            $0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
+            //$0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage.fontAwesomeIconWithName(.Home, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 1)
+            $0.tabBarItem = UITabBarItem(title: "Browse", image: UIImage(named: "tabbar_home"), tag: 1)
             $0.provider = provider
             
             return $0
@@ -139,7 +141,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         let subscriptionVC: SubscriptionViewController = {
             $0.modalTransitionStyle = .CrossDissolve
-            $0.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 2)
+            //$0.tabBarItem = UITabBarItem(title: "List", image: UIImage.fontAwesomeIconWithName(.List, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 2)
+            $0.tabBarItem = UITabBarItem(title: "Subscriptions", image: UIImage(named: "tabbar_list"), tag: 2)
             $0.provider = provider
             
             return $0
@@ -147,7 +150,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         let meVC: MeViewController = {
             $0.modalTransitionStyle = .CrossDissolve
-            $0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Cog, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
+            //$0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Cog, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
+            $0.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(named: "tabbar_setting"), tag: 0)
             return $0
         }(MeViewController())
 
