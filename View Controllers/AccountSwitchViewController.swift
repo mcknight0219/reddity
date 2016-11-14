@@ -14,7 +14,12 @@ class AccountSwitchViewController: BaseTableViewController {
         super.viewDidLoad()
         hideFooter()
         tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "AccountSwitchCell")
-        
+        automaticallyAdjustsScrollViewInsets = false
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        tableView.setContentOffset(CGPoint(x: 0, y: -44), animated: false)
     }
 }
 
@@ -36,15 +41,15 @@ extension AccountSwitchViewController {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("AccountSwitchCell", forIndexPath: indexPath) 
         if indexPath.row == account.numberOfAccounts {
-            cell.imageView.image = UIImage(named: "plus_sign")
-            cell.textLabel.text  = "Add an account"
+            cell.imageView!.image = UIImage(named: "plus_sign")
+            cell.textLabel!.text  = "Add an account"
         } else {
-            cell.imageView.image = UIImage(named: "avator")
+            cell.imageView!.image = UIImage(named: "avator")
             var name = account.allUserNames[indexPath.row]
-            if name == account.user.name {
+            if name == account.user!.name {
                 name = name + " ✓"   
             }
-            cell.textLabel.text = name
+            cell.textLabel!.text = name
         }   
         return cell
     }

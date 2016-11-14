@@ -101,7 +101,18 @@ class CommentsTableViewController: BaseTableViewController {
 
 extension CommentsTableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let m = viewModel.commentAtIndexPath(indexPath)
+        let actionSheet = UIAlertController(title: "", message: "Reply to @\(m.user)", preferredStyle: .ActionSheet)
+        let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
+        actionSheet.addAction(cancelAction)
         
+        let replyAction = UIAlertAction.Action("Reply", style: .Default)
+        actionSheet.addAction(replyAction)
+        
+        let downVoteAction = UIAlertAction.Action("Downvote", style: .Default)
+        actionSheet.addAction(downVoteAction)
+        
+        presentViewController(actionSheet, animated: true, completion: nil)
     }
 }
 

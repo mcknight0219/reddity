@@ -22,19 +22,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      The global database handler
      */
     var database: FMDatabase?
-
-    /**
-     Current user.
-     
-     @discussion The `guest` is the user without logging into reddit.com
-     */
-    var user: String = "guest" {
-        didSet {
-            if self.user == oldValue { return }
-            NSUserDefaults.standardUserDefaults().setObject(user, forKey: "User")
-            NSNotificationCenter.defaultCenter().postNotificationName(kUserChangedNotification, object: self.user)
-        }
-    }
     
     var disposeBag = DisposeBag()
     var provider = Networking.newNetworking()

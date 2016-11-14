@@ -51,7 +51,7 @@ struct Account {
                 defaults.setObject("guest", forKey: DefaultsKeys.User.rawValue)
             case .LoggedInUser(let u):
                 defaults.setObject(u, forKey: DefaultsKeys.User.rawValue)
-                self.rememberMe()
+                self.rememberMe(u)
             }
         }
     }
@@ -79,10 +79,10 @@ struct Account {
     }
 
     var allUserNames: [String] {
-        guar let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
             return []
         }
-        return pool.keys()
+        return Array(pool.keys)
     }
 }
 
@@ -93,13 +93,11 @@ extension Account {
 
     // Store the refresh token for currently logged in User
     // in case user want to switch account while browsing
-    func remeberMe(name: String) {
-        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
-            pool = [String: AnyObject]()
-        }
+    func rememberMe(name: String) {
+        var pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) ?? [String: AnyObject]()
 
-        pool[name] = XApp().refreshToken
+        pool[name] = XAppToken().refreshToken
 
-        defaults.setDictionary(pool, forKey: DefaultsKeys.Pool.rawValue)
+        defaults.setObject(pool, forKey: DefaultsKeys.Pool.rawValue)
     }
 }

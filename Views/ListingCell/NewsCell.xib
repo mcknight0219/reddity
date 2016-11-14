@@ -22,7 +22,7 @@
             <rect key="frame" x="0.0" y="0.0" width="486" height="229"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="MZX-Fl-TzR" id="zV4-Qh-o9E">
-                <rect key="frame" x="0.0" y="0.0" width="486" height="228"/>
+                <rect key="frame" x="0.0" y="0.0" width="486" height="228.5"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="gxY-vg-ECx">
@@ -51,7 +51,7 @@
                     <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="7wh-pY-veP">
                         <rect key="frame" x="18" y="43" width="450" height="142"/>
                         <subviews>
-                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="2" translatesAutoresizingMaskIntoConstraints="NO" id="fjc-8U-ra0">
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="fjc-8U-ra0">
                                 <rect key="frame" x="0.0" y="0.0" width="317" height="47.5"/>
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="TopLeft" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="5" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6fj-28-sMx">
@@ -61,11 +61,11 @@
                                         <nil key="highlightedColor"/>
                                     </label>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" showsTouchWhenHighlighted="YES" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gYI-jn-8h0">
-                                        <rect key="frame" x="0.0" y="22.5" width="52" height="25"/>
+                                        <rect key="frame" x="0.0" y="24.5" width="44" height="23"/>
                                         <constraints>
-                                            <constraint firstAttribute="height" constant="25" id="dDy-hI-P3K"/>
+                                            <constraint firstAttribute="height" constant="23" id="dDy-hI-P3K"/>
                                         </constraints>
-                                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="14"/>
+                                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="12"/>
                                         <state key="normal" title="Full Text"/>
                                     </button>
                                 </subviews>

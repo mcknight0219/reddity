@@ -83,9 +83,14 @@ class SubscriptionViewController: BaseTableViewController {
         navTitleView.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
         navigationItem.titleView = navTitleView
         
-        let sortButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Reorder), style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
-        sortButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
-        navigationItem.leftBarButtonItem = sortButton
+        let sortButton = UIBarButtonItem(title: "Sort", style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
+        navigationItem.rightBarButtonItem = sortButton
+        
+        viewModel
+            .showBackground
+            .map { !$0 }
+            .bindTo(sortButton.rx_enabled)
+            .addDisposableTo(disposeBag)
         
         viewModel
             .updatedContents
@@ -113,14 +118,14 @@ class SubscriptionViewController: BaseTableViewController {
             }
             .addDisposableTo(disposeBag)
 
-        self.refreshControl
+        self.refreshControl!
             .rx_controlEvent(.ValueChanged)
             .flatMap { reachabilityManager.reach }
             .subscribeNext {[weak self] on in
                 if on {
                     self?.viewModel.reload()
                 } else {
-                    self?.refresControl.endRefreshing()
+                    self?.refreshControl?.endRefreshing()
                 }
             }
             .addDisposableTo(disposeBag)
@@ -130,7 +135,7 @@ class SubscriptionViewController: BaseTableViewController {
             .asObservable()
             .subscribeNext {[weak self] show in
                 if !show {
-                    self?.refreshControl.endRefreshing()
+                    self?.refreshControl?.endRefreshing()
                 }
             }
             .addDisposableTo(disposeBag)

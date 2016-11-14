@@ -10,7 +10,7 @@ protocol SubscriptionViewModelType {
     var updatedContents: Observable<Int> { get }
     var selectedOrder: Observable<Int> { get }
     var showBackground: Observable<Bool>! { get }
-    var showRefresh: Observable<Bool>! { get }
+    var showRefresh: Variable<Bool> { get }
 
     func subredditModelAtIndexPath(indexPath: NSIndexPath) -> Subreddit
     func unsubscribe(indexPath: NSIndexPath)
@@ -38,7 +38,7 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     }
 
     var showBackground: Observable<Bool>!
-    var showRefresh = Observable<Bool>(false)
+    var showRefresh = Variable<Bool>(false)
 
     private let disposeBag = DisposeBag()
     init(provider: Networking, selectedOrder: Observable<Int>) {
@@ -83,11 +83,6 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     }
 
     private func setup() {
-        self.reload
-            .subscribeNext { _ in
-                self.reloadSubscriptions()
-            }
-            .addDisposableTo(disposeBag)
         
         self.provider
             .request(RedditAPI.Subscriptions)

@@ -45,7 +45,7 @@ enum CellTheme {
     }
     
     var linkColor: UIColor {
-        return FlatBlue()
+        return UIColor.darkGrayColor()
     }
 }
 

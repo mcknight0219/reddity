@@ -8,10 +8,12 @@
 
 import UIKit
 import ChameleonFramework
+import SafariServices
 import FontAwesome_swift
 #if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
+import Action
 #endif
 import Moya
 
@@ -76,7 +78,8 @@ class TimelineViewController: BaseViewController {
         super.viewDidLoad()
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .Plain, target: nil, action: nil)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .Plain, target: self, action: #selector(TimelineViewController.showAccountPopover))
+    
         
         automaticallyAdjustsScrollViewInsets = true
         topicTableViewController = {
@@ -193,29 +196,23 @@ extension TimelineViewController: UITableViewDataSource {
         }
         
         if let newsCell = cell as? NewsCell {
-            let lines = ceil(newsCell.title!.text!.heightWithContrained(UIScreen.mainScreen().bounds.width - 25 - 127.5, font: UIFont(name: "Lato-Regular", size: 16)!) / UIFont(name: "Lato-Regular", size: 16)!.lineHeight)
+            //let lines = ceil(newsCell.title!.text!.heightWithContrained(UIScreen.mainScreen().bounds.width - 25 - 127.5, font: UIFont(name: "Lato-Regular", size: 16)!) / UIFont(name: "Lato-Regular", size: 16)!.lineHeight)
             
             newsCell.title?.numberOfLines = 5
-            if lines < 5 {
-                newsCell.revealButton.hidden = true
-            } else {
-                newsCell.revealButton.hidden = false
-            }
+            newsCell.revealButton.titleLabel?.font = UIFont.fontAwesomeOfSize(18)
+            newsCell.revealButton.setTitle(String.fontAwesomeIconWithName(.ExternalLink), forState: .Normal)
             
             newsCell
                 .revealButton
                 .rx_tap.asObservable()
-                .subscribeOn(MainScheduler.instance)
-                .subscribeNext {
-                    newsCell.revealButton.hidden = true
-                    newsCell.title?.numberOfLines = 0
-                    newsCell.title?.sizeToFit()
-                    
-                    self.tableView.beginUpdates()
-                    self.tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: .Right)
-                    self.tableView.endUpdates()
+                .subscribeNext { _ in
+                    if let URL = NSURL(string: linkViewModel.URL) {
+                        let safariViewController = SFSafariViewController(URL: URL)
+                        self.presentViewController(safariViewController, animated: true, completion: nil)
+                    }
+
                 }
-                .addDisposableTo(disposeBag)
+                .addDisposableTo(newsCell.reuseBag)
         }
         
         return cell
@@ -227,5 +224,24 @@ extension TimelineViewController: UITableViewDataSource {
 extension TimelineViewController: UITableViewDelegate {
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    }
+}
+
+extension TimelineViewController: UIPopoverPresentationControllerDelegate {
+
+    func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
+        return .None
+    }
+    
+    @objc func showAccountPopover() {
+        let popover = AccountSwitchViewController()
+        popover.modalPresentationStyle = .Popover
+        popover.preferredContentSize = CGSizeMake(250, 160)
+    
+        if let presentation = popover.popoverPresentationController {
+            presentation.delegate = self
+            presentation.barButtonItem = navigationItem.rightBarButtonItem
+        }
+        presentViewController(popover, animated: true, completion: nil)
     }
 }
