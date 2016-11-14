@@ -125,13 +125,22 @@ extension CommentsTableViewController {
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        cell.configCellWith(viewModel.commentAtIndexPath(indexPath))
+        let comment = viewModel.commentAtIndexPath(indexPath, self.parentComment)
+        cell.configCellWith(comment)
+
+        cell.expandRepliesPressed
+            .subscribeOn(MainScheduler.instance)
+            .subscribeNext { [weak self]  _ in 
+                let vc = CommentsTableViewController(viewModel, parentComment: comment, tableHeaderView: nil)
+                self?.navigationController?.pushViewController(vc, animated: true)
+            }
+            .addDisposableTo(disposeBag)
         
         return cell
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.viewModel.numberOfComments
+        return self.parentComment?.numberOfReplies ?? self.viewModel.numberOfComments
     }
 }
 
@@ -199,7 +208,6 @@ class DetailsViewController: BaseViewController {
     }()
 
     
-    //var commentsOSD = [Comment]()
     var comments = [Comment]()
     let subject: Link
     lazy var viewModel: CommentViewModelType = {

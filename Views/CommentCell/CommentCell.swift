@@ -42,6 +42,11 @@ class CommentCell: UITableViewCell {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CommentCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        self.reuseBag = DisposeBag()
+    }
+
     /**
      Load the comment and set proper left margin
      */
@@ -59,6 +64,11 @@ class CommentCell: UITableViewCell {
         upButton.setTitle(" \(aComment.ups)", forState: .Normal)
 
         // Map events
+        Observable.just(aComment.numberOfReplies)
+            .filter { $0 > 0 }
+            .bindTo(commentButton.rx_enabled)
+            .addDisposable(reuseBag)
+
         commentButton.rx_tap
             .subscribeNext { [weak self] in 
                 self?._expandRepliesPressed.onNext(NSDate())

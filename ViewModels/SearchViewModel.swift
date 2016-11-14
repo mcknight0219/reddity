@@ -13,13 +13,12 @@ class SearchViewModel: NSObject, SearchViewModelType {
     
     var provider: Networking!
 
+    var searchHistory = Variable([String]())
     var hasHistory: Observable<Bool> {
         return searchHistory
             .asObservable()
             .map { $0.count == 0 }
     }
-
-    var searchHistory = Variable([String]())
 
     init(provider: Networking, selectedScope: Observable<Int>) {
         super.init()
@@ -38,7 +37,7 @@ class SearchViewModel: NSObject, SearchViewModelType {
                 case .Title:
                     return (RedditAPI.SearchTitle(query: query, limit: nil, after: nil), .Title)
                 case .Subreddit:
-                    return (.SearchSubreddit(query: query, limit: nil, after: nil), .Subreddit)
+                    return (RedditAPI.SearchSubreddit(query: query, limit: nil, after: nil), .Subreddit)
                 }
             }
             .map { (endpoint, scope) -> [(Subreddit?, Link?)] in
@@ -46,8 +45,6 @@ class SearchViewModel: NSObject, SearchViewModelType {
             }
        
     }
-
-
 
     enum ScopeValues: Int {
         case Title = 0

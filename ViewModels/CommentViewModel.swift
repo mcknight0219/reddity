@@ -62,7 +62,15 @@ class CommentViewModel: NSObject, CommentViewModelType {
 }
 
 extension CommentViewModel {
-    func commentAtIndexPath(indexPath: NSIndexPath) -> Comment {
+    func commentAtIndexPath(indexPath: NSIndexPath, parentComment p: Comment?) -> Comment? {
+        if let pc = p {
+            if pc.numberOfReplies == 0 {
+                return nil
+            }
+
+            return p.replies[indexPath.row]
+        } 
+
         return self.comments.value[indexPath.row]
     }
 

@@ -5,18 +5,15 @@
 
 import UIKit
 import SafariServices
-
+import SwiftyMarkdown
 
 protocol CommentLabelDelegate {
-    
     func urlDidTapped(URL: NSURL)
 }
 
 /**
- 
  The CommentLabel is customized to handle taps on url links. It displays
  the alert before switching to SafariViewController for websites.
- 
  */
 class CommentLabel : UILabel {
     
@@ -164,49 +161,12 @@ extension CommentLabel {
             return nil
         }
 
-        // Start a chain of parsing and replacing Markdown grammars
-        return NSMutableAttributedString(string: text).replaceOccurrence(ofPattern: "\\*.+\\*") { (r, ms) -> NSAttributedString in
-            let b = UIFont(name: "Lato-Bold", size: 15)!
-            let s = NSString(string: ms.string)
-            return NSAttributedString(string: s.substringWithRange(r.shrinkBy(1)), attributes: [NSFontAttributeName: b])
-            }
-            .replaceOccurrence(ofPattern: "~~.+~~") { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string)
-                return NSAttributedString(string: s.substringWithRange(r.shrinkBy(2)), attributes: [NSStrikethroughStyleAttributeName: NSNumber(integer: NSUnderlineStyle.StyleThick.rawValue)])
-            }
-            .replaceOccurrence(ofPattern: "\\[.+\\]\\((https?|ftp|file)://\\S+\\)") { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string).substringWithRange(r)
-                var t = NSMakeRange(1, 0)
-                for (i, c) in s.characters.enumerate() {
-                    if c == "]" {
-                        t.length = i - 1
-                        break
-                    }
-                }
-                let ns = s as NSString
-                let url = NSURL(string: ns.substringWithRange(NSMakeRange(t.location+t.length+2, ns.length-t.location-t.length-3)))!
-                return NSAttributedString(string: ns.substringWithRange(t), attributes: [NSLinkAttributeName: url])
-            }
-            .replaceOccurrence(ofPattern: Config.URLPattern) { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string)
-       
-                if let url = NSURL(string: s.substringWithRange(r)) {
-                    return NSAttributedString(string: url.host!, attributes: [NSLinkAttributeName: url])
-                } else {
-                    return NSAttributedString(string: s.substringWithRange(r))
-                }
-            }
-            .replaceOccurrence(ofPattern: "([ \\t]?-\\s\\S.+\\n?)+") { (r, ms) -> NSAttributedString in
-                let s = NSString(string: ms.string).substringWithRange(r) as NSString
-                // The item lists
-                let p = NSMutableParagraphStyle()
-                p.firstLineHeadIndent = 10
-                p.paragraphSpacing = 4
-                p.paragraphSpacingBefore = 3
-                p.lineBreakMode = .ByWordWrapping
-                
-                return NSAttributedString(string: s as String, attributes: [NSParagraphStyleAttributeName: p])
-            }
-        
+        if let md = SwiftyMarkdown(string: text) {
+            md.link.color = UIColor.blueColor()
+            md.code.fontName = "CourierNewPSMT"
+
+            return md.attributedString()
+        }
+        return nil
     }
 }
