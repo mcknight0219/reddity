@@ -161,12 +161,10 @@ extension CommentLabel {
             return nil
         }
 
-        if let md = SwiftyMarkdown(string: text) {
-            md.link.color = UIColor.blueColor()
-            md.code.fontName = "CourierNewPSMT"
+        let md = SwiftyMarkdown(string: text)
+        md.link.color = UIColor.blueColor()
+        md.code.fontName = "CourierNewPSMT"
 
-            return md.attributedString()
-        }
-        return nil
+        return md.attributedString()
     }
 }

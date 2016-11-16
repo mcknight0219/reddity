@@ -65,9 +65,9 @@ class CommentCell: UITableViewCell {
 
         // Map events
         Observable.just(aComment.numberOfReplies)
-            .filter { $0 > 0 }
+            .map { $0 > 0 }
             .bindTo(commentButton.rx_enabled)
-            .addDisposable(reuseBag)
+            .addDisposableTo(reuseBag)
 
         commentButton.rx_tap
             .subscribeNext { [weak self] in 

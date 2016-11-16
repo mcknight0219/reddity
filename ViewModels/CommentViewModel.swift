@@ -9,7 +9,7 @@ protocol CommentViewModelType {
     var showSpinner: Observable<Bool>! { get }
     var updatedContents: Observable<NSDate>! { get }
     
-    func commentAtIndexPath(indexPath: NSIndexPath) -> Comment
+    func commentAtIndexPath(_: NSIndexPath, _: Comment?) -> Comment?
 }
 
 class CommentViewModel: NSObject, CommentViewModelType {
@@ -56,19 +56,22 @@ class CommentViewModel: NSObject, CommentViewModelType {
         
         self.showSpinner = self.comments
             .asObservable()
-            .map { $0.count == 0 }
+            .map { comments in
+                print("Show spinner: \(comments.count)")
+                return comments.count == 0
+            }
         
     }
 }
 
 extension CommentViewModel {
-    func commentAtIndexPath(indexPath: NSIndexPath, parentComment p: Comment?) -> Comment? {
+    func commentAtIndexPath(indexPath: NSIndexPath, _ p: Comment?) -> Comment? {
         if let pc = p {
             if pc.numberOfReplies == 0 {
                 return nil
             }
 
-            return p.replies[indexPath.row]
+            return pc.replies[indexPath.row]
         } 
 
         return self.comments.value[indexPath.row]

@@ -101,8 +101,11 @@ class CommentsTableViewController: BaseTableViewController {
 
 extension CommentsTableViewController {
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let m = viewModel.commentAtIndexPath(indexPath)
-        let actionSheet = UIAlertController(title: "", message: "Reply to @\(m.user)", preferredStyle: .ActionSheet)
+        let m = viewModel.commentAtIndexPath(indexPath, parent)
+        guard m != nil else {
+            return
+        }
+        let actionSheet = UIAlertController(title: "", message: "Reply to @\(m!.user)", preferredStyle: .ActionSheet)
         let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
         actionSheet.addAction(cancelAction)
         
@@ -125,13 +128,13 @@ extension CommentsTableViewController {
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        let comment = viewModel.commentAtIndexPath(indexPath, self.parentComment)
-        cell.configCellWith(comment)
+        let comment = viewModel.commentAtIndexPath(indexPath, self.parent)
+        cell.configCellWith(comment!)
 
         cell.expandRepliesPressed
             .subscribeOn(MainScheduler.instance)
             .subscribeNext { [weak self]  _ in 
-                let vc = CommentsTableViewController(viewModel, parentComment: comment, tableHeaderView: nil)
+                let vc = CommentsTableViewController(viewModel: self!.viewModel, parentComment: comment, tableHeaderView: nil)
                 self?.navigationController?.pushViewController(vc, animated: true)
             }
             .addDisposableTo(disposeBag)
@@ -140,7 +143,7 @@ extension CommentsTableViewController {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.parentComment?.numberOfReplies ?? self.viewModel.numberOfComments
+        return self.parent?.replies.count ?? self.viewModel.numberOfComments
     }
 }
 
@@ -237,7 +240,7 @@ class DetailsViewController: BaseViewController {
         // indicator for comments table
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
         indicatorView.center = CGPointMake(view.bounds.width / 2, 20)
-        indicatorView.startAnimating()
+        indicatorView.hidesWhenStopped = true
 
         // Setup navigation bar
         titleView.text = subject.title
@@ -257,8 +260,7 @@ class DetailsViewController: BaseViewController {
         navigationItem.rightBarButtonItem = replyToPostButton
 
         viewModel.showSpinner
-            .map { !$0 }
-            .bindTo(self.indicatorView.rx_hidden)
+            .bindTo(indicatorView.rx_animating)
             .addDisposableTo(disposeBag)
     }
     
