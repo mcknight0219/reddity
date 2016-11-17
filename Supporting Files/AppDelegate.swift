@@ -113,6 +113,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             $0.modalTransitionStyle = .CoverVertical
             //$0.tabBarItem = UITabBarItem(title: "Search", image: UIImage.fontAwesomeIconWithName(.Search, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 0)
             $0.tabBarItem = UITabBarItem(title: "Search", image: UIImage(named: "tabbar_search"), tag: 0)
+            $0.tabBarItem.selectedImage = UIImage(named: "tabbar_search_selected")
             $0.provider = provider
             return $0
         }(SearchViewController())
@@ -140,7 +141,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             //$0.tabBarItem = UITabBarItem(title: "Me", image: UIImage.fontAwesomeIconWithName(.Cog, textColor: UIColor.blackColor(), size: CGSizeMake(37, 37)), tag: 3)
             $0.tabBarItem = UITabBarItem(title: "Settings", image: UIImage(named: "tabbar_setting"), tag: 0)
             return $0
-        }(MeViewController())
+        }(MeViewController(style: .Grouped))
 
         tabBarVC.viewControllers = [homeVC, subscriptionVC, searchVC, meVC].map {
             NavigationController(rootViewController: $0)

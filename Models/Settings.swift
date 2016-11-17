@@ -33,31 +33,31 @@ struct Settings {
 
     var nsfw: Bool {
         get {
-            if let v = defaults.integerForKey(DefaultsKeys.NSFW.rawValue) {
-                return v == 1
-            }
-            return false
+            let v = defaults.integerForKey(DefaultsKeys.NSFW.rawValue)
+            return v == 1
         }
-        set(newValue) {
+        set {
             guard newValue != self.nsfw else {
                 return
             } 
-            defaults.setObject(newValue ? 2 : 1, forKey: Defaults.NSFW.rawValue)
+            defaults.setObject(newValue ? 2 : 1, forKey: DefaultsKeys.NSFW.rawValue)
         }
     }
 
     var videoAutoplay: VideoAutoplayType {
         get {
-            if let v = defaults.integerForKey(DefaultsKeys.VideoAutoplay.rawValue) {
-                return v == 1 ? .Both : (v == 2 ? .WiFiOnly : .None) 
+            let v = defaults.integerForKey(DefaultsKeys.VideoAutoplay.rawValue)
+            // defaults
+            if v == 0 {
+                return .WiFiOnly
             }
-            return .None
+            return v == 1 ? .Both : (v == 2 ? .WiFiOnly : .None)
         }
-        set(newValue) {
+        set {
             guard newValue != videoAutoplay else {
                 return
             } 
-            switch newTypeSize {
+            switch newValue {
             case .Both:
                 defaults.setObject(1, forKey: DefaultsKeys.VideoAutoplay.rawValue)
             case .WiFiOnly:
@@ -71,11 +71,13 @@ struct Settings {
 
     var typeSize: TypeSizeType {
         get {
-            if let v = defaults.integerForKey(DefaultsKeys.TypeSize.rawValue) {
-                return v == 1 ? .Small
-                    : (v == 2 ? .Medium : Large)
+            let v = defaults.integerForKey(DefaultsKeys.TypeSize.rawValue)
+            // defaults
+            if v == 0 {
+                return .Medium
             }
-            return .Medium
+            return v == 1 ? .Small : (v == 2 ? .Medium : .Large)
+            
         }
         set(newTypeSize) {
             guard newTypeSize != typeSize else {
@@ -94,13 +96,12 @@ struct Settings {
 
     var theme: ThemeType {
         get {
-            if let v = defaults.integerForKey(DefaultsKeys.Theme.rawValue) {
-                return v == 1 
-                    ? .Light
-                    : .Dark
+            let v = defaults.integerForKey(DefaultsKeys.Theme.rawValue)
+            // defaults
+            if v == 0 {
+                return .Light
             }
-            // If something is wrong, use Light theme
-            return .Light
+            return v == 1 ? .Light: .Dark
         }
         set(newTheme) {
             guard newTheme != theme else {

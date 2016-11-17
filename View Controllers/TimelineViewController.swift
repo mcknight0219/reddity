@@ -236,7 +236,7 @@ extension TimelineViewController: UIPopoverPresentationControllerDelegate {
     @objc func showAccountPopover() {
         let popover = AccountSwitchViewController()
         popover.modalPresentationStyle = .Popover
-        popover.preferredContentSize = CGSizeMake(250, 160)
+        popover.preferredContentSize = CGSizeMake(self.view.frame.width * 0.8, 160)
     
         if let presentation = popover.popoverPresentationController {
             presentation.delegate = self

@@ -12,7 +12,6 @@ import ChameleonFramework
 #if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
-import RxDataSources
 #endif
 
 let TitleCellIdentifier = "TitleCell"
@@ -51,8 +50,8 @@ class SearchViewController: UIViewController {
         }(UISearchController(searchResultsController: nil))
         
         resultsTableView = {
-            $0.delegate = nil
-            $0.dataSource = nil
+            $0.delegate = self
+            $0.dataSource = self
             $0.tableFooterView = UIView()
             $0.tableHeaderView = searchController.searchBar
             return $0
@@ -75,18 +74,6 @@ class SearchViewController: UIViewController {
             .bindTo(cellIdentifier)
             .addDisposableTo(self.disposeBag)
 
-        configureTableDataSource()
-        
-    }
-    
-    func configureTableDataSource() {
-        [SubredditCellIdentifier, TitleCellIdentifier, HistoryCellIdentifier].forEach { name in
-            resultsTableView.registerNib(UINib(nibName: name, bundle: nil), forCellReuseIdentifier: name)
-        }
-        resultsTableView.dataSource = nil
-        resultsTableView.delegate = nil
-        resultsTableView.rowHeight = 44
-        
         searchController.searchBar.rx_text
             .asDriver()
             .throttle(0.3)
@@ -97,6 +84,7 @@ class SearchViewController: UIViewController {
             }
             .drive(resultsTableView.rx_itemsWithCellIdentifier(cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
                 //cell.loadCell(subreddit)
+                print("Hello")
             }
             .addDisposableTo(self.disposeBag)
         
@@ -114,6 +102,7 @@ class SearchViewController: UIViewController {
                 print("Dismiss")
             }
             .addDisposableTo(disposeBag)
+        
     }
     
     func setupUI() {
@@ -130,32 +119,19 @@ class SearchViewController: UIViewController {
         self.applyTheme()
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-    }
-
     func applyTheme() {
-        
-        if ThemeManager.defaultManager.currentTheme == "Dark" {
-            view.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
-            self.resultsTableView.backgroundColor = UIColor(colorLiteralRed: 33/255, green: 34/255, blue: 45/255, alpha: 1.0)
-
-            self.resultsTableView.separatorColor = UIColor.darkGrayColor()
-            self.resultsTableView.indicatorStyle = .White
-            //self.searchController.searchBar.barTintColor = UIColor(colorLiteralRed: 32/255, green: 34/255, blue: 34/255, alpha: 1.0)
-            //self.searchController.searchBar.tintColor = UIColor.whiteColor()
-            //(UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.whiteColor()
-            
-        } else {
-            view.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
-            self.resultsTableView.backgroundColor = UIColor(colorLiteralRed: 0.94, green: 0.94, blue: 0.96, alpha: 1.0)
-            
-            self.resultsTableView.separatorColor = UIColor(colorLiteralRed: 0.9, green: 0.9, blue: 0.01, alpha: 1.0)
-            self.resultsTableView.indicatorStyle = .Default
-            //self.searchController.searchBar.barTintColor = UIColor.lightGrayColor()
-            //self.searchController.searchBar.tintColor = UIColor.blackColor()
-            //(UIBarButtonItem.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])).tintColor = UIColor.blackColor()
-        }
-        
+        let theme = TableViewTheme()!
+        self.view.backgroundColor = theme.backgroundColor
+        self.resultsTableView.backgroundColor = UIColor.clearColor()
+        self.resultsTableView.separatorColor = theme.separatorColor
+        self.resultsTableView.indicatorStyle = theme.indicatorStyle
     }
+}
+
+// MARK:- The table
+
+extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
+    
+    
+    
 }

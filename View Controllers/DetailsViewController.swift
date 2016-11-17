@@ -51,6 +51,8 @@ class CommentsTableViewController: BaseTableViewController {
     private var parent: Comment?
     private var tableHeader: UIView?
     
+    var reuseBag = DisposeBag()
+    
     init(viewModel: CommentViewModelType, parentComment: Comment?, tableHeaderView: UIView?) {
         self.viewModel = viewModel
         self.parent = parentComment
@@ -132,10 +134,11 @@ extension CommentsTableViewController {
         cell.configCellWith(comment!)
 
         cell.expandRepliesPressed
-            .subscribeOn(MainScheduler.instance)
-            .subscribeNext { [weak self]  _ in 
-                let vc = CommentsTableViewController(viewModel: self!.viewModel, parentComment: comment, tableHeaderView: nil)
-                self?.navigationController?.pushViewController(vc, animated: true)
+            .subscribeNext { [weak self]  _ in
+                if let ct = self {
+                    let vc = CommentsTableViewController(viewModel: ct.viewModel, parentComment: comment, tableHeaderView: nil)
+                    self?.navigationController?.pushViewController(vc, animated: true)
+                }
             }
             .addDisposableTo(disposeBag)
         
