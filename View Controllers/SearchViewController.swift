@@ -50,8 +50,8 @@ class SearchViewController: UIViewController {
         }(UISearchController(searchResultsController: nil))
         
         resultsTableView = {
-            $0.delegate = self
-            $0.dataSource = self
+            $0.delegate = nil
+            $0.dataSource = nil
             $0.tableFooterView = UIView()
             $0.tableHeaderView = searchController.searchBar
             return $0
@@ -130,8 +130,3 @@ class SearchViewController: UIViewController {
 
 // MARK:- The table
 
-extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    
-    
-}

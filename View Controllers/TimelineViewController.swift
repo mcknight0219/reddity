@@ -149,6 +149,17 @@ class TimelineViewController: BaseViewController {
                 }
             }
             .addDisposableTo(disposeBag)
+        
+        viewModel
+            .showSpinner
+            .subscribeNext { show in
+                if show {
+                    HUDManager.sharedInstance.showCentralActivityIndicator()
+                } else {
+                    HUDManager.sharedInstance.hideCentralActivityIndicator()
+                }
+            }
+            .addDisposableTo(disposeBag)
     }
 }
 
@@ -185,11 +196,14 @@ extension TimelineViewController: UITableViewDataSource {
                 .observeOn(MainScheduler.instance)
                 .subscribeNext { [weak self] _ in
                     if let URL = linkViewModel.resourceURL {
+                        /*
                         let vc = ImageDetailViewController(URL: URL)
                         vc.modalTransitionStyle = .CrossDissolve
                         vc.modalPresentationStyle = .FullScreen
-                        
-                        self?.presentViewController(vc, animated: true, completion: nil)
+                        */
+                        let photosViewController = PhotosViewController(photos: [URL], initialPhoto: URL, delegate: self)
+ 
+                        self?.presentViewController(photosViewController, animated: true, completion: nil)
                     }
                 }
                 .addDisposableTo(disposeBag)
@@ -218,6 +232,29 @@ extension TimelineViewController: UITableViewDataSource {
         return cell
     }
 }
+
+// MARK: PhotosViewControllerDelegate
+
+extension TimelineViewController: PhotosViewControllerDelegate {
+    func photosViewController(vc: PhotosViewController, referenceViewForPhoto photo: NSURL) -> UIView? {
+        print("photosViewController:referenceViewForPhoto")
+        
+        return nil
+    }
+    
+    func photosViewController(vc: PhotosViewController, didNavigateToPhoto photo: NSURL, atIndex index: Int) {
+        print("photosViewController:didNavigateToPhoto")
+    }
+    
+    func photosViewControllerWillDismiss(vc: PhotosViewController) {
+        print("photosViewControllerWillDismiss")
+    }
+    
+    func photosViewControllerDidDismiss(vc: PhotosViewController) {
+        print("photosViewControllerDidDismiss")
+    }
+}
+
 
 // MARK: Table view delegate
 

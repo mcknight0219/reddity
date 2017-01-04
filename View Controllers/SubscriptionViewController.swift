@@ -88,6 +88,15 @@ class SubscriptionViewController: BaseTableViewController {
         
         viewModel
             .showBackground
+            .doOn { event in
+                if let show = event.element {
+                    if show {
+                        HUDManager.sharedInstance.showCentralActivityIndicator()
+                    } else {
+                        HUDManager.sharedInstance.hideCentralActivityIndicator()
+                    }
+                }
+            }
             .map { !$0 }
             .bindTo(sortButton.rx_enabled)
             .addDisposableTo(disposeBag)
@@ -103,18 +112,6 @@ class SubscriptionViewController: BaseTableViewController {
             }
             .subscribeNext { _ in
                 self.subtitleView.text = "(\(self.viewModel.numberOfSubscriptions))"
-            }
-            .addDisposableTo(disposeBag)
-
-        viewModel
-            .showBackground
-            .subscribeOn(MainScheduler.instance)
-            .subscribeNext { [weak self] show in
-                if show {
-                    self?.tableView.backgroundView = self?.backgroundView
-                } else {
-                    self?.tableView.backgroundView = nil
-                }
             }
             .addDisposableTo(disposeBag)
 

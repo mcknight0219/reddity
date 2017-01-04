@@ -140,7 +140,7 @@ extension CommentsTableViewController {
                     self?.navigationController?.pushViewController(vc, animated: true)
                 }
             }
-            .addDisposableTo(disposeBag)
+            .addDisposableTo(cell.reuseBag)
         
         return cell
     }

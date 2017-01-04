@@ -23,7 +23,7 @@ class CommentCell: UITableViewCell {
         return self.viewWithTag(4) as! UIButton
     }()
     
-    private var reuseBag = DisposeBag()
+    var reuseBag = DisposeBag()
     
     private var _expandRepliesPressed = PublishSubject<NSDate>()
     var expandRepliesPressed: Observable<NSDate> {
@@ -44,13 +44,14 @@ class CommentCell: UITableViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.reuseBag = DisposeBag()
     }
 
     /**
      Load the comment and set proper left margin
      */
     func configCellWith(aComment: Comment) {
+        self.reuseBag = DisposeBag()
+        
         self.comment = aComment
         commentLabel.text = aComment.text
 
