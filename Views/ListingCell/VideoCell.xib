@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+    <device id="retina4_7" orientation="portrait">
+        <adaptation id="fullscreen"/>
+    </device>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <customFonts key="customFonts">
+        <array key="Lato-Regular.ttf">
+            <string>Lato-Regular</string>
+        </array>
+    </customFonts>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" rowHeight="421" id="td2-6N-BQw" customClass="VideoCell" customModule="Reddity" customModuleProvider="target">
+            <rect key="frame" x="0.0" y="0.0" width="500" height="421"/>
+            <autoresizingMask key="autoresizingMask"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="td2-6N-BQw" id="37f-2c-WSc">
+                <rect key="frame" x="0.0" y="0.0" width="500" height="420.5"/>
+                <autoresizingMask key="autoresizingMask"/>
+                <subviews>
+                    <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="gJI-N3-faW">
+                        <rect key="frame" x="18" y="13" width="464" height="25"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" tag="4" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="91R-16-KrB">
+                                <rect key="frame" x="0.0" y="0.0" width="232" height="25"/>
+                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" tag="5" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="vc6-eC-T2d">
+                                <rect key="frame" x="232" y="0.0" width="232" height="25"/>
+                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="25" id="PoP-TJ-ntV"/>
+                        </constraints>
+                    </stackView>
+                    <view tag="6" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="qMz-Rh-Uz5">
+                        <rect key="frame" x="18" y="44" width="464" height="250"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="250" id="tZg-oq-xgu"/>
+                        </constraints>
+                    </view>
+                    <label opaque="NO" userInteractionEnabled="NO" tag="2" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JK9-AM-kmk">
+                        <rect key="frame" x="18" y="382.5" width="464" height="25"/>
+                        <constraints>
+                            <constraint firstAttribute="height" constant="25" id="Rrr-OW-mZD"/>
+                        </constraints>
+                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                    <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="GCU-n5-jxP">
+                        <rect key="frame" x="18" y="300" width="464" height="78.5"/>
+                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                        <nil key="textColor"/>
+                        <nil key="highlightedColor"/>
+                    </label>
+                </subviews>
+                <constraints>
+                    <constraint firstItem="GCU-n5-jxP" firstAttribute="leading" secondItem="37f-2c-WSc" secondAttribute="leadingMargin" constant="10" id="4Py-nB-KUo"/>
+                    <constraint firstItem="JK9-AM-kmk" firstAttribute="leading" secondItem="37f-2c-WSc" secondAttribute="leadingMargin" constant="10" id="9XP-6w-Wuq"/>
+                    <constraint firstItem="gJI-N3-faW" firstAttribute="leading" secondItem="37f-2c-WSc" secondAttribute="leadingMargin" constant="10" id="FB8-5d-vDk"/>
+                    <constraint firstItem="qMz-Rh-Uz5" firstAttribute="top" secondItem="gJI-N3-faW" secondAttribute="bottom" constant="6" id="MKN-lB-dS3"/>
+                    <constraint firstItem="GCU-n5-jxP" firstAttribute="top" secondItem="qMz-Rh-Uz5" secondAttribute="bottom" constant="6" id="Rzn-yX-yD1"/>
+                    <constraint firstItem="qMz-Rh-Uz5" firstAttribute="leading" secondItem="37f-2c-WSc" secondAttribute="leadingMargin" constant="10" id="SWH-5c-S89"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="JK9-AM-kmk" secondAttribute="bottom" constant="5" id="TXc-at-Ptl"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="GCU-n5-jxP" secondAttribute="trailing" constant="10" id="YKu-7B-ZbA"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="JK9-AM-kmk" secondAttribute="trailing" constant="10" id="mKO-SH-YmF"/>
+                    <constraint firstItem="gJI-N3-faW" firstAttribute="top" secondItem="37f-2c-WSc" secondAttribute="topMargin" constant="5" id="muL-TA-EEU"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="gJI-N3-faW" secondAttribute="trailing" constant="10" id="o5s-fH-0EN"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="qMz-Rh-Uz5" secondAttribute="trailing" constant="10" id="uMn-dr-Vsg"/>
+                    <constraint firstItem="JK9-AM-kmk" firstAttribute="top" secondItem="GCU-n5-jxP" secondAttribute="bottom" constant="4" id="vIV-rf-ige"/>
+                </constraints>
+            </tableViewCellContentView>
+            <point key="canvasLocation" x="18" y="-30.5"/>
+        </tableViewCell>
+    </objects>
+</document>

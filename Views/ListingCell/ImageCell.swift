@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import ChameleonFramework
 #if !RX_NO_MODULE
 import RxSwift
 #endif

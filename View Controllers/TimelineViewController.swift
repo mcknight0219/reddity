@@ -65,6 +65,8 @@ class TimelineViewController: BaseViewController {
         return view
     }()
     
+    var referencePhoto: UIView?
+    
     init(subredditName: String) {
         super.init(nibName: nil, bundle: nil)
         self.subredditName = subredditName
@@ -93,7 +95,7 @@ class TimelineViewController: BaseViewController {
         }(BaseTableViewController())
         tableView.delegate = self
         tableView.dataSource = self
-        ["NewsCell", "ImageCell", "TextCell"].forEach {
+        ["NewsCell", "ImageCell", "TextCell", "VideoCell"].forEach {
             tableView.registerNib(UINib(nibName: $0, bundle: nil), forCellReuseIdentifier: $0)
         }
         addChildViewController(topicTableViewController)
@@ -195,15 +197,10 @@ extension TimelineViewController: UITableViewDataSource {
             imageCell.tapOnPicture
                 .observeOn(MainScheduler.instance)
                 .subscribeNext { [weak self] _ in
-                    if let URL = linkViewModel.resourceURL {
-                        /*
-                        let vc = ImageDetailViewController(URL: URL)
-                        vc.modalTransitionStyle = .CrossDissolve
-                        vc.modalPresentationStyle = .FullScreen
-                        */
-                        let photosViewController = PhotosViewController(photos: [URL], initialPhoto: URL, delegate: self)
- 
-                        self?.presentViewController(photosViewController, animated: true, completion: nil)
+                    if let URL = linkViewModel.resourceURL, let weakSelf = self {
+                        let photosViewController = PhotosViewController(photos: [URL], initialPhoto: URL, delegate: weakSelf)
+                        weakSelf.referencePhoto = imageCell.picture
+                        weakSelf.presentViewController(photosViewController, animated: true, completion: nil)
                     }
                 }
                 .addDisposableTo(disposeBag)
@@ -229,6 +226,10 @@ extension TimelineViewController: UITableViewDataSource {
                 .addDisposableTo(newsCell.reuseBag)
         }
         
+        if let videoCell = cell as? VideoCell {
+            
+        }
+        
         return cell
     }
 }
@@ -237,9 +238,7 @@ extension TimelineViewController: UITableViewDataSource {
 
 extension TimelineViewController: PhotosViewControllerDelegate {
     func photosViewController(vc: PhotosViewController, referenceViewForPhoto photo: NSURL) -> UIView? {
-        print("photosViewController:referenceViewForPhoto")
-        
-        return nil
+        return self.referencePhoto
     }
     
     func photosViewController(vc: PhotosViewController, didNavigateToPhoto photo: NSURL, atIndex index: Int) {

@@ -9,6 +9,7 @@ enum CellType {
     case Text
     case News
     case Image
+    case Video
 
     var identifier: String {
         switch self {
@@ -18,6 +19,8 @@ enum CellType {
             return "NewsCell"
         case Image:
             return "ImageCell"
+        case Video:
+            return "VideoCell"
         }
     }
 }
@@ -33,16 +36,20 @@ class LinkViewModel: NSObject {
         if let _ = self.link.selfType.associatedValue {
             return .Text
         }
-        if let _ = self.resourceURL {
+        if let URL = self.resourceURL {
+            if URL.pathExtension! == "mp4" {
+                return .Video
+            }
             return .Image
         }
         return .News
     }()
     
     lazy var cellHeight: CGFloat = {
-        if case .Image = self.cellType { 
+        switch self.cellType {
+        case .Image, .Video:
             return 300.0
-        } else {
+        default:
             return 220.0
         }
     }()

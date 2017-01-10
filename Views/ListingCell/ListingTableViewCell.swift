@@ -34,7 +34,11 @@ class ListingTableViewCell: UITableViewCell {
     lazy var picture: UIImageView? = {
         return self.viewWithTag(3) as? UIImageView
     }()
-
+    
+    // Only specific to VideoCell
+    lazy var video: UIView? = {
+        return self.viewWithTag(6)
+    }()
 
     var reuseBag = DisposeBag()
     
