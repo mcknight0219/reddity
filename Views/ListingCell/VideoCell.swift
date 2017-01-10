@@ -15,30 +15,53 @@ import AVFoundation
 import AVKit
 
 class VideoCell: ListingTableViewCell {
-    
-    let controller = AVPlayerViewController()
-    
-    override func configure() {
-        super.configure()
-     
-        viewModel
-            .map { viewModel -> NSURL? in
-                return viewModel.resourceURL
-            }
-            .observeOn(MainScheduler.instance)
-            .doOn { [weak self] e in
-                if let weakSelf = self, let URL = e.element {
-                    let player = AVPlayer(URL: URL!)
-                    weakSelf.controller.player = player
-                    
-                    weakSelf.video?.addSubview(weakSelf.controller.view)
-                    weakSelf.controller.view.frame = weakSelf.video!.frame
-                }
-            }
-            .subscribeNext { _ in
-                self.controller.player!.play()
-            }
-            .addDisposableTo(reuseBag)
+
+    var player: AVPlayer? {
+        didSet {
+            self.video.player = player
+        }
     }
 
+    override func configure() {
+        super.configure()
+
+        video.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+
+        viewModel
+        .map { viewModel -> NSURL? in
+            return viewModel.resourceURL
+        }
+        .observeOn(MainScheduler.instance)
+        .subscribeNext { [weak self] URL in
+            if let weakSelf = self, let URL = URL {
+                if let player = player {
+                    let newItem = AVPlayerItem(URL: URL)
+                    player.replaceCurrentItem(with: newItem)
+                } else {
+                    player = AVPlayer(URL: URL)
+                    // Loop
+                    NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(VideoCell.loop), name: AVPlayerItemDidPlayToEndTimeNotification, object: player.currentItem)
+                    // automatically play when ready
+                    player.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+                    // Update time label
+
+                }
+            }
+
+        }
+        .addDisposableTo(reuseBag)
+    }
+
+    func loop() {
+        self.player.seekToTime(kCMTimeZero)
+        self.player.play()
+    }
+
+    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String: AnyObject]?, context: UnsafeMutablePointer<Void>) {
+        if let player = object as? AVPlayer {
+            if player.status == .readyToPlay {
+                player.play()
+            }
+        }    
+    }
 }

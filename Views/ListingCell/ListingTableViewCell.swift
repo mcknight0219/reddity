@@ -36,7 +36,7 @@ class ListingTableViewCell: UITableViewCell {
     }()
     
     // Only specific to VideoCell
-    lazy var video: UIView? = {
+    lazy var video: PlayerView? = {
         return self.viewWithTag(6)
     }()
 
