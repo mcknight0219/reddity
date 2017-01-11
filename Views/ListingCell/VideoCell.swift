@@ -36,27 +36,36 @@ class VideoCell: ListingTableViewCell {
         .observeOn(MainScheduler.instance)
         .subscribeNext { [weak self] URL in
             if let weakSelf = self, let URL = URL {
-                if let player = weakSelf.player {
-                    let newItem = AVPlayerItem(URL: URL)
-                    player.replaceCurrentItemWithPlayerItem(newItem)
-                    if let token = weakSelf.observeToken {
-                        weakSelf.player!.removeTimeObserver(token)
-                    }
-                } else {
-                    weakSelf.player = AVPlayer(URL: URL)
-                    // Loop
+                if weakSelf.player == nil {
+                    weakSelf.player = AVPlayer()
                     NSNotificationCenter.defaultCenter().addObserver(weakSelf, selector: #selector(VideoCell.loop), name: AVPlayerItemDidPlayToEndTimeNotification, object: weakSelf.player!.currentItem)
-                    // automatically play when ready
-                    weakSelf.player!.addObserver(weakSelf, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
                 }
+
+                let player = weakSelf.player
+
+                if let token = weakSelf.observeToken {
+                    player.removeTimeObserver(token)
+                }
+
+                VideoManager.default.retrieveVideo(from: URL)
+                  .subscribeOn(MainScheduler.instance)
+                  .subscribe { item in
+                      player.replaceCurrentItemWithPlayerItem(item)
+                  }
+                  .addDisposableTo(disposeBag)
+
+                player.rx_observe(AVPlayerStatus.self, "status")
+                  .subscribeOn(MainScheduler.instance)
+                  .filter { $0 == .ReadyToPlay }
+                  .subscribe { _ in
+                    player.play()
+                  }
+                  .addDisposableTo(reuseBag)
                 
                 // Update time label
                 let interval = CMTime(seconds: 0.5,
                     preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                weakSelf.observeToken = weakSelf.player!.addPeriodicTimeObserverForInterval(interval, queue: dispatch_get_main_queue()) { [weak self] time in
-                    if let weakSelf = self {
-                        
-                    }
+                weakSelf.observeToken = player.addPeriodicTimeObserverForInterval(interval, queue: dispatch_get_main_queue()) { [weak self] time in
                 }
             }
 
@@ -64,16 +73,25 @@ class VideoCell: ListingTableViewCell {
         .addDisposableTo(reuseBag)
     }
 
-    func loop() {
-        self.player?.seekToTime(kCMTimeZero)
-        self.player?.play()
+    func stopPlayVideo() {
+        if let player = self.player {
+            if player.rate > 0 && player.error == nil {
+                player.stop()
+            }
+        }
     }
 
-    override func observeValueForKeyPath(keyPath: String?, ofObject object: AnyObject?, change: [String: AnyObject]?, context: UnsafeMutablePointer<Void>) {
-        if let player = object as? AVPlayer {
-            if player.status == .ReadyToPlay {
-                player.play()
-            }
-        }    
+    func loop() {
+        if let player = self.player {
+            player.seekToTime(kCMTimeZero)
+            player.play()
+        }
+    }
+
+    func labelizeCMTime(time: CMTime) -> String {
+        let t = CMTimeGetSeconds(time)
+        let minutes = String(t / 60)
+        let seconds = String(format: "%02d", t % 60)
+        return "\(minutes):\(seconds)"
     }
 }

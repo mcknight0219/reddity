@@ -94,6 +94,11 @@ class LinkViewModel: NSObject {
         } 
     }
 
+    // Archive the link
+    func archive() {
+
+    }
+
     enum Media {
         case Image(URL: String)
         case Video(URL: String)

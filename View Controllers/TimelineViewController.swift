@@ -162,6 +162,12 @@ class TimelineViewController: BaseViewController {
                 }
             }
             .addDisposableTo(disposeBag)
+
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.archiveTimeline), name: "ArchiveTimelineHistory", object: nil)
+    }
+
+    private func archiveTimeline() {
+        
     }
 }
 
@@ -176,7 +182,7 @@ extension TimelineViewController: UITableViewDataSource {
     // Reset video cell when out of sight
     func tableView(tableView: UITableView, didEndDisplayingCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         if let videoCell = cell as? VideoCell {
-            print("video cell scrolled off screen")
+            videoCell.stopVidePlay()  
         }
     }
 

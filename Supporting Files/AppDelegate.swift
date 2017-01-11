@@ -261,6 +261,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(application: UIApplication) {
+        NSNotificationCenter.defaultCenter().postNotificationName("ArchiveTimelineHistory", object: nil)
         database?.close()
     }
 }

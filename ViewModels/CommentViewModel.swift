@@ -57,7 +57,6 @@ class CommentViewModel: NSObject, CommentViewModelType {
         self.showSpinner = self.comments
             .asObservable()
             .map { comments in
-                print("Show spinner: \(comments.count)")
                 return comments.count == 0
             }
         
