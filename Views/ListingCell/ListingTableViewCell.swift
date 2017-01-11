@@ -37,7 +37,7 @@ class ListingTableViewCell: UITableViewCell {
     
     // Only specific to VideoCell
     lazy var video: PlayerView? = {
-        return self.viewWithTag(6)
+        return self.viewWithTag(6) as? PlayerView
     }()
 
     var reuseBag = DisposeBag()

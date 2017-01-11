@@ -172,6 +172,13 @@ extension TimelineViewController: UITableViewDataSource {
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.viewModel.numberOfLinks
     }
+    
+    // Reset video cell when out of sight
+    func tableView(tableView: UITableView, didEndDisplayingCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        if let videoCell = cell as? VideoCell {
+            print("video cell scrolled off screen")
+        }
+    }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
@@ -224,10 +231,6 @@ extension TimelineViewController: UITableViewDataSource {
 
                 }
                 .addDisposableTo(newsCell.reuseBag)
-        }
-        
-        if let videoCell = cell as? VideoCell {
-            
         }
         
         return cell

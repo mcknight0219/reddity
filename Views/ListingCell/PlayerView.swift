@@ -1,6 +1,7 @@
 import UIKit
 import AVFoundation
 import SnapKit
+import ChameleonFramework
 
 class PlayerView: UIView {
     var player: AVPlayer? {
@@ -16,27 +17,25 @@ class PlayerView: UIView {
         return layer as! AVPlayerLayer
     }
 
-    lazy var timeLabel: UILabel {
-        let label = UILabel(frame: CGRectMake())
-        label.layer.corderRadius = 10
-        label.font = label.font.fontWithSize(9)
-        label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.75)
+    lazy var timeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = UIColor.whiteColor()
+        label.font = label.font.fontWithSize(12)
+        label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.65)
+        label.clipsToBounds = true
+        
+        return label
     }()
-
+   
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.addSubview(timeLabel)
-        timeLabel.snp_makeConstraints { make in
-            make.leading.equalTo(10)
-            make.bottom.equalTo(-5)
-        }
     }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
 
-    override static var layerClass: AnyClass {
+    override class func layerClass() -> AnyClass {
         return AVPlayerLayer.self
     }
 }
