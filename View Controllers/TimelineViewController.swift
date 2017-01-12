@@ -167,7 +167,12 @@ class TimelineViewController: BaseViewController {
     }
 
     private func archiveTimeline() {
-        
+        // only remember history for frontpage timeline
+        guard subredditName.isEmpty && !isFromSearch else {
+            return
+        }
+
+        self.viewModel.linkViewModels.forEach { $0.archive() }           
     }
 }
 

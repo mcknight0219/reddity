@@ -236,6 +236,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         if let db = self.database {
             do {
                 try db.executeUpdate("CREATE TABLE offline_data(data TEXT, subreddit TEXT, timestamp TEXT, FOREIGN KEY(subreddit) REFERENCES subreddits(id)", values: nil)
+                try db.executeUpdate("CREATE TABLE timeline_history(data TEXT)", values: nil)
             } catch let err as NSError {
                 print("failed: \(err.localizedDescription)")
             }

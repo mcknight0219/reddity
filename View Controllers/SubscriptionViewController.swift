@@ -158,18 +158,17 @@ class SubscriptionViewController: BaseTableViewController {
             cell = UITableViewCell(style: .Subtitle, reuseIdentifier: "SubscriptionCell")
         }
 
-        let sub = self.viewModel.subredditModelAtIndexPath(indexPath)
-        cell!.textLabel?.text = sub.displayName
-        cell!.detailTextLabel?.text = "\(sub.subscribers)"
+        cell!.textLabel?.text = self.viewModel.displayNameAtIndexPath(indexPath)
+        cell!.detailTextLabel?.text = "\(self.viewModel.subscribersAtIndexPath(indexPath))"
         cell!.accessoryType = .DetailButton
         
         return cell!
     }
 
     override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let subreddit = self.viewModel.subredditModelAtIndexPath(indexPath)
+        let name = self.viewModel.displayNameAtIndexPath(indexPath)
         
-        let timelineVC = TimelineViewController(subredditName: subreddit.displayName)
+        let timelineVC = TimelineViewController(subredditName: name)
         timelineVC.provider = Networking.newNetworking()
         timelineVC.hidesBottomBarWhenPushed = true
 

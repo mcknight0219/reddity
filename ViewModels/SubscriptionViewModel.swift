@@ -12,7 +12,9 @@ protocol SubscriptionViewModelType {
     var showBackground: Observable<Bool>! { get }
     var showRefresh: Variable<Bool> { get }
 
-    func subredditModelAtIndexPath(indexPath: NSIndexPath) -> Subreddit
+    func displayNameAtIndexPath(indexPath: NSIndexPath) -> String
+    // Human readable format
+    func subscribersAtIndexPath(indexPath: NSIndexPath) -> String
     func unsubscribe(indexPath: NSIndexPath)
     func reload()
 }
@@ -165,10 +167,22 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
 }
 
 extension SubscriptionViewModel {
-    func subredditModelAtIndexPath(indexPath: NSIndexPath) -> Subreddit {
-        return sortedSubs.value[indexPath.row]
+    func displayNameAtIndexPath(indexPath: NSIndexPath) -> String {
+        let sub = sortedSubs.value[indexPath.row]
+        return sub.displayName
     }
-    
+
+    func subscribersAtIndexPath(indexPath: NSIndexPath) -> String {
+        let n = sortedSubs.value[indexPath.row].subscribers
+        if n >= 1e6 {
+            return String(format: "%.1fM", n / 1e6)
+        } else if n >= 1e3 {
+            return String(format: "%.1fK", n / 1e3)
+        } else {
+            return String(n)
+        }
+    }
+
     func unsubscribe(indexPath: NSIndexPath) {
         self.provider.request(.Unsubscribe(name: subredditModelAtIndexPath(indexPath).name))
             .filterSuccessfulStatusCodes()

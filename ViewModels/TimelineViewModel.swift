@@ -24,6 +24,7 @@ protocol TimelineViewModelType {
     var updatedContents: Observable<NSDate> { get }
     
     func reload()
+    func linkViewModels() -> [LinkViewModel]
     func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel
 }
 
@@ -133,6 +134,10 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     
     func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel {
         return distinctLinks.value[indexPath.item].viewModel
+    }
+
+    func linkViewModels() -> [LinkViewModel] {
+        return distinctLinks.value.map { $0.viewModel }
     }
     
     func clear() {

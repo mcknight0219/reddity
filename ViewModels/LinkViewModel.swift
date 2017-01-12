@@ -96,7 +96,14 @@ class LinkViewModel: NSObject {
 
     // Archive the link
     func archive() {
-
+        if let delegate = UIApplication.sharedApplication().delegate, let db = delegate.database {
+            let data = [
+                "title": link.title
+            ]
+            db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: [])    
+        } else {
+            print("Couldn't find database instance")
+        }
     }
 
     enum Media {
