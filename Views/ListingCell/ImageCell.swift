@@ -16,11 +16,21 @@ class ImageCell: ListingTableViewCell {
     
     var tapOnPicture: Observable<NSDate>!
 
+    var spinner: UIActivityIndicatorView = {
+        let view = UIActivityIndicatorView()
+        view.activityIndicatorViewStyle = .Gray
+        view.hidesWhenStopped = true
+
+        return view
+    }()
+
     override func configure() {
         super.configure()
         
         let tap = UITapGestureRecognizer()
         self.picture?.addGestureRecognizer(tap)
+        self.picture?.addSubview(self.spinner)
+        self.spinner.center = CGRectMake(CGRectGetMidX(self.picture?.bounds), CGRectGetMidY(self.picture?.bounds))
         
         tapOnPicture = tap
             .rx_event
@@ -46,7 +56,11 @@ class ImageCell: ListingTableViewCell {
             }
             .subscribeNext {[weak self] URL in
                 if let URL = URL {
-                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder)
+                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder, completed: { [weak self] (_, _, _, finished, _) in
+                        if let weakSelf = self {
+                            weakSelf.spinner.stopAnimating()
+                        }
+                    })
                 }
             }
             .addDisposableTo(reuseBag)

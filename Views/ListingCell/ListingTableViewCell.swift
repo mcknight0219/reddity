@@ -56,6 +56,7 @@ class ListingTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.picture?.image = self.placeholder
+        self.video?.player.replaceCurrentItemWithPlayerItem(nil)
         self.configure()
     }
 

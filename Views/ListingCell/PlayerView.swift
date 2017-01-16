@@ -17,6 +17,14 @@ class PlayerView: UIView {
         return layer as! AVPlayerLayer
     }
 
+    lazy var spinner: UIActivityIndicatorView = {
+        let view = UIActivityIndicatorView() 
+        view.activityIndicatorViewStyle = .Gray
+        view.hidesWhenStopped = true
+
+        return view
+    }()
+
     lazy var timeLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.whiteColor()
@@ -29,6 +37,9 @@ class PlayerView: UIView {
    
     override init(frame: CGRect) {
         super.init(frame: frame)
+        self.addSubview(spinner)
+        spinner.center = CGPointMake(CGRectGetMidX(view.bounds), CGRectGetMidY(view.bounds))
+        spinner.startAnimating()
     }
 
     required init?(coder aDecoder: NSCoder) {
@@ -37,5 +48,9 @@ class PlayerView: UIView {
 
     override class func layerClass() -> AnyClass {
         return AVPlayerLayer.self
+    }
+
+    func stopAnimate() {
+        self.spinner.stopAnimating()
     }
 }

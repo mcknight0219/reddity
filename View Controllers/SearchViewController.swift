@@ -7,8 +7,6 @@
 //
 
 import UIKit
-import SnapKit
-import ChameleonFramework
 #if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
@@ -20,9 +18,9 @@ let HistoryCellIdentifier = "HistoryCell"
 
 class SearchViewController: UIViewController {
 
-    private var searchController: UISearchController!
-    private var resultsTableView: UITableView!
-    private var scopeSegmentedControl: UISegmentedControl!
+  private var searchController: UISearchController!
+  private var resultsTableView: UITableView!
+  private var scopeSegmentedControl: UISegmentedControl!
 
     var provider: Networking!
     

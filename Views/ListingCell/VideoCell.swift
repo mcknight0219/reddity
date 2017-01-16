@@ -58,7 +58,9 @@ class VideoCell: ListingTableViewCell {
                   .subscribeOn(MainScheduler.instance)
                   .filter { $0 == .ReadyToPlay }
                   .subscribe { _ in
-                    player.play()
+                      // Stop the spinner
+                      weakSelf.video!.stopAnimate()
+                      player.play()
                   }
                   .addDisposableTo(weakSelf.reuseBag)
                 
@@ -71,6 +73,10 @@ class VideoCell: ListingTableViewCell {
 
         }
         .addDisposableTo(reuseBag)
+    }
+
+    override func preapreForReuse() {
+        super.prepareForReuse()  
     }
 
     func stopVideoPlay() {

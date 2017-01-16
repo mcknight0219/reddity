@@ -171,7 +171,9 @@ class TimelineViewController: BaseViewController {
         guard subredditName.isEmpty && !isFromSearch else {
             return
         }
-
+        if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
+            try! db.executeUpdate("DELETE FROM timeline_history")
+        }
         self.viewModel.linkViewModels().forEach { $0.archive() }           
     }
 }

@@ -97,10 +97,8 @@ class LinkViewModel: NSObject {
     // Archive the link
     func archive() {
         if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
-            let data = [
-                "title": link.title
-            ]
-            try! db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: [])
+            let data = self.link.rawJsonString 
+            try! db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: [data])
         } else {
             print("Couldn't find database instance")
         }
