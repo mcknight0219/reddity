@@ -173,10 +173,10 @@ extension SubscriptionViewModel {
     }
 
     func subscribersAtIndexPath(indexPath: NSIndexPath) -> String {
-        let n = sortedSubs.value[indexPath.row].subscribers
-        if n >= 1e6 {
+        let n = Double(sortedSubs.value[indexPath.row].subscribers)
+        if n >= 1.0e6 {
             return String(format: "%.1fM", n / 1e6)
-        } else if n >= 1e3 {
+        } else if n >= 1.0e3 {
             return String(format: "%.1fK", n / 1e3)
         } else {
             return String(n)
@@ -184,7 +184,7 @@ extension SubscriptionViewModel {
     }
 
     func unsubscribe(indexPath: NSIndexPath) {
-        self.provider.request(.Unsubscribe(name: subredditModelAtIndexPath(indexPath).name))
+        self.provider.request(.Unsubscribe(name: displayNameAtIndexPath(indexPath)))
             .filterSuccessfulStatusCodes()
             .doOn { _ in
                 let subs = self.subs.value

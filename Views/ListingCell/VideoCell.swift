@@ -41,18 +41,18 @@ class VideoCell: ListingTableViewCell {
                     NSNotificationCenter.defaultCenter().addObserver(weakSelf, selector: #selector(VideoCell.loop), name: AVPlayerItemDidPlayToEndTimeNotification, object: weakSelf.player!.currentItem)
                 }
 
-                let player = weakSelf.player
+                let player = weakSelf.player!
 
                 if let token = weakSelf.observeToken {
                     player.removeTimeObserver(token)
                 }
 
-                VideoManager.default.retrieveVideo(from: URL)
+                VideoManager.defaultManager.retrieveVideo(from: URL)
                   .subscribeOn(MainScheduler.instance)
-                  .subscribe { item in
+                  .subscribeNext { item in
                       player.replaceCurrentItemWithPlayerItem(item)
                   }
-                  .addDisposableTo(disposeBag)
+                  .addDisposableTo(weakSelf.reuseBag)
 
                 player.rx_observe(AVPlayerStatus.self, "status")
                   .subscribeOn(MainScheduler.instance)
@@ -60,12 +60,12 @@ class VideoCell: ListingTableViewCell {
                   .subscribe { _ in
                     player.play()
                   }
-                  .addDisposableTo(reuseBag)
+                  .addDisposableTo(weakSelf.reuseBag)
                 
                 // Update time label
                 let interval = CMTime(seconds: 0.5,
                     preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                weakSelf.observeToken = player.addPeriodicTimeObserverForInterval(interval, queue: dispatch_get_main_queue()) { [weak self] time in
+                weakSelf.observeToken = player.addPeriodicTimeObserverForInterval(interval, queue: dispatch_get_main_queue()) { _ in
                 }
             }
 
@@ -73,10 +73,10 @@ class VideoCell: ListingTableViewCell {
         .addDisposableTo(reuseBag)
     }
 
-    func stopPlayVideo() {
+    func stopVideoPlay() {
         if let player = self.player {
             if player.rate > 0 && player.error == nil {
-                player.stop()
+                player.pause()
             }
         }
     }

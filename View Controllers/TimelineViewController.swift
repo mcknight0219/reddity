@@ -166,13 +166,13 @@ class TimelineViewController: BaseViewController {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.archiveTimeline), name: "ArchiveTimelineHistory", object: nil)
     }
 
-    private func archiveTimeline() {
+    @objc private func archiveTimeline() {
         // only remember history for frontpage timeline
         guard subredditName.isEmpty && !isFromSearch else {
             return
         }
 
-        self.viewModel.linkViewModels.forEach { $0.archive() }           
+        self.viewModel.linkViewModels().forEach { $0.archive() }           
     }
 }
 
@@ -187,7 +187,7 @@ extension TimelineViewController: UITableViewDataSource {
     // Reset video cell when out of sight
     func tableView(tableView: UITableView, didEndDisplayingCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
         if let videoCell = cell as? VideoCell {
-            videoCell.stopVidePlay()  
+            videoCell.stopVideoPlay()
         }
     }
 

@@ -1,26 +1,39 @@
 import AVFoundation
-#if !RX_NO_MODULE
-  import RxSwift
-#endif
+import RxSwift
+import RxCocoa
 
 final class VideoManager: NSObject {
-    static let default = VideoManager()
+    static let defaultManager = VideoManager()
     
-    let cache = NSCache<NSURL, AVPlayerItem>()
+    let cache = NSCache()
 
     func retrieveVideo(from URL: NSURL, fromCache: Bool = true) -> Observable<AVPlayerItem> {
+        
         if fromCache, let item = cache.objectForKey(URL) {
-            return Observable.create.just(item)
+            return Observable.just(item as! AVPlayerItem)
         }
-
+        
         let item = AVPlayerItem(URL: URL)
-        return item.rx_observe(AVPlayerItemStatus.self, "status")
-            .filter { $0 == .ReadyToPlay }
-            .map { item }
-            .doOn { cache.setObject($0.item, forKey: URL) }
-    }    
+        let asset = item.asset
+        return Observable.create { observer in
+            asset.loadValuesAsynchronouslyForKeys(["playable"]) {
+                var error: NSError?
+                let status = asset.statusOfValueForKey("playable", error: &error)
+                switch status {
+                case .Loaded:
+                    observer.onNext(item)
+                case .Failed:
+                    observer.onError(error!)
+                default:
+                    observer.onCompleted()
+                }
+            }
 
-    func clear() {
-        self.cache.removeAllObjects()
+
+            return AnonymousDisposable {
+            
+            }
+        }
+        
     }
 }
