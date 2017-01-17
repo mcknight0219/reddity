@@ -27,10 +27,15 @@ class ImageCell: ListingTableViewCell {
     override func configure() {
         super.configure()
         
+        self.picture?.addSubview(spinner)
+        self.picture?.bringSubviewToFront(spinner)
+        spinner.center = CGPoint(x: CGRectGetMidX(self.picture!.bounds) , y: CGRectGetMinX(self.picture!.bounds))
+        spinner.startAnimating()
+        
         let tap = UITapGestureRecognizer()
         self.picture?.addGestureRecognizer(tap)
         self.picture?.addSubview(self.spinner)
-        self.spinner.center = CGRectMake(CGRectGetMidX(self.picture?.bounds), CGRectGetMidY(self.picture?.bounds))
+        self.spinner.center = CGPointMake(CGRectGetMidX(self.picture!.bounds), CGRectGetMidY(self.picture!.bounds))
         
         tapOnPicture = tap
             .rx_event
@@ -56,7 +61,7 @@ class ImageCell: ListingTableViewCell {
             }
             .subscribeNext {[weak self] URL in
                 if let URL = URL {
-                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder, completed: { [weak self] (_, _, _, finished, _) in
+                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder, completed: { [weak self] (_, _, _, _) in
                         if let weakSelf = self {
                             weakSelf.spinner.stopAnimating()
                         }

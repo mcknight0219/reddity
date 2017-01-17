@@ -166,24 +166,24 @@ class DetailsViewController: BaseViewController {
     lazy var subtitleView: UILabel = {
         return {
             $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Regular", size: 12)
+            $0.font = UIFont(name: "Helvetica Neue", size: 12)
             $0.textAlignment = .Center
             $0.textColor = UIColor.darkGrayColor()
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 24, 160, 44-24)))
+        }(UILabel(frame: CGRectMake(0, 24, 240, 14)))
     }()
     
     lazy var titleView: UILabel = {
         return {
             $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Bold", size: 16)
+            $0.font = UIFont(name: "Helvetica Neue", size: 16)
             $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
+            $0.textColor = UIColor.blackColor()
             $0.numberOfLines = 1
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 2, 160, 24)))
+        }(UILabel(frame: CGRectMake(0, 2, 240, 30)))
     }()
 
     lazy var selfTextView: UIView? = {
@@ -247,7 +247,7 @@ class DetailsViewController: BaseViewController {
 
         // Setup navigation bar
         titleView.text = subject.title
-        subtitleView.text = "(\(subject.numberOfComments))"
+        subtitleView.text = "\(subject.numberOfComments) comments"
         let navTitleView: UIView = {
             $0.backgroundColor = UIColor.clearColor()
             $0.autoresizesSubviews = true
@@ -256,12 +256,13 @@ class DetailsViewController: BaseViewController {
             $0.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
             
             return $0
-        }(UIView(frame: CGRectMake(0, 0, 160, 44)))
+        }(UIView(frame: CGRectMake(0, 0, 240, 44)))
         navigationItem.titleView = navTitleView
+        
         let replyToPostButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Edit), style: .Plain, target: self, action: #selector(DetailsViewController.editPressed))
         replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
         navigationItem.rightBarButtonItem = replyToPostButton
-
+        
         viewModel.showSpinner
             .bindTo(indicatorView.rx_animating)
             .addDisposableTo(disposeBag)

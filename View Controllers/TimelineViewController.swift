@@ -81,7 +81,6 @@ class TimelineViewController: BaseViewController {
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .Plain, target: self, action: #selector(TimelineViewController.showAccountPopover))
-    
         
         automaticallyAdjustsScrollViewInsets = true
         topicTableViewController = {
@@ -172,7 +171,7 @@ class TimelineViewController: BaseViewController {
             return
         }
         if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
-            try! db.executeUpdate("DELETE FROM timeline_history")
+            
         }
         self.viewModel.linkViewModels().forEach { $0.archive() }           
     }
@@ -192,25 +191,12 @@ extension TimelineViewController: UITableViewDataSource {
             videoCell.stopVideoPlay()
         }
     }
-
+    
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
         
         let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
         cell.setViewModel(linkViewModel)
-        
-        let tap = UITapGestureRecognizer()
-        tap.numberOfTapsRequired = 1
-        cell.accessory?.addGestureRecognizer(tap)
-        cell.accessory?.userInteractionEnabled = true
-        tap.rx_event
-            .asObservable()
-            .subscribeNext { _ in
-                let vc = DetailsViewController(aSubject: linkViewModel.link, provider: self.provider)
-                vc.hidesBottomBarWhenPushed = true
-                self.navigationController?.pushViewController(vc, animated: true)
-            }
-            .addDisposableTo(disposeBag)
         
         // Map tapping on image
         if let imageCell = cell as? ImageCell {
@@ -246,6 +232,10 @@ extension TimelineViewController: UITableViewDataSource {
                 .addDisposableTo(newsCell.reuseBag)
         }
         
+        if let textCell = cell as? TextCell {
+            
+        }
+        
         return cell
     }
 }
@@ -276,6 +266,11 @@ extension TimelineViewController: PhotosViewControllerDelegate {
 extension TimelineViewController: UITableViewDelegate {
     
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
+        
+        let vc = DetailsViewController(aSubject: linkViewModel.link, provider: self.provider)
+        vc.hidesBottomBarWhenPushed = true
+        self.navigationController?.pushViewController(vc, animated: true)
     }
 }
 

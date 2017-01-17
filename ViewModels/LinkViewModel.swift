@@ -82,6 +82,8 @@ class LinkViewModel: NSObject {
     
     var presentImage: Observable<Bool>!
     
+    var selfText: Observable<String> = Observable.empty()
+    
     var link: Link!
     init(link: Link) {
         super.init()
@@ -91,14 +93,18 @@ class LinkViewModel: NSObject {
         
         if case .News = self.cellType {
             websiteThumbnailURL = LightBoxNetworkModel(url: URL).thumbnailURL        
-        } 
+        }
+        
+        if case .Text = self.cellType, case .SelfText(let text) = self.link.selfType {
+            selfText = Observable.just(text)
+        }
     }
 
     // Archive the link
     func archive() {
         if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
             let data = self.link.rawJsonString 
-            try! db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: [data])
+            try! db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: nil)
         } else {
             print("Couldn't find database instance")
         }

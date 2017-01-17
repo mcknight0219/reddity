@@ -12,4 +12,30 @@ import RxSwift
 import RxCocoa
 #endif
 
-class TextCell: ListingTableViewCell {}
+class TextCell: ListingTableViewCell {
+
+    
+    @IBOutlet weak var selfTextHeight: NSLayoutConstraint!
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        selfTextHeight.constant = 0
+    }
+    
+    override func configure() {
+        super.configure()
+        
+        viewModel
+            .flatMap { viewModel in
+                return viewModel.selfText
+            }
+            .filter { !$0.isEmpty }
+            .subscribeNext { [weak self] text in
+                if let weakSelf = self {
+                    weakSelf.selfText!.text = text
+                    weakSelf.selfTextHeight.constant = 100
+                }
+            }
+            .addDisposableTo(reuseBag)
+    }
+}

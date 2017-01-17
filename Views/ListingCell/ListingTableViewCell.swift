@@ -17,10 +17,6 @@ class ListingTableViewCell: UITableViewCell {
     lazy var title: UILabel? = {
         return self.viewWithTag(1) as? UILabel
     }()
-
-    lazy var accessory: UILabel? = {
-        return self.viewWithTag(2) as? UILabel
-    }()
     
     lazy var subreddit: UILabel? = {
         return self.viewWithTag(4) as? UILabel
@@ -28,6 +24,11 @@ class ListingTableViewCell: UITableViewCell {
 
     lazy var date: UILabel? = {
        return self.viewWithTag(5) as? UILabel
+    }()
+    
+    // Only specific to text cell
+    lazy var selfText: UILabel? = {
+       return self.viewWithTag(10) as? UILabel
     }()
     
     // Only specific to NewsCell and ImageCell
@@ -56,7 +57,7 @@ class ListingTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.picture?.image = self.placeholder
-        self.video?.player.replaceCurrentItemWithPlayerItem(nil)
+        self.video?.player?.replaceCurrentItemWithPlayerItem(nil)
         self.configure()
     }
 
@@ -73,13 +74,6 @@ class ListingTableViewCell: UITableViewCell {
                 return viewModel.title
             }
             .bindTo(self.title!.rx_text)
-            .addDisposableTo(reuseBag)
-        
-        viewModel
-            .map { viewModel -> String in
-                return viewModel.accessory
-            }
-            .bindTo(self.accessory!.rx_text)
             .addDisposableTo(reuseBag)
         
         viewModel
@@ -101,7 +95,6 @@ class ListingTableViewCell: UITableViewCell {
         let theme = CellTheme()!
         self.backgroundColor      = theme.backgroundColor
         self.title?.textColor     = theme.mainTextColor
-        self.accessory?.textColor = theme.accessoryTextColor
         self.subreddit?.textColor = theme.linkColor
     }
 }

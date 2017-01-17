@@ -19,7 +19,7 @@ class PlayerView: UIView {
 
     lazy var spinner: UIActivityIndicatorView = {
         let view = UIActivityIndicatorView() 
-        view.activityIndicatorViewStyle = .Gray
+        view.activityIndicatorViewStyle = .WhiteLarge
         view.hidesWhenStopped = true
 
         return view
@@ -37,13 +37,33 @@ class PlayerView: UIView {
    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.addSubview(spinner)
-        spinner.center = CGPointMake(CGRectGetMidX(view.bounds), CGRectGetMidY(view.bounds))
-        spinner.startAnimating()
     }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
+        
+        self.layer.backgroundColor = FlatWhite().CGColor
+        self.addSubview(spinner)
+        self.bringSubviewToFront(spinner)
+        spinner.snp_makeConstraints(closure: { make in
+            make.center.equalTo(self)
+        })
+        
+        spinner.startAnimating()
+        
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: 60, height: 35))
+        label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.45)
+        label.text = "mp4"
+        label.font = UIFont(name: "Helvetica Neue", size: 15)
+        label.layer.cornerRadius = 7.0
+        label.layer.masksToBounds = true
+        label.textColor = UIColor.whiteColor()
+        
+        self.addSubview(label)
+        label.snp_makeConstraints(closure: { make in
+            make.left.equalTo(self).offset(10)
+            make.bottom.equalTo(self).offset(-5)
+        })
     }
 
     override class func layerClass() -> AnyClass {

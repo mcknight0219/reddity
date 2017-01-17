@@ -1,19 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11542" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="11762" systemVersion="16A323" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11757"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
-    <customFonts key="customFonts">
-        <array key="Lato-Regular.ttf">
-            <string>Lato-Regular</string>
-        </array>
-    </customFonts>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
@@ -29,13 +24,13 @@
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" tag="4" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Dy-pT-KrI">
                                 <rect key="frame" x="0.0" y="0.0" width="238" height="25"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" tag="5" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bTg-PP-0Iv">
                                 <rect key="frame" x="238" y="0.0" width="238" height="25"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="18"/>
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -44,35 +39,64 @@
                             <constraint firstAttribute="height" constant="25" id="5sS-m6-zEV"/>
                         </constraints>
                     </stackView>
-                    <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CEB-Pb-WrD">
-                        <rect key="frame" x="18" y="46" width="476" height="137"/>
-                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="17"/>
-                        <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <nil key="highlightedColor"/>
-                    </label>
-                    <label opaque="NO" userInteractionEnabled="NO" tag="2" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="zrh-W2-gT6">
-                        <rect key="frame" x="18" y="191" width="476" height="25"/>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="25" id="V7P-Fp-DUh"/>
-                        </constraints>
-                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
-                        <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <nil key="highlightedColor"/>
-                    </label>
+                    <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="X0s-9r-aQA">
+                        <rect key="frame" x="18" y="46" width="476" height="162"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CEB-Pb-WrD">
+                                <rect key="frame" x="0.0" y="0.0" width="476" height="19"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="16"/>
+                                <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="2DO-9I-10n">
+                                <rect key="frame" x="0.0" y="137" width="476" height="25"/>
+                                <subviews>
+                                    <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1Y1-vI-hTo">
+                                        <rect key="frame" x="0.0" y="0.0" width="7" height="25"/>
+                                        <subviews>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="pEf-ft-SPx">
+                                                <rect key="frame" x="0.0" y="0.0" width="5" height="25"/>
+                                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="5" id="uJT-MM-Dnq"/>
+                                                </constraints>
+                                            </view>
+                                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="RDH-xM-6Yb">
+                                                <rect key="frame" x="5" y="0.0" width="2" height="25"/>
+                                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="width" constant="2" id="4Cz-J7-akG"/>
+                                                </constraints>
+                                            </view>
+                                        </subviews>
+                                    </stackView>
+                                    <label opaque="NO" userInteractionEnabled="NO" tag="10" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="V7q-aV-jww">
+                                        <rect key="frame" x="11" y="0.0" width="465" height="25"/>
+                                        <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="16"/>
+                                        <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="25" id="Ush-Ot-oPP"/>
+                                </constraints>
+                            </stackView>
+                        </subviews>
+                    </stackView>
                 </subviews>
                 <constraints>
+                    <constraint firstItem="X0s-9r-aQA" firstAttribute="top" secondItem="SZN-Xx-AeC" secondAttribute="bottom" constant="8" id="1pm-qw-YHl"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="X0s-9r-aQA" secondAttribute="bottom" constant="13" id="Bbp-J8-MaH"/>
                     <constraint firstItem="SZN-Xx-AeC" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="10" id="CYd-my-t0F"/>
-                    <constraint firstAttribute="bottomMargin" secondItem="zrh-W2-gT6" secondAttribute="bottom" constant="5" id="JTK-WW-Q3t"/>
                     <constraint firstItem="SZN-Xx-AeC" firstAttribute="top" secondItem="H2p-sc-9uM" secondAttribute="topMargin" constant="5" id="LM9-EL-EOG"/>
-                    <constraint firstAttribute="trailingMargin" secondItem="CEB-Pb-WrD" secondAttribute="trailing" constant="10" id="UwS-pz-Zvl"/>
-                    <constraint firstItem="CEB-Pb-WrD" firstAttribute="top" secondItem="SZN-Xx-AeC" secondAttribute="bottom" constant="8" id="YN0-HW-eTh"/>
-                    <constraint firstItem="zrh-W2-gT6" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="10" id="dMK-4l-JKw"/>
-                    <constraint firstItem="zrh-W2-gT6" firstAttribute="top" secondItem="CEB-Pb-WrD" secondAttribute="bottom" constant="8" id="nC1-xQ-WLO"/>
+                    <constraint firstAttribute="trailingMargin" secondItem="X0s-9r-aQA" secondAttribute="trailing" constant="10" id="bff-pQ-Sg2"/>
                     <constraint firstAttribute="trailingMargin" secondItem="SZN-Xx-AeC" secondAttribute="trailing" constant="10" id="o6H-RX-5Wa"/>
-                    <constraint firstItem="CEB-Pb-WrD" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="10" id="uDV-OR-HV4"/>
-                    <constraint firstAttribute="trailingMargin" secondItem="zrh-W2-gT6" secondAttribute="trailing" constant="10" id="zXO-f2-vyN"/>
+                    <constraint firstItem="X0s-9r-aQA" firstAttribute="leading" secondItem="H2p-sc-9uM" secondAttribute="leadingMargin" constant="10" id="u8N-NT-gDn"/>
                 </constraints>
             </tableViewCellContentView>
+            <connections>
+                <outlet property="selfTextHeight" destination="Ush-Ot-oPP" id="r29-vZ-Tfr"/>
+            </connections>
             <point key="canvasLocation" x="-793" y="-393"/>
         </tableViewCell>
     </objects>

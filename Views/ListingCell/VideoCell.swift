@@ -75,10 +75,6 @@ class VideoCell: ListingTableViewCell {
         .addDisposableTo(reuseBag)
     }
 
-    override func preapreForReuse() {
-        super.prepareForReuse()  
-    }
-
     func stopVideoPlay() {
         if let player = self.player {
             if player.rate > 0 && player.error == nil {
@@ -88,10 +84,12 @@ class VideoCell: ListingTableViewCell {
     }
 
     func loop() {
+        /*
         if let player = self.player {
             player.seekToTime(kCMTimeZero)
             player.play()
         }
+         */
     }
 
     func labelizeCMTime(time: CMTime) -> String {

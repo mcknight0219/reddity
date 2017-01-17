@@ -9,11 +9,6 @@
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
-    <customFonts key="customFonts">
-        <array key="Lato-Regular.ttf">
-            <string>Lato-Regular</string>
-        </array>
-    </customFonts>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
@@ -21,7 +16,7 @@
             <rect key="frame" x="0.0" y="0.0" width="515" height="435"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="q4L-dj-iMb" id="5jT-8U-zlW">
-                <rect key="frame" x="0.0" y="0.0" width="515" height="434"/>
+                <rect key="frame" x="0.0" y="0.0" width="515" height="434.5"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="Tv7-OA-38B">
@@ -29,13 +24,13 @@
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" tag="4" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Bw-mW-cV9">
                                 <rect key="frame" x="0.0" y="0.0" width="239.5" height="25"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" tag="5" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3pD-5H-eHg">
                                 <rect key="frame" x="239.5" y="0.0" width="239.5" height="25"/>
-                                <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
                                 <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
                                 <nil key="highlightedColor"/>
                             </label>
@@ -44,18 +39,9 @@
                             <constraint firstAttribute="height" constant="25" id="g5Q-d3-boM"/>
                         </constraints>
                     </stackView>
-                    <label opaque="NO" userInteractionEnabled="NO" tag="2" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="C2Q-iq-1Lt">
-                        <rect key="frame" x="18" y="396.5" width="479" height="25"/>
-                        <constraints>
-                            <constraint firstAttribute="height" constant="25" id="8JY-0t-MhY"/>
-                        </constraints>
-                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="15"/>
-                        <color key="textColor" red="0.33333333333333331" green="0.33333333333333331" blue="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <nil key="highlightedColor"/>
-                    </label>
                     <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1MP-Y9-X3r">
-                        <rect key="frame" x="18" y="300" width="479" height="92.5"/>
-                        <fontDescription key="fontDescription" name="Lato-Regular" family="Lato" pointSize="17"/>
+                        <rect key="frame" x="18" y="307" width="479" height="109.5"/>
+                        <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="16"/>
                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
@@ -71,15 +57,12 @@
                     <constraint firstAttribute="trailingMargin" secondItem="Eag-6G-owt" secondAttribute="trailing" constant="10" id="6Si-LW-xRv"/>
                     <constraint firstAttribute="trailingMargin" secondItem="1MP-Y9-X3r" secondAttribute="trailing" constant="10" id="Hik-ek-tDG"/>
                     <constraint firstItem="Eag-6G-owt" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="KSi-rB-5Xq"/>
-                    <constraint firstAttribute="bottomMargin" secondItem="C2Q-iq-1Lt" secondAttribute="bottom" constant="5" id="LGX-wR-Uwf"/>
+                    <constraint firstAttribute="bottomMargin" secondItem="1MP-Y9-X3r" secondAttribute="bottom" constant="10" id="QFN-wm-2aX"/>
                     <constraint firstItem="Eag-6G-owt" firstAttribute="top" secondItem="Tv7-OA-38B" secondAttribute="bottom" constant="6" id="YB8-ZF-ckh"/>
                     <constraint firstItem="1MP-Y9-X3r" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="ZB3-eu-XkC"/>
-                    <constraint firstItem="C2Q-iq-1Lt" firstAttribute="top" secondItem="1MP-Y9-X3r" secondAttribute="bottom" constant="4" id="Zky-tn-mVb"/>
-                    <constraint firstAttribute="trailingMargin" secondItem="C2Q-iq-1Lt" secondAttribute="trailing" constant="10" id="jWS-4s-t2x"/>
-                    <constraint firstItem="C2Q-iq-1Lt" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="mIl-d7-iLW"/>
                     <constraint firstItem="Tv7-OA-38B" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="oav-aY-m38"/>
                     <constraint firstAttribute="trailingMargin" secondItem="Tv7-OA-38B" secondAttribute="trailing" constant="10" id="rmf-Np-gJi"/>
-                    <constraint firstItem="1MP-Y9-X3r" firstAttribute="top" secondItem="Eag-6G-owt" secondAttribute="bottom" constant="6" id="uvb-dB-s2m"/>
+                    <constraint firstItem="1MP-Y9-X3r" firstAttribute="top" secondItem="Eag-6G-owt" secondAttribute="bottom" constant="13" id="uvb-dB-s2m"/>
                 </constraints>
             </tableViewCellContentView>
             <point key="canvasLocation" x="37.5" y="-93.5"/>
