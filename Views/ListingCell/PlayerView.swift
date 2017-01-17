@@ -34,7 +34,9 @@ class PlayerView: UIView {
         
         return label
     }()
-   
+
+    lazy var playButton = PlayButton()
+
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -72,5 +74,10 @@ class PlayerView: UIView {
 
     func stopAnimate() {
         self.spinner.stopAnimating()
+    }
+
+    func playOrPause() {
+      
+
     }
 }

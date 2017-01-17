@@ -15,8 +15,7 @@ extension NSDate {
         if days == 0 {
             return "Today"
         } else if days < 30 {
-            let unit = days < 2 ? "day" : "days"
-            return "\(String(days)) \(unit) ago"
+            return "\(String(days))d"
         } else if 31...365 ~= days {
             let formatter = NSDateFormatter()
             formatter.dateFormat = "MM-dd"
@@ -32,9 +31,9 @@ extension NSDate {
         
         let hours = Int(abs(self.timeIntervalSinceNow) / (3600))
         if hours > 1 {
-            return "\(hours) hours ago"
+            return "\(hours)h"
         } else {
-            return "\(Int(abs(self.timeIntervalSinceNow) / 60)) minutes ago"
+            return "\(Int(abs(self.timeIntervalSinceNow) / 60))m"
         }
     }
 

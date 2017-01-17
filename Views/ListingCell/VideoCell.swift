@@ -54,6 +54,7 @@ class VideoCell: ListingTableViewCell {
                   }
                   .addDisposableTo(weakSelf.reuseBag)
 
+ 
                 player.rx_observe(AVPlayerStatus.self, "status")
                   .subscribeOn(MainScheduler.instance)
                   .filter { $0 == .ReadyToPlay }
@@ -63,7 +64,7 @@ class VideoCell: ListingTableViewCell {
                       player.play()
                   }
                   .addDisposableTo(weakSelf.reuseBag)
-                
+                               
                 // Update time label
                 let interval = CMTime(seconds: 0.5,
                     preferredTimescale: CMTimeScale(NSEC_PER_SEC))

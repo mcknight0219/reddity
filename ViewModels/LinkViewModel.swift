@@ -67,7 +67,7 @@ class LinkViewModel: NSObject {
     }()
     
     lazy var date: String = {
-        return self.link.createdAt.daysAgo()
+        return self.link.createdAt.minutesAgo()
     }()
     
     lazy var URL: String = {
