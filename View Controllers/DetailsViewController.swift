@@ -73,7 +73,7 @@ class CommentsTableViewController: BaseTableViewController {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = UITableViewAutomaticDimension
-        tableView.estimatedRowHeight = 40
+        tableView.estimatedRowHeight = 120
        
         tableView.cellLayoutMarginsFollowReadableWidth = false
         tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")

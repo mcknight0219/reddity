@@ -16,7 +16,7 @@
             <rect key="frame" x="0.0" y="0.0" width="515" height="435"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="q4L-dj-iMb" id="5jT-8U-zlW">
-                <rect key="frame" x="0.0" y="0.0" width="515" height="434.5"/>
+                <rect key="frame" x="0.0" y="0.0" width="515" height="434"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="Tv7-OA-38B">
@@ -40,13 +40,13 @@
                         </constraints>
                     </stackView>
                     <label opaque="NO" userInteractionEnabled="NO" tag="1" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1MP-Y9-X3r">
-                        <rect key="frame" x="18" y="307" width="479" height="109.5"/>
+                        <rect key="frame" x="18" y="309" width="479" height="107.5"/>
                         <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="16"/>
                         <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <imageView clipsSubviews="YES" tag="3" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Eag-6G-owt">
-                        <rect key="frame" x="18" y="44" width="479" height="250"/>
+                        <rect key="frame" x="18" y="46" width="479" height="250"/>
                         <constraints>
                             <constraint firstAttribute="height" constant="250" id="Nlv-Li-kyF"/>
                         </constraints>
@@ -58,7 +58,7 @@
                     <constraint firstAttribute="trailingMargin" secondItem="1MP-Y9-X3r" secondAttribute="trailing" constant="10" id="Hik-ek-tDG"/>
                     <constraint firstItem="Eag-6G-owt" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="KSi-rB-5Xq"/>
                     <constraint firstAttribute="bottomMargin" secondItem="1MP-Y9-X3r" secondAttribute="bottom" constant="10" id="QFN-wm-2aX"/>
-                    <constraint firstItem="Eag-6G-owt" firstAttribute="top" secondItem="Tv7-OA-38B" secondAttribute="bottom" constant="6" id="YB8-ZF-ckh"/>
+                    <constraint firstItem="Eag-6G-owt" firstAttribute="top" secondItem="Tv7-OA-38B" secondAttribute="bottom" constant="8" id="YB8-ZF-ckh"/>
                     <constraint firstItem="1MP-Y9-X3r" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="ZB3-eu-XkC"/>
                     <constraint firstItem="Tv7-OA-38B" firstAttribute="leading" secondItem="5jT-8U-zlW" secondAttribute="leadingMargin" constant="10" id="oav-aY-m38"/>
                     <constraint firstAttribute="trailingMargin" secondItem="Tv7-OA-38B" secondAttribute="trailing" constant="10" id="rmf-Np-gJi"/>

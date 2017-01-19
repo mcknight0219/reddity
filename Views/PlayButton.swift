@@ -21,20 +21,20 @@ class PlayButton: UIButton {
         let context = UIGraphicsGetCurrentContext()
 
         // Draw Circle
-        let ovalPath = UIBezierPath(ovalIn: buttinBounds)
+        let ovalPath = UIBezierPath(ovalInRect: buttonBounds)
         UIColor.whiteColor().colorWithAlphaComponent(0.5).setFill()
         ovalPath.fill()
         
-        CGContextSaveGState(context)
+        CGContextSaveGState(context!)
         let triPath = UIBezierPath()
         triPath.moveToPoint(CGPointMake(originX + widthHeight / 3, bounds.size.height/4 + (bounds.size.height/2)/4))
         triPath.addLineToPoint(CGPointMake(originX + widthHeight / 3, bounds.size.height - bounds.size.height/4 - (bounds.size.height/2)/4))
-        triPath.addLineToPoint(CGPointMake(bounds.size.width - originX -widthHeight/4, bounds.size.height/2))
+        triPath.addLineToPoint(CGPointMake(bounds.size.width - originX - widthHeight/4, bounds.size.height/2))
 
         triPath.closePath()
         UIColor.whiteColor().colorWithAlphaComponent(0.9).setFill()
         triPath.fill()
         
-        CGContextRestoreGState(context)
+        CGContextRestoreGState(context!)
     }
 }

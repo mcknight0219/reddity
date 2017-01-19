@@ -55,7 +55,7 @@ class CommentCell: UITableViewCell {
         self.comment = aComment
         commentLabel.text = aComment.text
 
-        dateLabel.text = aComment.createdAt.minutesAgao()
+        dateLabel.text = aComment.createdAt.minutesAgo()
         userLabel.text = aComment.user
         
         commentButton.setImage(UIImage(named: "comment"), forState: .Normal)

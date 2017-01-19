@@ -38,7 +38,9 @@ class VideoCell: ListingTableViewCell {
             if let weakSelf = self, let URL = URL {
                 if weakSelf.player == nil {
                     weakSelf.player = AVPlayer()
-                    NSNotificationCenter.defaultCenter().addObserver(weakSelf, selector: #selector(VideoCell.loop), name: AVPlayerItemDidPlayToEndTimeNotification, object: weakSelf.player!.currentItem)
+                    /*
+                    NSNotificationCenter.defaultCenter().addObserver(weakSelf, selector: #selector(VideoCell.stopVideoPlay), name: AVPlayerItemDidPlayToEndTimeNotification, object: weakSelf.player!.currentItem)
+ */
                 }
 
                 let player = weakSelf.player!
@@ -64,7 +66,17 @@ class VideoCell: ListingTableViewCell {
                       player.play()
                   }
                   .addDisposableTo(weakSelf.reuseBag)
-                               
+                
+                player.rx_observe(Float.self, "rate")
+                    .subscribeOn(MainScheduler.instance)
+                    .filter { $0 == 0 }
+                    .subscribe { rate in
+                        
+                        // show play button
+                        weakSelf.video?.playOrPause()
+                    }
+                    .addDisposableTo(weakSelf.reuseBag)
+                
                 // Update time label
                 let interval = CMTime(seconds: 0.5,
                     preferredTimescale: CMTimeScale(NSEC_PER_SEC))
@@ -82,15 +94,6 @@ class VideoCell: ListingTableViewCell {
                 player.pause()
             }
         }
-    }
-
-    func loop() {
-        /*
-        if let player = self.player {
-            player.seekToTime(kCMTimeZero)
-            player.play()
-        }
-         */
     }
 
     func labelizeCMTime(time: CMTime) -> String {

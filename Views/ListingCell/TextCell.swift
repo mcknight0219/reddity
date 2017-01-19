@@ -33,7 +33,8 @@ class TextCell: ListingTableViewCell {
             .subscribeNext { [weak self] text in
                 if let weakSelf = self {
                     weakSelf.selfText!.text = text
-                    weakSelf.selfTextHeight.constant = 100
+                    weakSelf.selfText!.sizeToFit()
+                    weakSelf.selfTextHeight.constant = weakSelf.selfText!.frame.height
                 }
             }
             .addDisposableTo(reuseBag)

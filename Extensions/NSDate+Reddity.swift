@@ -25,7 +25,7 @@ extension NSDate {
         }
     }
     
-    func minutesAgao() -> String {
+    func minutesAgo() -> String {
         let time = self.daysAgo()
         guard time == "Today" else { return time }
         

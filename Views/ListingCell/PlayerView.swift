@@ -35,7 +35,9 @@ class PlayerView: UIView {
         return label
     }()
 
-    lazy var playButton = PlayButton()
+    lazy var playButton: PlayButton = {
+        return PlayButton(frame: CGRect(x: 0, y: 0, width: 65, height: 65))
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -57,7 +59,7 @@ class PlayerView: UIView {
         label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.45)
         label.text = "mp4"
         label.font = UIFont(name: "Helvetica Neue", size: 15)
-        label.layer.cornerRadius = 7.0
+        label.layer.cornerRadius = 4.0
         label.layer.masksToBounds = true
         label.textColor = UIColor.whiteColor()
         
@@ -77,7 +79,11 @@ class PlayerView: UIView {
     }
 
     func playOrPause() {
-      
-
+        self.addSubview(playButton)
+        playButton.snp_makeConstraints(closure: { make in
+            make.center.equalTo(self)
+        })
+        self.bringSubviewToFront(playButton)
+        
     }
 }

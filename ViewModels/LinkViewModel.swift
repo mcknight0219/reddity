@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 #if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
@@ -97,18 +98,24 @@ class LinkViewModel: NSObject {
         
         if case .Text = self.cellType, case .SelfText(let text) = self.link.selfType {
             selfText = Observable.just(text)
+            
+            /*
+            let attributedString = NSMutableAttributedString(string: text)
+            
+            let style = NSMutableParagraphStyle()
+            style.lineSpacing = 10
+            
+            attributedString.addAttributes([NSParagraphStyleAttributeName: style, NSFontAttributeName: UIFont(name: "Helvetica Neue", size: 16)!], range: NSRange(location: 0, length: attributedString.length))
+            let options: NSStringDrawingOptions = [.UsesLineFragmentOrigin, .UsesFontLeading]
+            // left margin(10) + right margin(10) + seprator(10)
+            let width = UIScreen.mainScreen().bounds.width - 30
+            let rect = attributedString.boundingRectWithSize(CGSize(width: width, height: CGFloat.max), options: options, context: nil)
+            */
         }
     }
 
     // Archive the link
-    func archive() {
-        if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
-            let data = self.link.rawJsonString 
-            try! db.executeUpdate("INSERT INTO timeline_history (data) values (?)", values: nil)
-        } else {
-            print("Couldn't find database instance")
-        }
-    }
+    func archive() {}
 
     enum Media {
         case Image(URL: String)

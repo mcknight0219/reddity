@@ -22,7 +22,7 @@
             <rect key="frame" x="0.0" y="0.0" width="486" height="229"/>
             <autoresizingMask key="autoresizingMask"/>
             <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="MZX-Fl-TzR" id="zV4-Qh-o9E">
-                <rect key="frame" x="0.0" y="0.0" width="486" height="228.5"/>
+                <rect key="frame" x="0.0" y="0.0" width="486" height="228"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="gxY-vg-ECx">
@@ -49,7 +49,7 @@
                         </constraints>
                     </stackView>
                     <stackView opaque="NO" contentMode="scaleToFill" alignment="top" spacing="5" translatesAutoresizingMaskIntoConstraints="NO" id="7wh-pY-veP">
-                        <rect key="frame" x="18" y="43" width="450" height="167.5"/>
+                        <rect key="frame" x="18" y="46" width="450" height="164.5"/>
                         <subviews>
                             <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="top" spacing="4" translatesAutoresizingMaskIntoConstraints="NO" id="fjc-8U-ra0">
                                 <rect key="frame" x="0.0" y="0.0" width="317" height="46"/>
@@ -87,7 +87,7 @@
                     <constraint firstAttribute="trailingMargin" secondItem="7wh-pY-veP" secondAttribute="trailing" constant="10" id="Uej-3J-zVn"/>
                     <constraint firstAttribute="trailingMargin" secondItem="gxY-vg-ECx" secondAttribute="trailing" constant="10" id="agq-nF-EEf"/>
                     <constraint firstItem="7wh-pY-veP" firstAttribute="leading" secondItem="zV4-Qh-o9E" secondAttribute="leadingMargin" constant="10" id="c5n-Gm-lrK"/>
-                    <constraint firstItem="7wh-pY-veP" firstAttribute="top" secondItem="gxY-vg-ECx" secondAttribute="bottom" constant="5" id="m0n-6q-0LN"/>
+                    <constraint firstItem="7wh-pY-veP" firstAttribute="top" secondItem="gxY-vg-ECx" secondAttribute="bottom" constant="8" id="m0n-6q-0LN"/>
                     <constraint firstItem="gxY-vg-ECx" firstAttribute="top" secondItem="zV4-Qh-o9E" secondAttribute="topMargin" constant="5" id="z4J-jt-Wvb"/>
                 </constraints>
             </tableViewCellContentView>
