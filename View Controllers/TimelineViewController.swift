@@ -220,8 +220,8 @@ extension TimelineViewController: UITableViewDataSource {
             newsCell.revealButton.setTitle(String.fontAwesomeIconWithName(.ExternalLink), forState: .Normal)
             
             newsCell
-                .revealButton
-                .rx_tap.asObservable()
+                .tapOnPicture
+                .observeOn(MainSchedular.instance)
                 .subscribeNext { _ in
                     if let URL = NSURL(string: linkViewModel.URL) {
                         let safariViewController = SFSafariViewController(URL: URL)

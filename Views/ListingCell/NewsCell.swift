@@ -16,9 +16,20 @@ import Moya
 
 class NewsCell: ListingTableViewCell {
     @IBOutlet weak var revealButton: UIButton!
+
+    var tapOnPicture: Observable<NSDate>!
     
     override func configure() {
         super.configure()
+
+        let tap = UITapGestureRecognizer()
+        self.picture?.addGestureRecognizer(tap)
+        
+        tapOnPicture = tap
+          .rx_event
+          .map { _ in
+            return NSDate()
+          }
 
         viewModel
             .flatMap { viewModel in
