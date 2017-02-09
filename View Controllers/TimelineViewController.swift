@@ -67,6 +67,10 @@ class TimelineViewController: BaseViewController {
     
     var referencePhoto: UIView?
     
+    var lastContentOffset: CGFloat = 0
+    var videoCurrentlyPlaying: Bool = false
+    var notScrolled: Bool = true
+    
     init(subredditName: String) {
         super.init(nibName: nil, bundle: nil)
         self.subredditName = subredditName
@@ -163,17 +167,16 @@ class TimelineViewController: BaseViewController {
             .addDisposableTo(disposeBag)
 
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.archiveTimeline), name: "ArchiveTimelineHistory", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.signIn), name: "SignInNotification", object: nil)
     }
 
     @objc private func archiveTimeline() {
-        // only remember history for frontpage timeline
-        guard subredditName.isEmpty && !isFromSearch else {
-            return
-        }
-        if let delegate = UIApplication.sharedApplication().delegate as? AppDelegate, let db = delegate.database {
-            
-        }
-        self.viewModel.linkViewModels().forEach { $0.archive() }           
+    }
+    
+    @objc private func signIn() {
+        let signInVC = SignInViewController()
+        signInVC.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(signInVC, animated: true)
     }
 }
 
@@ -183,13 +186,6 @@ extension TimelineViewController: UITableViewDataSource {
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.viewModel.numberOfLinks
-    }
-    
-    // Reset video cell when out of sight
-    func tableView(tableView: UITableView, didEndDisplayingCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
-        if let videoCell = cell as? VideoCell {
-            videoCell.stopVideoPlay()
-        }
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -213,15 +209,9 @@ extension TimelineViewController: UITableViewDataSource {
         }
         
         if let newsCell = cell as? NewsCell {
-            //let lines = ceil(newsCell.title!.text!.heightWithContrained(UIScreen.mainScreen().bounds.width - 25 - 127.5, font: UIFont(name: "Lato-Regular", size: 16)!) / UIFont(name: "Lato-Regular", size: 16)!.lineHeight)
-            
-            newsCell.title?.numberOfLines = 5
-            newsCell.revealButton.titleLabel?.font = UIFont.fontAwesomeOfSize(18)
-            newsCell.revealButton.setTitle(String.fontAwesomeIconWithName(.ExternalLink), forState: .Normal)
-            
             newsCell
                 .tapOnPicture
-                .observeOn(MainSchedular.instance)
+                .observeOn(MainScheduler.instance)
                 .subscribeNext { _ in
                     if let URL = NSURL(string: linkViewModel.URL) {
                         let safariViewController = SFSafariViewController(URL: URL)
@@ -232,13 +222,59 @@ extension TimelineViewController: UITableViewDataSource {
                 .addDisposableTo(newsCell.reuseBag)
         }
         
-        if let textCell = cell as? TextCell {
-            
-        }
-        
         return cell
     }
 }
+
+// MARK: UIScrollViewDelegate
+
+extension TimelineViewController {
+    enum ScrollDirection {
+        case Up
+        case Down
+        case Still
+    }
+    
+    private func detectScrollDirection(currentContentOffset: CGPoint) -> ScrollDirection {
+        self.lastContentOffset = currentContentOffset.y
+        return self.lastContentOffset > currentContentOffset.y ? .Up
+            : (self.lastContentOffset < currentContentOffset.y ? .Down : .Still)
+    }
+
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        if notScrolled { notScrolled = false }
+        let dir = detectScrollDirection(scrollView.contentOffset)
+        let tableView = scrollView as! UITableView
+        if let visible = tableView.indexPathsForVisibleRows {
+            for i in visible {
+                let rect = tableView.rectForRowAtIndexPath(i)
+                if tableView.bounds.intersects(rect) && !tableView.bounds.contains(rect) {
+                    if let cell = tableView.cellForRowAtIndexPath(i) as? VideoCell {
+                        switch dir {
+                        case .Down:
+                            cell.stopVideoPlay()
+                        default:
+                            break
+                        }
+                    }
+                } else if tableView.bounds.contains(rect) {
+                    
+                }
+            }
+            
+            visible.forEach { ip in
+                let rect = tableView.rectForRowAtIndexPath(ip)
+                let container = tableView.bounds
+                if let cell = tableView.cellForRowAtIndexPath(ip) as? VideoCell {
+                    if container.contains(rect) {
+                        
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 // MARK: PhotosViewControllerDelegate
 
@@ -283,7 +319,8 @@ extension TimelineViewController: UIPopoverPresentationControllerDelegate {
     @objc func showAccountPopover() {
         let popover = AccountSwitchViewController()
         popover.modalPresentationStyle = .Popover
-        popover.preferredContentSize = CGSizeMake(self.view.frame.width * 0.8, 160)
+        let height: CGFloat = CGFloat(Account().numberOfAccounts + 1) * 66.0 + 66.0
+        popover.preferredContentSize = CGSizeMake(self.view.frame.width * 0.95, height)
     
         if let presentation = popover.popoverPresentationController {
             presentation.delegate = self

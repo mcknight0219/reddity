@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import TextKit
+import CoreText
 
 let urlPattern = try! NSRegularExpression(pattern: "^(https?|ftp|file)://.+$", options: .CaseInsensitive)
 let imgurPattern = try! NSRegularExpression(pattern: "^.+(imgur.com)/[0-9a-zA-Z]+/?$", options: .CaseInsensitive)
@@ -36,7 +36,7 @@ extension String {
         let style = NSMutableParagraphStyle()
         style.lineSpacing = 0
         attributedStr.addAttributes([NSParagraphStyleAttributeName: style, NSFontAttributeName: font], range: NSRange(location: 0, length: attributedStr.length))
-        let frameSetter: CTFramesetterRef = CTFframesetterCreateWithAttributedString(attributedStr as CFAttributedStringRef)
+        let frameSetter: CTFramesetterRef = CTFramesetterCreateWithAttributedString(attributedStr as CFAttributedStringRef)
         let path: CGMutablePathRef = CGPathCreateMutable()
         CGPathAddRect(path, nil, rect)
         let frame: CTFrameRef = CTFramesetterCreateFrame(frameSetter, CFRangeMake(0, 0), path, nil)
@@ -46,7 +46,7 @@ extension String {
         for line in lines {
            let lineRange = CTLineGetStringRange(line as! CTLine)
            let range: NSRange = NSRange(location: lineRange.location, length: lineRange.length)
-           res += (self as NSString).substringWithRange(range) as String
+           res.append((self as NSString).substringWithRange(range) as String)
         }
 
         return res

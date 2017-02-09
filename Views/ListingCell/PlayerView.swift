@@ -25,19 +25,23 @@ class PlayerView: UIView {
         return view
     }()
 
-    lazy var timeLabel: UILabel = {
-        let label = UILabel()
-        label.textColor = UIColor.whiteColor()
-        label.font = label.font.fontWithSize(12)
-        label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.65)
-        label.clipsToBounds = true
+    lazy var playButton: UIButton = {
+        let button = UIButton(frame: CGRectMake(0, 0, 50, 50))
+        button.setImage(UIImage(named: "play_button") , forState: .Normal)
+        button.setImage(UIImage(named: "play_button_pressed"), forState: .Highlighted)
+        button.addTarget(self, action: #selector(PlayerView.playVideo), forControlEvents: .TouchUpInside)
+        
+        return button
+    }()
+    
+    lazy var countTimeLabel: PlaytimeLabel = {
+        let label = PlaytimeLabel(frame: CGRect(x: 0, y: 0, width: 75, height: 35))
+        label.delegate = self
         
         return label
     }()
-
-    lazy var playButton: PlayButton = {
-        return PlayButton(frame: CGRect(x: 0, y: 0, width: 65, height: 65))
-    }()
+    
+    var firstTimePlay: Bool = true
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -48,28 +52,13 @@ class PlayerView: UIView {
         
         self.layer.backgroundColor = FlatWhite().CGColor
         self.addSubview(spinner)
-        self.bringSubviewToFront(spinner)
         spinner.snp_makeConstraints(closure: { make in
             make.center.equalTo(self)
         })
-        
         spinner.startAnimating()
-        
-        let label = UILabel(frame: CGRect(x: 0, y: 0, width: 60, height: 35))
-        label.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.45)
-        label.text = "mp4"
-        label.font = UIFont(name: "Helvetica Neue", size: 15)
-        label.layer.cornerRadius = 4.0
-        label.layer.masksToBounds = true
-        label.textColor = UIColor.whiteColor()
-        
-        self.addSubview(label)
-        label.snp_makeConstraints(closure: { make in
-            make.left.equalTo(self).offset(10)
-            make.bottom.equalTo(self).offset(-5)
-        })
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(PlayerView.rewind), name: AVPlayerItemDidPlayToEndTimeNotification, object: player?.currentItem)
     }
-
+    
     override class func layerClass() -> AnyClass {
         return AVPlayerLayer.self
     }
@@ -78,12 +67,43 @@ class PlayerView: UIView {
         self.spinner.stopAnimating()
     }
 
-    func playOrPause() {
+    func playOrReplay() {
+        if firstTimePlay {
+            firstTimePlay = false
+            playVideo()
+            return
+        }
+        
         self.addSubview(playButton)
         playButton.snp_makeConstraints(closure: { make in
             make.center.equalTo(self)
         })
-        self.bringSubviewToFront(playButton)
         
+    }
+    
+    func playVideo() {
+        playButton.removeFromSuperview()
+        
+        addSubview(countTimeLabel)
+        countTimeLabel.snp_makeConstraints(closure: { make in
+            make.left.equalTo(self).offset(10)
+            make.bottom.equalTo(self).offset(-5)
+        })
+        
+        player?.play()
+    }
+    
+    func rewind() {
+        if firstTimePlay { return }
+        player?.seekToTime(kCMTimeZero, completionHandler: { _ in
+        })
+    }
+}
+
+extension PlayerView: PlaytimeLabelProtocol {
+    func updateText(for label: UILabel) {
+        if let label = label as? PlaytimeLabel {
+            
+        }
     }
 }

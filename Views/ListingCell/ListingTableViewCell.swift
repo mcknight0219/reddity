@@ -58,6 +58,7 @@ class ListingTableViewCell: UITableViewCell {
         super.prepareForReuse()
         self.picture?.image = self.placeholder
         self.video?.player?.replaceCurrentItemWithPlayerItem(nil)
+        self.video?.firstTimePlay = true
         self.configure()
     }
 

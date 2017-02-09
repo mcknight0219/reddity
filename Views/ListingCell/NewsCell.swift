@@ -15,7 +15,6 @@ import RxCocoa
 import Moya
 
 class NewsCell: ListingTableViewCell {
-    @IBOutlet weak var revealButton: UIButton!
 
     var tapOnPicture: Observable<NSDate>!
     

@@ -97,20 +97,13 @@ class LinkViewModel: NSObject {
         }
         
         if case .Text = self.cellType, case .SelfText(let text) = self.link.selfType {
-            selfText = Observable.just(text)
+            let lines = text.breaksIntoLines(constrained: CGRect(x: 0, y: 0, width: UIScreen.mainScreen().bounds.width - 30, height: CGFloat.max), font: UIFont(name: "Helvetica Neue", size: 16)!)
+            if lines.count < 5 {
+                selfText = Observable.just(text)
+            } else {
+                selfText = Observable.just(lines[0...4].reduce("", combine: { $0 + $1 }))
+            }
             
-            /*
-            let attributedString = NSMutableAttributedString(string: text)
-            
-            let style = NSMutableParagraphStyle()
-            style.lineSpacing = 10
-            
-            attributedString.addAttributes([NSParagraphStyleAttributeName: style, NSFontAttributeName: UIFont(name: "Helvetica Neue", size: 16)!], range: NSRange(location: 0, length: attributedString.length))
-            let options: NSStringDrawingOptions = [.UsesLineFragmentOrigin, .UsesFontLeading]
-            // left margin(10) + right margin(10) + seprator(10)
-            let width = UIScreen.mainScreen().bounds.width - 30
-            let rect = attributedString.boundingRectWithSize(CGSize(width: width, height: CGFloat.max), options: options, context: nil)
-            */
         }
     }
 

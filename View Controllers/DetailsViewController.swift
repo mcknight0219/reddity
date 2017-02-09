@@ -171,7 +171,7 @@ class DetailsViewController: BaseViewController {
             $0.textColor = UIColor.darkGrayColor()
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 24, 240, 14)))
+        }(UILabel(frame: CGRectMake(0, 24, 0.95 * self.view.frame.width, 14)))
     }()
     
     lazy var titleView: UILabel = {
@@ -183,7 +183,7 @@ class DetailsViewController: BaseViewController {
             $0.numberOfLines = 1
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 2, 240, 30)))
+        }(UILabel(frame: CGRectMake(0, 0, 0.95 * self.view.frame.width, 30)))
     }()
 
     lazy var selfTextView: UIView? = {
@@ -244,20 +244,8 @@ class DetailsViewController: BaseViewController {
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
         indicatorView.center = CGPointMake(view.bounds.width / 2, 20)
         indicatorView.hidesWhenStopped = true
-
-        // Setup navigation bar
-        titleView.text = subject.title
-        subtitleView.text = "\(subject.numberOfComments) comments"
-        let navTitleView: UIView = {
-            $0.backgroundColor = UIColor.clearColor()
-            $0.autoresizesSubviews = true
-            $0.addSubview(self.titleView)
-            $0.addSubview(self.subtitleView)
-            $0.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
-            
-            return $0
-        }(UIView(frame: CGRectMake(0, 0, 240, 44)))
-        navigationItem.titleView = navTitleView
+        
+        navigationItem.title = subject.title
         
         let replyToPostButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Edit), style: .Plain, target: self, action: #selector(DetailsViewController.editPressed))
         replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)

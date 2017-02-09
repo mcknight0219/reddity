@@ -113,7 +113,6 @@ extension StartupViewController {
         if let number = notification.object as? NSNumber {
             switch number.intValue {
             case 1:
-                
                 NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
             default:
                 dispatch_async(dispatch_get_main_queue()) { [weak self] in

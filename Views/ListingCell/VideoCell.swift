@@ -21,14 +21,12 @@ class VideoCell: ListingTableViewCell {
             self.video!.player = player
         }
     }
-    
-    var observeToken: AnyObject?
 
     override func configure() {
         super.configure()
 
         video!.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
-
+        
         viewModel
         .map { viewModel -> NSURL? in
             return viewModel.resourceURL
@@ -38,16 +36,9 @@ class VideoCell: ListingTableViewCell {
             if let weakSelf = self, let URL = URL {
                 if weakSelf.player == nil {
                     weakSelf.player = AVPlayer()
-                    /*
-                    NSNotificationCenter.defaultCenter().addObserver(weakSelf, selector: #selector(VideoCell.stopVideoPlay), name: AVPlayerItemDidPlayToEndTimeNotification, object: weakSelf.player!.currentItem)
- */
                 }
 
                 let player = weakSelf.player!
-
-                if let token = weakSelf.observeToken {
-                    player.removeTimeObserver(token)
-                }
 
                 VideoManager.defaultManager.retrieveVideo(from: URL)
                   .subscribeOn(MainScheduler.instance)
@@ -63,7 +54,7 @@ class VideoCell: ListingTableViewCell {
                   .subscribe { _ in
                       // Stop the spinner
                       weakSelf.video!.stopAnimate()
-                      player.play()
+                      weakSelf.video!.playVideo()
                   }
                   .addDisposableTo(weakSelf.reuseBag)
                 
@@ -71,17 +62,11 @@ class VideoCell: ListingTableViewCell {
                     .subscribeOn(MainScheduler.instance)
                     .filter { $0 == 0 }
                     .subscribe { rate in
-                        
-                        // show play button
-                        weakSelf.video?.playOrPause()
+                        // show play again button
+                        weakSelf.video?.playOrReplay()
                     }
                     .addDisposableTo(weakSelf.reuseBag)
                 
-                // Update time label
-                let interval = CMTime(seconds: 0.5,
-                    preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                weakSelf.observeToken = player.addPeriodicTimeObserverForInterval(interval, queue: dispatch_get_main_queue()) { _ in
-                }
             }
 
         }
