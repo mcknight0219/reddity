@@ -5,34 +5,32 @@ import RxCocoa
 final class VideoManager: NSObject {
     static let defaultManager = VideoManager()
     
-    let cache = NSCache()
+    let cache = NSCache<AnyObject, AnyObject>()
 
-    func retrieveVideo(from URL: NSURL, fromCache: Bool = true) -> Observable<AVPlayerItem> {
+    func retrieveVideo(from url: URL, fromCache: Bool = true) -> Observable<AVPlayerItem> {
         
-        if fromCache, let item = cache.objectForKey(URL) {
+        if fromCache, let item = cache.object(forKey: url as AnyObject) {
             return Observable.just(item as! AVPlayerItem)
         }
         
-        let item = AVPlayerItem(URL: URL)
+        let item = AVPlayerItem(url: url)
         let asset = item.asset
         return Observable.create { observer in
-            asset.loadValuesAsynchronouslyForKeys(["playable"]) {
+            asset.loadValuesAsynchronously(forKeys: ["playable"]) {
                 var error: NSError?
-                let status = asset.statusOfValueForKey("playable", error: &error)
+                
+                let status = asset.statusOfValue(forKey: "playable", error: &error)
                 switch status {
-                case .Loaded:
+                case .loaded:
                     observer.onNext(item)
-                case .Failed:
+                case .failed:
                     observer.onError(error!)
                 default:
                     observer.onCompleted()
                 }
             }
 
-
-            return AnonymousDisposable {
-            
-            }
+            return Disposables.create()
         }
         
     }

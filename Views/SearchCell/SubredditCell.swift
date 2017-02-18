@@ -22,18 +22,18 @@ class SubredditCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SubredditCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(SubredditCell.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
     }
 
-    override func setSelected(selected: Bool, animated: Bool) {
+    override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
 
         // Configure the view for the selected state
     }
     
     override func prepareForReuse() {
-        self.titleLabel.text = .None
-        self.descLabel.text = .None
+        self.titleLabel.text = .none
+        self.descLabel.text = .none
     }
     
     func loadCell(subreddit: Subreddit) {
@@ -45,10 +45,10 @@ class SubredditCell: UITableViewCell {
     func applyTheme() {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.titleLabel?.textColor  = FlatWhiteDark()
-            self.descLabel?.textColor   = UIColor.lightGrayColor()
+            self.descLabel?.textColor   = UIColor.lightGray
         } else {
-            self.titleLabel?.textColor  = UIColor.blackColor()
-            self.descLabel?.textColor   = UIColor.darkGrayColor()
+            self.titleLabel?.textColor  = UIColor.black
+            self.descLabel?.textColor   = UIColor.darkGray
         }
     }
     

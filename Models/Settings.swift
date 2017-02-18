@@ -25,28 +25,28 @@ struct Settings {
         case VideoAutoplay = "kVideoAutoplay"
     }
 
-    let defaults: NSUserDefaults
+    let defaults: UserDefaults
 
-    init(defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()) {
+    init(defaults: UserDefaults = UserDefaults.standard) {
         self.defaults = defaults
     }
 
     var nsfw: Bool {
         get {
-            let v = defaults.integerForKey(DefaultsKeys.NSFW.rawValue)
+            let v = defaults.integer(forKey: DefaultsKeys.NSFW.rawValue)
             return v == 1
         }
         set {
             guard newValue != self.nsfw else {
                 return
             } 
-            defaults.setObject(newValue ? 2 : 1, forKey: DefaultsKeys.NSFW.rawValue)
+            defaults.set(newValue ? 2 : 1, forKey: DefaultsKeys.NSFW.rawValue)
         }
     }
 
     var videoAutoplay: VideoAutoplayType {
         get {
-            let v = defaults.integerForKey(DefaultsKeys.VideoAutoplay.rawValue)
+            let v = defaults.integer(forKey: DefaultsKeys.VideoAutoplay.rawValue)
             // defaults
             if v == 0 {
                 return .WiFiOnly
@@ -59,11 +59,11 @@ struct Settings {
             } 
             switch newValue {
             case .Both:
-                defaults.setObject(1, forKey: DefaultsKeys.VideoAutoplay.rawValue)
+                defaults.set(1, forKey: DefaultsKeys.VideoAutoplay.rawValue)
             case .WiFiOnly:
-                defaults.setObject(2, forKey: DefaultsKeys.VideoAutoplay.rawValue)
+                defaults.set(2, forKey: DefaultsKeys.VideoAutoplay.rawValue)
             case .None:
-                defaults.setObject(3, forKey: DefaultsKeys.VideoAutoplay.rawValue)
+                defaults.set(3, forKey: DefaultsKeys.VideoAutoplay.rawValue)
             }
 
         }
@@ -71,7 +71,7 @@ struct Settings {
 
     var typeSize: TypeSizeType {
         get {
-            let v = defaults.integerForKey(DefaultsKeys.TypeSize.rawValue)
+            let v = defaults.integer(forKey: DefaultsKeys.TypeSize.rawValue)
             // defaults
             if v == 0 {
                 return .Medium
@@ -85,18 +85,18 @@ struct Settings {
             }
             switch newTypeSize {
             case .Small:
-                defaults.setObject(1, forKey: DefaultsKeys.TypeSize.rawValue)
+                defaults.set(1, forKey: DefaultsKeys.TypeSize.rawValue)
             case .Medium:
-                defaults.setObject(2, forKey: DefaultsKeys.TypeSize.rawValue)
+                defaults.set(2, forKey: DefaultsKeys.TypeSize.rawValue)
             case .Large:
-                defaults.setObject(3, forKey: DefaultsKeys.TypeSize.rawValue)
+                defaults.set(3, forKey: DefaultsKeys.TypeSize.rawValue)
             }
         }
     }
 
     var theme: ThemeType {
         get {
-            let v = defaults.integerForKey(DefaultsKeys.Theme.rawValue)
+            let v = defaults.integer(forKey: DefaultsKeys.Theme.rawValue)
             // defaults
             if v == 0 {
                 return .Light
@@ -110,9 +110,9 @@ struct Settings {
 
             switch newTheme {
             case .Light:
-                defaults.setObject(1, forKey: DefaultsKeys.Theme.rawValue)
+                defaults.set(1, forKey: DefaultsKeys.Theme.rawValue)
             case .Dark:
-                defaults.setObject(2, forKey: DefaultsKeys.Theme.rawValue)
+                defaults.set(2, forKey: DefaultsKeys.Theme.rawValue)
             }
         }
     }

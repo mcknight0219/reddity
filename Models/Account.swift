@@ -14,9 +14,9 @@ enum AccountType {
 
     var name: String {
         switch self {
-        case Guest:
+        case .Guest:
             return "guest"
-        case LoggedInUser(let name):
+        case .LoggedInUser(let name):
             return name
         }
     }
@@ -28,15 +28,15 @@ struct Account {
         case Pool = "UserPool"
     }
 
-    let defaults: NSUserDefaults
+    let defaults: UserDefaults
 
-    init(defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()) {
+    init(defaults: UserDefaults = UserDefaults.standard) {
         self.defaults = defaults
     }    
 
     var user: AccountType? {
         get {
-            if let u = defaults.stringForKey(DefaultsKeys.User.rawValue) {
+            if let u = defaults.string(forKey: DefaultsKeys.User.rawValue) {
                 if u == "guest" {
                     return .Guest
                 } else {
@@ -48,10 +48,10 @@ struct Account {
         set(newUser) {
             switch newUser! {
             case .Guest:
-                defaults.setObject("guest", forKey: DefaultsKeys.User.rawValue)
+                defaults.set("guest", forKey: DefaultsKeys.User.rawValue)
             case .LoggedInUser(let u):
-                defaults.setObject(u, forKey: DefaultsKeys.User.rawValue)
-                self.rememberMe(u)
+                defaults.set(u, forKey: DefaultsKeys.User.rawValue)
+                self.rememberMe(name: u)
             }
         }
     }
@@ -72,14 +72,14 @@ struct Account {
         return false
     }
     var numberOfAccounts: Int {
-        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+        guard let pool = defaults.dictionary(forKey: DefaultsKeys.Pool.rawValue) else {
             return 0
         } 
         return pool.count
     }
 
     var allUserNames: [String] {
-        guard let pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) else {
+        guard let pool = defaults.dictionary(forKey: DefaultsKeys.Pool.rawValue) else {
             return []
         }
         return Array(pool.keys)
@@ -88,16 +88,16 @@ struct Account {
 
 extension Account {
     func forget() {
-        defaults.removeObjectForKey(DefaultsKeys.User.rawValue)
+        defaults.removeObject(forKey: DefaultsKeys.User.rawValue)
     }
 
     // Store the refresh token for currently logged in User
     // in case user want to switch account while browsing
     func rememberMe(name: String) {
-        var pool = defaults.dictionaryForKey(DefaultsKeys.Pool.rawValue) ?? [String: AnyObject]()
+        var pool = defaults.dictionary(forKey: DefaultsKeys.Pool.rawValue) ?? [String: AnyObject]()
 
         pool[name] = XAppToken().refreshToken
 
-        defaults.setObject(pool, forKey: DefaultsKeys.Pool.rawValue)
+        defaults.set(pool, forKey: DefaultsKeys.Pool.rawValue)
     }
 }

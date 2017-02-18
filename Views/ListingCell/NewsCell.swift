@@ -13,6 +13,7 @@ import RxSwift
 import RxCocoa
 #endif
 import Moya
+import Kingfisher
 
 class NewsCell: ListingTableViewCell {
 
@@ -25,25 +26,24 @@ class NewsCell: ListingTableViewCell {
         self.picture?.addGestureRecognizer(tap)
         
         tapOnPicture = tap
-          .rx_event
+          .rx.event
           .map { _ in
             return NSDate()
           }
 
         viewModel
-            .flatMap { viewModel in
-                return Observable.combineLatest(Observable.just(viewModel.thumbnailURL), viewModel.websiteThumbnailURL) {
-                    return ($0, $1)
-                }
+            .map { vm in
+                vm.thumbnailURL
             }
-            .doOn { _ in
-                self.picture?.contentMode = .ScaleAspectFill
+            .do(onNext: { _ in
+                self.picture?.contentMode = .scaleAspectFill
                 self.picture?.clipsToBounds = true
-                self.picture?.image = UIImage.imageFilledWithColor(FlatWhite())
-            }
-            .subscribeNext { thumbnails in
-                self.picture?.sd_setImageWithURL(thumbnails.0 ?? thumbnails.1, placeholderImage: self.placeholder)
-            }
+                self.picture?.image = UIImage.imageFilledWithColor(color: FlatWhite())
+            })
+            .subscribe(onNext: { thumbnail in
+                self.picture?.kf.setImage(with: thumbnail, placeholder: self.placeholder)
+                return
+            })
             .addDisposableTo(reuseBag)
     }
     

@@ -19,17 +19,17 @@ class PlayerView: UIView {
 
     lazy var spinner: UIActivityIndicatorView = {
         let view = UIActivityIndicatorView() 
-        view.activityIndicatorViewStyle = .WhiteLarge
+        view.activityIndicatorViewStyle = .whiteLarge
         view.hidesWhenStopped = true
 
         return view
     }()
 
     lazy var playButton: UIButton = {
-        let button = UIButton(frame: CGRectMake(0, 0, 50, 50))
-        button.setImage(UIImage(named: "play_button") , forState: .Normal)
-        button.setImage(UIImage(named: "play_button_pressed"), forState: .Highlighted)
-        button.addTarget(self, action: #selector(PlayerView.playVideo), forControlEvents: .TouchUpInside)
+        let button = UIButton(frame: CGRect(x: 0, y: 0, width: 50, height: 50))
+        button.setImage(UIImage(named: "play_button") , for: .normal)
+        button.setImage(UIImage(named: "play_button_pressed"), for: .highlighted)
+        button.addTarget(self, action: #selector(PlayerView.playVideo), for: .touchUpInside)
         
         return button
     }()
@@ -50,16 +50,17 @@ class PlayerView: UIView {
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         
-        self.layer.backgroundColor = FlatWhite().CGColor
+        self.layer.backgroundColor = FlatWhite().cgColor
         self.addSubview(spinner)
-        spinner.snp_makeConstraints(closure: { make in
+        spinner.snp.makeConstraints({ make in
             make.center.equalTo(self)
         })
+        
         spinner.startAnimating()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(PlayerView.rewind), name: AVPlayerItemDidPlayToEndTimeNotification, object: player?.currentItem)
+        NotificationCenter.default.addObserver(self, selector: #selector(PlayerView.rewind), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: player?.currentItem)
     }
     
-    override class func layerClass() -> AnyClass {
+    override class var layerClass: AnyClass {
         return AVPlayerLayer.self
     }
 
@@ -75,7 +76,7 @@ class PlayerView: UIView {
         }
         
         self.addSubview(playButton)
-        playButton.snp_makeConstraints(closure: { make in
+        playButton.snp.makeConstraints({ make in
             make.center.equalTo(self)
         })
         
@@ -85,7 +86,7 @@ class PlayerView: UIView {
         playButton.removeFromSuperview()
         
         addSubview(countTimeLabel)
-        countTimeLabel.snp_makeConstraints(closure: { make in
+        countTimeLabel.snp.makeConstraints({ make in
             make.left.equalTo(self).offset(10)
             make.bottom.equalTo(self).offset(-5)
         })
@@ -95,14 +96,14 @@ class PlayerView: UIView {
     
     func rewind() {
         if firstTimePlay { return }
-        player?.seekToTime(kCMTimeZero, completionHandler: { _ in
+        player?.seek(to: kCMTimeZero, completionHandler: { _ in
         })
     }
 }
 
 extension PlayerView: PlaytimeLabelProtocol {
     func updateText(for label: UILabel) {
-        if let label = label as? PlaytimeLabel {
+        if label is PlaytimeLabel {
             
         }
     }

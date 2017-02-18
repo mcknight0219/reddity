@@ -31,13 +31,13 @@ extension NSMutableAttributedString {
         var limit = NSMakeRange(0, self.length)
         let str = NSString(string: self.string)
         while true {
-            let r = str.rangeOfString(pattern, options: .RegularExpressionSearch, range: limit)
+            let r = str.range(of: pattern, options: .regularExpression, range: limit)
             if r.location == NSNotFound {
                 break
             }
             
             if let mod = action?(r, self) {
-                self.replaceCharactersInRange(r, withAttributedString: mod)
+                self.replaceCharacters(in: r, with: mod)
                 limit = NSMakeRange(r.location + mod.length, self.length - r.location - mod.length)
             }
         }

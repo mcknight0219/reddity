@@ -12,10 +12,10 @@ protocol SubscriptionViewModelType {
     var showBackground: Observable<Bool>! { get }
     var showRefresh: Variable<Bool> { get }
 
-    func displayNameAtIndexPath(indexPath: NSIndexPath) -> String
+    func displayNameAtIndexPath(indexPath: IndexPath) -> String
     // Human readable format
-    func subscribersAtIndexPath(indexPath: NSIndexPath) -> String
-    func unsubscribe(indexPath: NSIndexPath)
+    func subscribersAtIndexPath(indexPath: IndexPath) -> String
+    func unsubscribe(indexPath: IndexPath)
     func reload()
 }
 
@@ -42,7 +42,7 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     var showBackground: Observable<Bool>!
     var showRefresh = Variable<Bool>(false)
 
-    private let disposeBag = DisposeBag()
+    fileprivate let disposeBag = DisposeBag()
     init(provider: Networking, selectedOrder: Observable<Int>) {
         // Get subscription from API
         self.provider = provider
@@ -56,14 +56,14 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
         showRefresh.value = true
         
         self.provider
-        .request(RedditAPI.Subscriptions)
+        .request(action: RedditAPI.Subscriptions)
         .filterSuccessfulStatusCodes()
-        .doOn { _ in 
+        .do(onNext: { _ in
             self.showRefresh.value = false
-        }
+        })
         .flatMap { response -> Observable<[Subreddit]> in
             let jsonObject = JSON(data: response.data)
-            let subs = subredditsParser(jsonObject)
+            let subs = subredditsParser(json: jsonObject)
             return Observable.just(subs)
         }
         .bindTo(subs)
@@ -72,12 +72,12 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     
     private func reloadSubscriptions() {
         self.provider
-            .request(RedditAPI.Subscriptions)
+            .request(action: RedditAPI.Subscriptions)
             .filterSuccessfulStatusCodes()
             .flatMap { response -> Observable<[Subreddit]> in
                 
                 let jsonObject = JSON(data: response.data)
-                let subs = subredditsParser(jsonObject)
+                let subs = subredditsParser(json: jsonObject)
                 return Observable.just(subs)
             }
             .bindTo(subs)
@@ -87,12 +87,12 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     private func setup() {
         
         self.provider
-            .request(RedditAPI.Subscriptions)
+            .request(action: RedditAPI.Subscriptions)
             .filterSuccessfulStatusCodes()
-            .takeUntil(rx_deallocated)
+            .takeUntil(rx.deallocated)
             .map { response -> [Subreddit] in
                 let jsonObject = JSON(data: response.data)
-                let subs = subredditsParser(jsonObject)
+                let subs = subredditsParser(json: jsonObject)
                 return subs
             }
             .bindTo(subs)
@@ -117,7 +117,7 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
             }
             .map { [weak self] order in
                 if let me = self {
-                    let sorted = order!.sortedSubscription(me.subs.value)
+                    let sorted = order!.sortedSubscription(subscription: me.subs.value)
                     return sorted
                 } else {
                     return []
@@ -133,32 +133,32 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
     }
 
     enum SortOrder: Int {
-        case Alphabetical = 0
-        case Popularity
-        case Favorite
+        case alphabetical = 0
+        case popularity
+        case favorite
 
         var name: String {
             switch self {
-            case Alphabetical:
+            case .alphabetical:
                 return "Alphabetical"
-            case Popularity:
+            case .popularity:
                 return "Popularity"
-            case Favorite:
+            case .favorite:
                 return "Favorite"
             }
         }
 
         func sortedSubscription(subscription: [Subreddit]) -> [Subreddit] {
             switch self {
-            case Alphabetical:
-                return subscription.sort {
-                    $0.displayName.compare($1.displayName) == .OrderedAscending
+            case .alphabetical:
+                return subscription.sorted {
+                    $0.displayName.compare($1.displayName) == .orderedAscending
                 }
-            case Popularity:
-                return subscription.sort {
+            case .popularity:
+                return subscription.sorted {
                     return $0.subscribers > $1.subscribers
                 }
-            case Favorite:
+            case .favorite:
                 // TODO: depend on database
                 return subscription
             }
@@ -167,12 +167,12 @@ class SubscriptionViewModel: NSObject, SubscriptionViewModelType {
 }
 
 extension SubscriptionViewModel {
-    func displayNameAtIndexPath(indexPath: NSIndexPath) -> String {
+    func displayNameAtIndexPath(indexPath: IndexPath) -> String {
         let sub = sortedSubs.value[indexPath.row]
         return sub.displayName
     }
 
-    func subscribersAtIndexPath(indexPath: NSIndexPath) -> String {
+    func subscribersAtIndexPath(indexPath: IndexPath) -> String {
         let n = Double(sortedSubs.value[indexPath.row].subscribers)
         if n >= 1.0e6 {
             return String(format: "%.1fM", n / 1e6)
@@ -183,20 +183,20 @@ extension SubscriptionViewModel {
         }
     }
 
-    func unsubscribe(indexPath: NSIndexPath) {
-        self.provider.request(.Unsubscribe(name: displayNameAtIndexPath(indexPath)))
+    func unsubscribe(indexPath: IndexPath) {
+        self.provider.request(action: .Unsubscribe(name: displayNameAtIndexPath(indexPath: indexPath)))
             .filterSuccessfulStatusCodes()
-            .doOn { _ in
+            .do(onNext: { _ in
                 let subs = self.subs.value
                 self.subs.value = subs.filter {
                     $0.id != self.sortedSubs.value[indexPath.row].id
                 }
                 
                 print("\(self.subs.value.count)")
-            }
-            .subscribeNext { _ in
+            })
+            .subscribe(onNext: { _ in
                 
-            }
+            })
             .addDisposableTo(disposeBag)
     }
 }

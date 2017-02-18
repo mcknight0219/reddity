@@ -28,29 +28,29 @@ class VideoCell: ListingTableViewCell {
         video!.playerLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
         
         viewModel
-        .map { viewModel -> NSURL? in
+        .map { viewModel -> URL? in
             return viewModel.resourceURL
         }
         .observeOn(MainScheduler.instance)
-        .subscribeNext { [weak self] URL in
-            if let weakSelf = self, let URL = URL {
+        .subscribe(onNext: { [weak self] url in
+            if let weakSelf = self, let url = url {
                 if weakSelf.player == nil {
                     weakSelf.player = AVPlayer()
                 }
 
                 let player = weakSelf.player!
 
-                VideoManager.defaultManager.retrieveVideo(from: URL)
+                VideoManager.defaultManager.retrieveVideo(from: url)
                   .subscribeOn(MainScheduler.instance)
-                  .subscribeNext { item in
-                      player.replaceCurrentItemWithPlayerItem(item)
-                  }
+                  .subscribe(onNext: { item in
+                      player.replaceCurrentItem(with: item)
+                  })
                   .addDisposableTo(weakSelf.reuseBag)
 
  
-                player.rx_observe(AVPlayerStatus.self, "status")
+                player.rx.observe(AVPlayerStatus.self, "status")
                   .subscribeOn(MainScheduler.instance)
-                  .filter { $0 == .ReadyToPlay }
+                  .filter { $0 == .readyToPlay }
                   .subscribe { _ in
                       // Stop the spinner
                       weakSelf.video!.stopAnimate()
@@ -58,7 +58,7 @@ class VideoCell: ListingTableViewCell {
                   }
                   .addDisposableTo(weakSelf.reuseBag)
                 
-                player.rx_observe(Float.self, "rate")
+                player.rx.observe(Float.self, "rate")
                     .subscribeOn(MainScheduler.instance)
                     .filter { $0 == 0 }
                     .subscribe { rate in
@@ -69,7 +69,7 @@ class VideoCell: ListingTableViewCell {
                 
             }
 
-        }
+        })
         .addDisposableTo(reuseBag)
     }
 
@@ -84,7 +84,7 @@ class VideoCell: ListingTableViewCell {
     func labelizeCMTime(time: CMTime) -> String {
         let t = CMTimeGetSeconds(time)
         let minutes = String(t / 60)
-        let seconds = String(format: "%02d", t % 60)
+        let seconds = String(format: "%02d", t.truncatingRemainder(dividingBy: 60))
         return "\(minutes):\(seconds)"
     }
 }

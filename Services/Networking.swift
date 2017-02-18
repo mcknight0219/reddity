@@ -3,7 +3,6 @@ import RxSwift
 import RxSwiftExt
 import Moya
 import Alamofire
-import ISO8601DateFormatter
 
 struct XAppToken {
     enum DefaultsKeys: String {
@@ -12,47 +11,47 @@ struct XAppToken {
         case RefreshToken = "RefreshToken"
     }
 
-    let defaults: NSUserDefaults
+    let defaults: UserDefaults
 
-    init(defaults: NSUserDefaults) {
+    init(defaults: UserDefaults) {
         self.defaults = defaults
     }
 
     init() {
-        self.defaults = NSUserDefaults.standardUserDefaults()
+        self.defaults = UserDefaults.standard
     }
 
     var refreshToken: String? {
         get {
-            return defaults.stringForKey(DefaultsKeys.RefreshToken.rawValue)
+            return defaults.string(forKey: DefaultsKeys.RefreshToken.rawValue)
         }
         set(newToken) {
-            defaults.setObject(newToken, forKey: DefaultsKeys.RefreshToken.rawValue)
+            defaults.set(newToken, forKey: DefaultsKeys.RefreshToken.rawValue)
         }
     }
 
     var accessToken: String? {
         get {
-            return defaults.stringForKey(DefaultsKeys.AccessToken.rawValue)
+            return defaults.string(forKey: DefaultsKeys.AccessToken.rawValue)
         }
         set(newToken) {
-            defaults.setObject(newToken, forKey: DefaultsKeys.AccessToken.rawValue)
+            defaults.set(newToken, forKey: DefaultsKeys.AccessToken.rawValue)
         }
     }
 
     var expiry: NSDate? {
         get {
-            return defaults.objectForKey(DefaultsKeys.TokenExpiry.rawValue) as? NSDate
+            return defaults.object(forKey: DefaultsKeys.TokenExpiry.rawValue) as? NSDate
         }
         set(newExpiry) {
-            defaults.setObject(newExpiry, forKey: DefaultsKeys.TokenExpiry.rawValue)
+            defaults.set(newExpiry, forKey: DefaultsKeys.TokenExpiry.rawValue)
         }
     }
 
     /// excess token expires in 2 hours, we use 119 minutes for caution purpose
     var expired: Bool {
         if let expiry = expiry {
-            return expiry.compare(NSDate()) == .OrderedAscending
+            return expiry.compare(NSDate() as Date) == .orderedAscending
         }
         return true
     }
@@ -67,20 +66,19 @@ struct XAppToken {
 }
 
 
-class OnlineProvider<Target where Target: TargetType>: RxMoyaProvider<Target> {
+class OnlineProvider<Target>: RxMoyaProvider<Target> where Target: TargetType {
     private let online: Observable<Bool>
 
-    init(endpointClosure: MoyaProvider<Target>.EndpointClosure = MoyaProvider.DefaultEndpointMapping,
-         requestClosure: MoyaProvider<Target>.RequestClosure = MoyaProvider.DefaultRequestMapping,
-         stubClosure: MoyaProvider<Target>.StubClosure = MoyaProvider.NeverStub,
-         manager: Manager = Alamofire.Manager.sharedInstance,
+    init(endpointClosure: @escaping MoyaProvider<Target>.EndpointClosure = MoyaProvider.defaultEndpointMapping,
+         requestClosure: @escaping MoyaProvider<Target>.RequestClosure = MoyaProvider.defaultRequestMapping,
+         stubClosure: @escaping MoyaProvider<Target>.StubClosure = MoyaProvider.neverStub,
+         manager: Manager = MoyaProvider<Target>.defaultAlamofireManager(),
          plugins: [PluginType] = []) {
-        
         self.online = reachabilityManager.reach
         super.init(endpointClosure: endpointClosure, requestClosure: requestClosure, stubClosure: stubClosure, manager: manager, plugins: [], trackInflights: false)
    }
 
-    override func request(action: Target) -> Observable<Moya.Response> {
+    override func request(_ action: Target) -> Observable<Moya.Response> {
         let actualRequest = super.request(action)
         return online
             .ignore(false)
@@ -94,7 +92,7 @@ class OnlineProvider<Target where Target: TargetType>: RxMoyaProvider<Target> {
 struct Networking {
     let provider: OnlineProvider<RedditAPI> 
 
-    func request(action: RedditAPI, defaults: NSUserDefaults = NSUserDefaults.standardUserDefaults()) -> Observable<Moya.Response> {
+    func request(action: RedditAPI, defaults: UserDefaults = UserDefaults.standard) -> Observable<Moya.Response> {
         let actualRequest = self.provider.request(action)
         // request for refresh token
         switch action {
@@ -104,7 +102,7 @@ struct Networking {
             break
         }
         
-        return self.XAppTokenRequest(defaults)
+        return self.XAppTokenRequest(defaults: defaults)
             .flatMap { _ in actualRequest }
     }
 }
@@ -112,7 +110,7 @@ struct Networking {
 extension Networking {
 
     /// Fetch and store new access token if the current token is missing or expired
-    private func XAppTokenRequest(defaults: NSUserDefaults) -> Observable<String?> {
+    fileprivate func XAppTokenRequest(defaults: UserDefaults) -> Observable<String?> {
         
         var token = XAppToken(defaults: defaults)
 
@@ -127,12 +125,10 @@ extension Networking {
                 guard let dict = element as? NSDictionary else { return (token: nil, expiry: nil) }
                 return (token: dict["access_token"] as? String, expiry: dict["expires_in"] as? Int)
             }
-            .doOn { event in
-                guard case Event.Next(let e) = event else { return }
-            
-                token.accessToken = e.0
-                token.expiry = NSDate().dateByAddingTimeInterval(Double(e.1!))
-            }
+            .do(onNext: { pair in
+                token.accessToken = pair.0
+                token.expiry = NSDate().addingTimeInterval(Double(pair.1!))
+            })
             .map { (token, _) -> String? in
                 return token
             }
@@ -148,23 +144,23 @@ extension Networking {
         return Networking(provider: newProvider())
     }
     
-    static func endpointsClosure<T where T: TargetType>(target: T) -> Endpoint<T> {
-        let endpoint = Endpoint<T>(URL: url(target), sampleResponseClosure: {.NetworkResponse(200, target.sampleData)}, method: target.method, parameters: target.parameters)
+    static func endpointsClosure<T>(target: T) -> Endpoint<T> where T: TargetType {
+        let endpoint = Endpoint<T>(url: url(route: target), sampleResponseClosure: {.networkResponse(200, target.sampleData)}, method: target.method, parameters: target.parameters)
         
         switch target as! RedditAPI {
         case .XApp:
             
-            let credential = "oJcxJfNvAUDpOQ:".dataUsingEncoding(NSUTF8StringEncoding)!.base64EncodedStringWithOptions(.Encoding76CharacterLineLength)
-            return endpoint.endpointByAddingHTTPHeaderFields(
-                ["Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            let credential = "oJcxJfNvAUDpOQ:".data(using: String.Encoding.utf8)!.base64EncodedString(options: NSData.Base64EncodingOptions.lineLength76Characters)
+            return endpoint.adding(
+                newHTTPHeaderFields: ["Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                  "Authorization": "Basic \(credential)"]
             )
         default:
-            return endpoint.endpointByAddingHTTPHeaderFields(["Authorization": "bearer \(XAppToken().accessToken ?? "")", "User-Agent": UIApplication.userAgent()])
+            return endpoint.adding(newHTTPHeaderFields: ["Authorization": "bearer \(XAppToken().accessToken ?? "")", "User-Agent": UIApplication.userAgent()])
         }
     }
 }
 
-private func newProvider<T where T: TargetType>() -> OnlineProvider<T> {
+private func newProvider<T>() -> OnlineProvider<T> where T: TargetType {
     return OnlineProvider(endpointClosure: Networking.endpointsClosure)
 }

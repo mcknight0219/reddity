@@ -1,26 +1,22 @@
-import Foundation
 import UIKit
-#if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
-#endif
-
 
 enum CellType {
-    case Text
-    case News
-    case Image
-    case Video
+    case text
+    case news
+    case image
+    case video
 
     var identifier: String {
         switch self {
-        case Text:
+        case .text:
             return "TextCell"
-        case News:
+        case .news:
             return "NewsCell"
-        case Image:
+        case .image:
             return "ImageCell"
-        case Video:
+        case .video:
             return "VideoCell"
         }
     }
@@ -35,20 +31,20 @@ class LinkViewModel: NSObject {
 
     lazy var cellType: CellType = {
         if let _ = self.link.selfType.associatedValue {
-            return .Text
+            return .text
         }
         if let URL = self.resourceURL {
-            if URL.pathExtension! == "mp4" {
-                return .Video
+            if URL.pathExtension == "mp4" {
+                return .video
             }
-            return .Image
+            return .image
         }
-        return .News
+        return .news
     }()
     
     lazy var cellHeight: CGFloat = {
         switch self.cellType {
-        case .Image, .Video:
+        case .image, .video:
             return 300.0
         default:
             return 220.0
@@ -71,16 +67,12 @@ class LinkViewModel: NSObject {
         return self.link.createdAt.minutesAgo()
     }()
     
-    lazy var URL: String = {
+    lazy var url: String = {
         return self.link.url
     } ()
     
-    var resourceURL:  NSURL? 
-    var thumbnailURL: NSURL?
-    // For external links we try to fetch the content and parse out
-    // thumbnail url.
-    var websiteThumbnailURL: Observable<NSURL?> = Observable.empty()
-    
+    var resourceURL:  URL?
+    var thumbnailURL: URL?
     var presentImage: Observable<Bool>!
     
     var selfText: Observable<String> = Observable.empty()
@@ -89,19 +81,15 @@ class LinkViewModel: NSObject {
     init(link: Link) {
         super.init()
         self.link = link
-        self.resourceURL  = Media.init(URL)?.URL
-        self.thumbnailURL = Media.init(link.thumbnail ?? "")?.URL
+        self.resourceURL  = Media.init(url)?.url
+        self.thumbnailURL = Media.init(link.thumbnail ?? "")?.url
         
-        if case .News = self.cellType {
-            websiteThumbnailURL = LightBoxNetworkModel(url: URL).thumbnailURL        
-        }
-        
-        if case .Text = self.cellType, case .SelfText(let text) = self.link.selfType {
-            let lines = text.breaksIntoLines(constrained: CGRect(x: 0, y: 0, width: UIScreen.mainScreen().bounds.width - 30, height: CGFloat.max), font: UIFont(name: "Helvetica Neue", size: 16)!)
+        if case .text = self.cellType, case .selfText(let text) = self.link.selfType {
+            let lines = text.breaksIntoLines(constrained: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width - 30, height: CGFloat.greatestFiniteMagnitude), font: UIFont(name: "Helvetica Neue", size: 16)!)
             if lines.count < 5 {
                 selfText = Observable.just(text)
             } else {
-                selfText = Observable.just(lines[0...4].reduce("", combine: { $0 + $1 }))
+                selfText = Observable.just(lines[0...4].reduce("", { $0 + $1 }))
             }
             
         }
@@ -111,40 +99,42 @@ class LinkViewModel: NSObject {
     func archive() {}
 
     enum Media {
-        case Image(URL: String)
-        case Video(URL: String)
+        case image(url: String)
+        case video(url: String)
 
         var associatedValue: String {
             switch self {
-            case Image(let x):
+            case .image(let x):
                 return x
-            case Video(let x):
+            case .video(let x):
                 return x
             }
         }
 
-        var URL: NSURL? {
-            return NSURL(string: self.associatedValue.stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet())!)
+        var url: URL? {
+            return URL(string: associatedValue.addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!)
         }
 
         init?(_ url: String) {
-            let ext = NSString(string: url).pathExtension.lowercaseString
+            let ext = NSString(string: url).pathExtension.lowercased()
             
             if !ext.isEmpty {
                 if allSupportedImage.contains(ext) {
-                    self = .Image(URL: url)
+                    self = .image(url: url)
                 } else if allSupportedVideo.contains(ext) {
                     var tmp: String = url
                     if ext == "gifv" {
-                        tmp = url.substringToIndex(url.endIndex.advancedBy(-4)) + "mp4"
+                        tmp = url.substring(to: url.index(url.endIndex, offsetBy: -4)) + "mp4"
                     }
-                    self = .Video(URL: tmp)
+                    self = .video(url: tmp)
                 } else {
                     return nil
                 }
             } else {
-                if url.test(Config.ImgurResourcePattern) {
-                    self = .Image(URL: url + ".png")
+                let regex = try! NSRegularExpression(pattern: Config.ImgurResourcePattern, options: [])
+                
+                if !regex.matches(in: url, options: [], range: NSRange(location: 0, length: url.characters.count)).isEmpty {
+                    self = .image(url: url + ".png")
                 } else {
                     return nil
                 }

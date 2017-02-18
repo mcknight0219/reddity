@@ -7,9 +7,9 @@ import RxSwift
 protocol CommentViewModelType {
     var numberOfComments: Int { get }
     var showSpinner: Observable<Bool>! { get }
-    var updatedContents: Observable<NSDate>! { get }
+    var updatedContents: Observable<Date>! { get }
     
-    func commentAtIndexPath(_: NSIndexPath, _: Comment?) -> Comment?
+    func commentAtIndexPath(_: IndexPath, _: Comment?) -> Comment?
 }
 
 class CommentViewModel: NSObject, CommentViewModelType {
@@ -26,12 +26,12 @@ class CommentViewModel: NSObject, CommentViewModelType {
     
     var comments = Variable([Comment]())
     var showSpinner: Observable<Bool>!
-    var updatedContents: Observable<NSDate>! {
+    var updatedContents: Observable<Date>! {
         get {
             return self.comments
                 .asObservable()
                 .filter {$0.count > 0 }
-                .map { _ in NSDate() }
+                .map { _ in Date() }
         }
     }
     
@@ -44,11 +44,11 @@ class CommentViewModel: NSObject, CommentViewModelType {
     }
     
     private func setup() {
-        self.provider.request(.Comment(subreddit: link.subreddit, id: link.id))
+        self.provider.request(action: .Comment(subreddit: link.subreddit, id: link.id))
             .filterSuccessfulStatusCodes()
             .map { response in
                 let json = JSON(data: response.data)
-                let comments = commentsParser(json)
+                let comments = commentsParser(json: json)
                 return comments
             }
             .bindTo(comments)
@@ -64,7 +64,7 @@ class CommentViewModel: NSObject, CommentViewModelType {
 }
 
 extension CommentViewModel {
-    func commentAtIndexPath(indexPath: NSIndexPath, _ p: Comment?) -> Comment? {
+    func commentAtIndexPath(_ indexPath: IndexPath, _ p: Comment?) -> Comment? {
         if let pc = p {
             if pc.numberOfReplies == 0 {
                 return nil

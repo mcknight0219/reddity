@@ -7,8 +7,6 @@
 //
 
 import UIKit
-import ChameleonFramework
-import SDWebImage
 
 class TitleCell: UITableViewCell {
     lazy var thumbnail: UIImageView! = {

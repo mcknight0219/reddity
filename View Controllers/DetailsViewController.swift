@@ -8,7 +8,6 @@
 
 import UIKit
 import ChameleonFramework
-import FontAwesome_swift
 import SnapKit
 import RxSwift
 
@@ -16,7 +15,7 @@ class InsetLabel: UILabel {
     var inset = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
     
     init(_ rect: UIEdgeInsets? = nil) {
-        super.init(frame: CGRectZero)
+        super.init(frame: CGRect.zero)
         if rect != nil && rect != inset {
             inset = rect!
         }
@@ -26,36 +25,23 @@ class InsetLabel: UILabel {
         super.init(coder: aDecoder)
     }
     
-    override func drawTextInRect(rect: CGRect) {
+    override func drawText(in rect: CGRect) {
         let insets = UIEdgeInsets.init(top: 0, left: 20, bottom: 0, right: 20)
-        super.drawTextInRect(UIEdgeInsetsInsetRect(rect, insets))
+        super.drawText(in: UIEdgeInsetsInsetRect(rect, insets))
     }
 }
 
 
 class CommentsTableViewController: BaseTableViewController {
+    fileprivate var viewModel: CommentViewModelType
+    fileprivate var parentComment: Comment?
+    fileprivate var tableHeader: UIView?
     
-    lazy var footerView: UILabel = {
-        return {
-            $0.backgroundColor = CellTheme()?.backgroundColor
-            $0.textAlignment = .Center
-            $0.font = UIFont.fontAwesomeOfSize(16)
-            $0.textColor = UIColor.darkGrayColor()
-            $0.text = String.fontAwesomeIconWithName(.CircleO)
-            
-            return $0
-        }(UILabel(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 44)))
-    }()
-    
-    private var viewModel: CommentViewModelType
-    private var parent: Comment?
-    private var tableHeader: UIView?
-    
-    var reuseBag = DisposeBag()
+    fileprivate var reuseBag = DisposeBag()
     
     init(viewModel: CommentViewModelType, parentComment: Comment?, tableHeaderView: UIView?) {
         self.viewModel = viewModel
-        self.parent = parentComment
+        self.parentComment = parentComment
         self.tableHeader = tableHeaderView
         
         super.init(nibName: nil, bundle: nil)
@@ -69,85 +55,87 @@ class CommentsTableViewController: BaseTableViewController {
     
     override func viewDidLoad() {
         
-        tableView.frame = UIScreen.mainScreen().bounds
+        tableView.frame = UIScreen.main.bounds
         tableView.delegate = self
         tableView.dataSource = self
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = 120
        
         tableView.cellLayoutMarginsFollowReadableWidth = false
-        tableView.registerNib(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
-        tableView.tableFooterView = self.footerView
+        tableView.register(UINib(nibName: "CommentCell", bundle: nil), forCellReuseIdentifier: "CommentCell")
         
-        edgesForExtendedLayout = .All
+        edgesForExtendedLayout = .all
         extendedLayoutIncludesOpaqueBars = false
 
         viewModel
             .updatedContents
-            .subscribeNext { _ in
+            .subscribe(onNext: { _ in
                 self.tableView.reloadData()
-            }
+            })
             .addDisposableTo(disposeBag)
         
         viewModel.showSpinner
-            .subscribeNext {[weak self] show in
+            .subscribe(onNext: {[weak self] show in
                 if !show {
-                    self?.tableView.tableFooterView = self?.footerView
+                    //self?.tableView.tableFooterView = self?.footerView
                 } else {
                     self?.tableView.tableFooterView = UIView()
                 }
-            }
+            })
             .addDisposableTo(disposeBag)
     }
 }
 
 extension CommentsTableViewController {
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let m = viewModel.commentAtIndexPath(indexPath, parent)
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let m = viewModel.commentAtIndexPath(indexPath, parentComment)
         guard m != nil else {
             return
         }
-        let actionSheet = UIAlertController(title: "", message: "Reply to @\(m!.user)", preferredStyle: .ActionSheet)
-        let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
+        let actionSheet = UIAlertController(title: "", message: "Reply to @\(m!.user)", preferredStyle: .actionSheet)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
         actionSheet.addAction(cancelAction)
         
-        let replyAction = UIAlertAction.Action("Reply", style: .Default)
+        let replyAction = UIAlertAction(title: "Reply", style: .default)
         actionSheet.addAction(replyAction)
         
-        let downVoteAction = UIAlertAction.Action("Downvote", style: .Default)
+        let downVoteAction = UIAlertAction(title: "Downvote", style: .default)
         actionSheet.addAction(downVoteAction)
         
-        presentViewController(actionSheet, animated: true, completion: nil)
+        present(actionSheet, animated: true, completion: nil)
     }
 }
 
 // MARK: - Table view data source
 
 extension CommentsTableViewController {
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("CommentCell", forIndexPath: indexPath) as! CommentCell
-        let comment = viewModel.commentAtIndexPath(indexPath, self.parent)
-        cell.configCellWith(comment!)
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CommentCell", for: indexPath) as! CommentCell
+        let comment = viewModel.commentAtIndexPath(indexPath, self.parentComment)
+        cell.configCellWith(aComment: comment!)
 
         cell.expandRepliesPressed
-            .subscribeNext { [weak self]  _ in
+            .subscribe(onNext: { [weak self]  _ in
                 if let ct = self {
                     let vc = CommentsTableViewController(viewModel: ct.viewModel, parentComment: comment, tableHeaderView: nil)
                     self?.navigationController?.pushViewController(vc, animated: true)
                 }
-            }
+            })
             .addDisposableTo(cell.reuseBag)
         
         return cell
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.parent?.replies.count ?? self.viewModel.numberOfComments
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.parentComment?.replies.count ?? self.viewModel.numberOfComments
     }
+    
+    
 }
 
 
@@ -157,45 +145,45 @@ class DetailsViewController: BaseViewController {
     
     lazy var indicatorView: UIActivityIndicatorView = {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
-            return UIActivityIndicatorView(activityIndicatorStyle: .White)
+            return UIActivityIndicatorView(activityIndicatorStyle: .white)
         } else {
-            return UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+            return UIActivityIndicatorView(activityIndicatorStyle: .gray)
         }
     }()
     
     lazy var subtitleView: UILabel = {
         return {
-            $0.backgroundColor = UIColor.clearColor()
+            $0.backgroundColor = UIColor.clear
             $0.font = UIFont(name: "Helvetica Neue", size: 12)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
+            $0.textAlignment = .center
+            $0.textColor = UIColor.darkGray
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 24, 0.95 * self.view.frame.width, 14)))
+        }(UILabel(frame: CGRect(x: 0, y: 24, width: 0.95 * self.view.frame.width, height: 14)))
     }()
     
     lazy var titleView: UILabel = {
         return {
-            $0.backgroundColor = UIColor.clearColor()
+            $0.backgroundColor = UIColor.clear
             $0.font = UIFont(name: "Helvetica Neue", size: 16)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.blackColor()
+            $0.textAlignment = .center
+            $0.textColor = UIColor.black
             $0.numberOfLines = 1
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 0, 0.95 * self.view.frame.width, 30)))
+        }(UILabel(frame: CGRect(x: 0, y: 0, width: 0.95 * self.view.frame.width, height: 30)))
     }()
 
     lazy var selfTextView: UIView? = {
-        guard case .SelfText = self.subject.selfType else {
+        guard case .selfText = self.subject.selfType else {
             return nil
         }
         
         let selfTextLabel: UILabel = {
-            $0.backgroundColor = UIColor.lightGrayColor()
-            $0.textAlignment = .Natural
-            $0.font = UIFont.systemFontOfSize(16)
-            $0.textColor = UIColor.blackColor()
+            $0.backgroundColor = UIColor.lightGray
+            $0.textAlignment = .natural
+            $0.font = UIFont.systemFont(ofSize: 16)
+            $0.textColor = UIColor.black
             $0.text = self.subject.selfType.associatedValue ?? ""
             
             return $0
@@ -206,7 +194,7 @@ class DetailsViewController: BaseViewController {
             return $0
         }(UIView())
         
-        selfTextLabel.snp_makeConstraints { make in
+        selfTextLabel.snp.makeConstraints { make in
             make.edges.equalTo(view).inset(UIEdgeInsetsMake(20, 20, 20, 20))
         }
         
@@ -235,24 +223,23 @@ class DetailsViewController: BaseViewController {
         super.viewDidLoad()
 
         // Setup
-        commentsVC = CommentsTableViewController(viewModel: viewModel, parentComment: .None, tableHeaderView: self.selfTextView)
+        commentsVC = CommentsTableViewController(viewModel: viewModel, parentComment: .none, tableHeaderView: self.selfTextView)
         addChildViewController(commentsVC)
         view.addSubview(commentsVC.view)
-        commentsVC.didMoveToParentViewController(self)
+        commentsVC.didMove(toParentViewController: self)
         
         // indicator for comments table
         view.insertSubview(indicatorView, aboveSubview: commentsVC.view)
-        indicatorView.center = CGPointMake(view.bounds.width / 2, 20)
+        indicatorView.center = CGPoint(x: view.bounds.width / 2, y: 20)
         indicatorView.hidesWhenStopped = true
         
         navigationItem.title = subject.title
         
-        let replyToPostButton = UIBarButtonItem(title: String.fontAwesomeIconWithName(.Edit), style: .Plain, target: self, action: #selector(DetailsViewController.editPressed))
-        replyToPostButton.setTitleTextAttributes([NSFontAttributeName: UIFont.fontAwesomeOfSize(24)], forState: .Normal)
-        navigationItem.rightBarButtonItem = replyToPostButton
+        let replyToPostButton = UIBarButtonItem(title: "Reply", style: .plain, target: self, action: #selector(DetailsViewController.editPressed))
+                navigationItem.rightBarButtonItem = replyToPostButton
         
         viewModel.showSpinner
-            .bindTo(indicatorView.rx_animating)
+            .bindTo(indicatorView.rx.isAnimating)
             .addDisposableTo(disposeBag)
     }
     

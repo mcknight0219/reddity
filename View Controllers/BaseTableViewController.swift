@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import SVProgressHUD
 #if !RX_NO_MODULE
 import RxSwift
 #endif
@@ -20,16 +21,16 @@ class BaseTableViewController: UITableViewController {
         reachabilityManager
             .reach
             .take(1)
-            .subscribeNext { connected in
-                let hud = HUDManager.sharedInstance
+            .subscribe(onNext: { connected in
                 if !connected {
-                    hud.showToast(withTitle: "No Internet Connection.")
+                    SVProgressHUD.showError(withStatus: "No Internet Connection.")
+                    SVProgressHUD.dismiss(withDelay: 1.5)
                 }             
-            }
+            })
             .addDisposableTo(disposeBag)
 
         self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(BaseTableViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(BaseTableViewController.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
     }
 
     func applyTheme() {

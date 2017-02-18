@@ -38,11 +38,11 @@ class SearchViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SearchViewController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(SearchViewController.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
         
         searchController = {
             $0.hidesNavigationBarDuringPresentation = true
-            $0.searchBar.rx_selectedScopeButtonIndex <-> _selectedScope
+            ($0.searchBar.rx.selectedScopeButtonIndex <-> _selectedScope).addDisposableTo(disposeBag)
             
             return $0
         }(UISearchController(searchResultsController: nil))
@@ -53,7 +53,7 @@ class SearchViewController: UIViewController {
             $0.tableFooterView = UIView()
             $0.tableHeaderView = searchController.searchBar
             return $0
-        }(UITableView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height)))
+        }(UITableView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height)))
         view.addSubview(resultsTableView)
         self.setupUI()
 
@@ -72,47 +72,46 @@ class SearchViewController: UIViewController {
             .bindTo(cellIdentifier)
             .addDisposableTo(self.disposeBag)
 
-        searchController.searchBar.rx_text
+        searchController.searchBar.rx.text
             .asDriver()
             .throttle(0.3)
-            .distinctUntilChanged()
             .flatMapLatest { query in
-                self.viewModel.getSearchResults(query)
+                self.viewModel.getSearchResults(query: query!)
                     .asDriver(onErrorJustReturn: [])
             }
-            .drive(resultsTableView.rx_itemsWithCellIdentifier(cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
+            .drive(resultsTableView.rx.items(cellIdentifier: cellIdentifier.value, cellType: SubredditCell.self)) { (_, subreddit, cell) in
                 //cell.loadCell(subreddit)
                 print("Hello")
             }
             .addDisposableTo(self.disposeBag)
         
-        searchController.rx_present
+        searchController.rx.present
             .asObservable()
-            .subscribeNext { _ in
+            .subscribe(onNext: { _ in
                 self.searchController.searchBar.scopeButtonTitles = SearchViewModel.ScopeValues.allScopeValueNames()
                 print("Present")
-            }
+            })
             .addDisposableTo(disposeBag)
         
-        searchController.rx_willDismiss
+        searchController.rx.willDismiss
             .asObservable()
-            .subscribeNext { _ in
+            .subscribe(onNext: { _ in
                 print("Dismiss")
-            }
+            })
             .addDisposableTo(disposeBag)
         
     }
     
     func setupUI() {
         definesPresentationContext = true
-        self.searchController.searchBar.searchBarStyle = .Minimal
+        self.searchController.searchBar.searchBarStyle = .minimal
         
         extendedLayoutIncludesOpaqueBars = true
         automaticallyAdjustsScrollViewInsets = true
         
         navigationItem.title = "Discovery"
         navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
-        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
+        navigationItem.backBarButtonItem  = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
         self.applyTheme()
     }
@@ -120,11 +119,8 @@ class SearchViewController: UIViewController {
     func applyTheme() {
         let theme = TableViewTheme()!
         self.view.backgroundColor = theme.backgroundColor
-        self.resultsTableView.backgroundColor = UIColor.clearColor()
+        self.resultsTableView.backgroundColor = UIColor.clear
         self.resultsTableView.separatorColor = theme.separatorColor
         self.resultsTableView.indicatorStyle = theme.indicatorStyle
     }
 }
-
-// MARK:- The table
-

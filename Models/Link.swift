@@ -10,11 +10,11 @@ import Foundation
 import SwiftyJSON
 
 enum SelfType {
-    case NotSelf
-    case SelfText(text: String)
+    case notSelf
+    case selfText(text: String)
 
     var associatedValue: String? {
-        if case SelfText(let x) = self {
+        if case .selfText(let x) = self {
             return x
         }
         return nil
@@ -30,7 +30,7 @@ struct Link: Listing {
     let downs: Int
     let selfType: SelfType
     let subreddit: String
-    let createdAt: NSDate
+    let createdAt: Date
     var thumbnail: String?
     
     var name: String {
@@ -49,7 +49,7 @@ struct Link: Listing {
 
     var rawJsonString: String?
     
-    init(id: String, title: String, url: String, subreddit: String, ups: Int, downs: Int, numberOfComments: Int, timestamp: Double, selfType: SelfType = .NotSelf, thumbnail: String?) {
+    init(id: String, title: String, url: String, subreddit: String, ups: Int, downs: Int, numberOfComments: Int, timestamp: Double, selfType: SelfType = .notSelf, thumbnail: String?) {
         self.title = title
         self.id = id
         self.url = url
@@ -57,7 +57,7 @@ struct Link: Listing {
         self.numberOfComments = numberOfComments
         self.ups = ups
         self.downs = downs
-        self.createdAt = NSDate(timeIntervalSince1970: timestamp)
+        self.createdAt = Date(timeIntervalSince1970: timestamp)
         self.selfType = selfType
         self.thumbnail = thumbnail
     }
@@ -78,7 +78,7 @@ func linkParser(json: JSON) -> [Link] {
                         downs: content["downs"].intValue,
                         numberOfComments: content["num_comments"].intValue,
                         timestamp: content["created"].doubleValue,
-                        selfType: content["is_self"].boolValue ? .SelfText(text: content["selftext"].stringValue) : .NotSelf,
+                        selfType: content["is_self"].boolValue ? .selfText(text: content["selftext"].stringValue) : .notSelf,
                         thumbnail: content["thumbnail"].string)
         link.rawJsonString = content.rawString()
         result.append(link)

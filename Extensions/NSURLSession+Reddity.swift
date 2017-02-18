@@ -8,18 +8,21 @@
 
 import Foundation
 
-extension NSURLSession {
-    func synchronousDataTaskWithURL(request: NSURLRequest) -> (NSData?, NSURLResponse?, NSError?) {
-        var data: NSData?, response: NSURLResponse?, error: NSError?
-        let semaphore = dispatch_semaphore_create(0)
-        
-        dataTaskWithRequest(request) {
-            data = $0; response = $1; error = $2
-            dispatch_semaphore_signal(semaphore)
+extension URLSession {
+    func synchronousDataTaskWithURL(request: NSURLRequest) -> (NSData?, URLResponse?, NSError?) {
+        var data: NSData?, response: URLResponse?, error: NSError?
+        let semaphore = DispatchSemaphore(value: 0)
+
+        dataTask(with: request as URLRequest) {
+            data = $0 as NSData?; response = $1; error = $2 as NSError?
+            semaphore.signal()
         }.resume()
         
-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER)
-        
-        return (data, response, error)
+        switch semaphore.wait(timeout: DispatchTime.distantFuture) {
+        case .success:
+            return (data, response, error)
+        default:
+            return (nil, nil, error)
+        }
     }
 }

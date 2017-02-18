@@ -17,43 +17,44 @@ class AccountViewController: BaseTableViewController {
         navigationItem.title = "Account"
         navigationController?.navigationBar.titleTextAttributes![NSFontAttributeName] = UIFont(name: "Lato-Regular", size: 20)!
 
-        tableView.layoutMargins =  UIEdgeInsetsZero
-        tableView.separatorInset = UIEdgeInsetsZero
+        tableView.layoutMargins =  UIEdgeInsets.zero
+        tableView.separatorInset = UIEdgeInsets.zero
 
         self.hideFooter()
     }
 
     // MARK: - Table view data source
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 44
     }
 
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return Account().isGuest ? 2 : 4
     }
 
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCellWithIdentifier("Cell")
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCell(withIdentifier: "Cell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "Cell")
+            cell = UITableViewCell(style: .value1, reuseIdentifier: "Cell")
         }
 
         if let cell = cell {
             let bg = UIView()
             cell.selectedBackgroundView = bg
 
-            cell.layoutMargins = UIEdgeInsetsZero
-            cell.textLabel?.font = UIFont(name: "Lato-Regular", size: 20)
-            cell.detailTextLabel?.font = UIFont(name: "Lato-Regular", size: 20)
+            cell.layoutMargins = UIEdgeInsets.zero
+            cell.textLabel?.font = UIFont(name: "Helvetica Neue", size: 20)
+            cell.detailTextLabel?.font = UIFont(name: "Helvetica Neue", size: 20)
 
             switch indexPath.row {
             case 0:
-                cell.backgroundColor = UIColor.clearColor()
-                cell.selectionStyle = .None
+                cell.backgroundColor = UIColor.clear
+                cell.selectionStyle = .none
 
             case 1:
                 if case(.LoggedInUser(let name)) = Account().user! {
@@ -63,20 +64,21 @@ class AccountViewController: BaseTableViewController {
                     cell.textLabel?.text = "Log In"
                 }
             case 2:
-                cell.backgroundColor = UIColor.clearColor()
-                cell.selectionStyle  = .None
+                cell.backgroundColor = UIColor.clear
+                cell.selectionStyle  = .none
 
             case 3:
                 cell.textLabel?.text = "Delete All Data"
-                cell.textLabel?.textColor = UIColor.redColor()
-            default:    break
+                cell.textLabel?.textColor = UIColor.red
+            default:
+                break
             }
         }
         
         return cell!
     }
 
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let row = indexPath.row
         guard row == 1 else { return }
 
@@ -86,27 +88,27 @@ class AccountViewController: BaseTableViewController {
             return
         }
 
-        let logoutController = UIAlertController(title: nil, message: nil, preferredStyle: .ActionSheet)
-        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in
+        let logoutController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
         }
         logoutController.addAction(cancelAction)
 
-        let logoutAction = UIAlertAction(title: "Log Out", style: .Default) { [unowned self] (action) in
+        let logoutAction = UIAlertAction(title: "Log Out", style: .default) { [unowned self] (action) in
 
             var account = Account()
             account.user = .Guest
-            NSUserDefaults.standardUserDefaults().setObject(false, forKey: "isLoggedIn")
+            UserDefaults.standard.set(false, forKey: "isLoggedIn")
             self.gotoLogin()
         }
         logoutController.addAction(logoutAction)
 
-        presentViewController(logoutController, animated: true) {}
+        present(logoutController, animated: true) {}
     }
 
     func gotoLogin() {
         let vc = StartupViewController()
-        vc.modalTransitionStyle = .FlipHorizontal
+        vc.modalTransitionStyle = .flipHorizontal
         
-        (UIApplication.sharedApplication().delegate as! AppDelegate).presentVC(vc)
+        (UIApplication.shared.delegate as! AppDelegate).present(vc: vc)
     }
 }

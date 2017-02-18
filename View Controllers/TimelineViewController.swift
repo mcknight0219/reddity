@@ -9,11 +9,10 @@
 import UIKit
 import ChameleonFramework
 import SafariServices
-import FontAwesome_swift
+import SVProgressHUD
 #if !RX_NO_MODULE
 import RxSwift
 import RxCocoa
-import Action
 #endif
 import Moya
 
@@ -41,10 +40,10 @@ class TimelineViewController: BaseViewController {
     
     var provider: Networking!
     lazy var viewModel: TimelineViewModelType = {
-        let nextPageTrigger = self.tableView.rx_contentOffset
+        let nextPageTrigger = self.tableView.rx.contentOffset
             .flatMap { _ in
                 self.tableView.isNearBottomEdge()
-                    ? Observable.just(NSDate())
+                    ? Observable.just(Date())
                     : Observable.empty()
         }
         
@@ -53,14 +52,14 @@ class TimelineViewController: BaseViewController {
     
     lazy var loadingFooterView: UIView = {
         let view: UIView = {
-            let indicator = UIActivityIndicatorView(activityIndicatorStyle: .Gray)
+            let indicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
             indicator.startAnimating()
             $0.addSubview(indicator)
             $0.backgroundColor = CellTheme()!.backgroundColor
             indicator.center = $0.center
             
             return $0
-        }(UIView(frame: CGRectMake(0, 0, UIScreen.mainScreen().bounds.width, 45)))
+        }(UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 45)))
         
         return view
     }()
@@ -83,8 +82,8 @@ class TimelineViewController: BaseViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = subredditName.isEmpty ? "Front Page" : subredditName
-        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .Plain, target: nil, action: nil)
-        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .Plain, target: self, action: #selector(TimelineViewController.showAccountPopover))
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(named: "avator"), style: .plain, target: self, action: #selector(TimelineViewController.showAccountPopover))
         
         automaticallyAdjustsScrollViewInsets = true
         topicTableViewController = {
@@ -99,34 +98,34 @@ class TimelineViewController: BaseViewController {
         tableView.delegate = self
         tableView.dataSource = self
         ["NewsCell", "ImageCell", "TextCell", "VideoCell"].forEach {
-            tableView.registerNib(UINib(nibName: $0, bundle: nil), forCellReuseIdentifier: $0)
+            tableView.register(UINib(nibName: $0, bundle: nil), forCellReuseIdentifier: $0)
         }
         addChildViewController(topicTableViewController)
         view.addSubview(topicTableViewController.view)
-        topicTableViewController.didMoveToParentViewController(self)
+        topicTableViewController.didMove(toParentViewController: self)
         
         viewModel
             .isRefreshing
             .asObservable()
-            .subscribeNext { refreshing in
+            .subscribe(onNext: { refreshing in
                 if !refreshing {
                     self.refresh.endRefreshing()
                 }
-            }
+            })
             .addDisposableTo(disposeBag)
 
         refresh
-            .rx_controlEvent(.ValueChanged)
+            .rx.controlEvent(.valueChanged)
             .flatMap { () -> Observable<Bool> in
                 return reachabilityManager.reach
             }
-            .subscribeNext { on in
+            .subscribe(onNext: { on in
                 if on {
                     self.viewModel.reload()
                 } else {
                     self.refresh.endRefreshing()
                 }
-            }
+            })
             .addDisposableTo(disposeBag)
         
 
@@ -136,38 +135,37 @@ class TimelineViewController: BaseViewController {
             .map { _ in
                 return self.tableView
             }
-            .doOnNext { tableView in
+            .do(onNext: { tableView in
                 tableView.reloadData()
-            }
-            .subscribeNext { _ in
+            })
+            .subscribe(onNext: { _ in
                 
-            }
+            })
             .addDisposableTo(disposeBag)
         
         viewModel
             .showLoadingFooter
-            .subscribeNext { show in
+            .subscribe(onNext: { show in
                 if show {
                     self.tableView.tableFooterView = self.loadingFooterView
                 } else {
                     self.tableView.tableFooterView = UIView()
                 }
-            }
+            })
             .addDisposableTo(disposeBag)
         
         viewModel
             .showSpinner
-            .subscribeNext { show in
+            .subscribe(onNext: { show in
                 if show {
-                    HUDManager.sharedInstance.showCentralActivityIndicator()
+                    SVProgressHUD.show()
                 } else {
-                    HUDManager.sharedInstance.hideCentralActivityIndicator()
+                    SVProgressHUD.dismiss()
                 }
-            }
+            })
             .addDisposableTo(disposeBag)
 
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.archiveTimeline), name: "ArchiveTimelineHistory", object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TimelineViewController.signIn), name: "SignInNotification", object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(TimelineViewController.signIn), name: Notification.Name.onSignIn, object: nil)
     }
 
     @objc private func archiveTimeline() {
@@ -184,27 +182,27 @@ class TimelineViewController: BaseViewController {
 
 extension TimelineViewController: UITableViewDataSource {
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.viewModel.numberOfLinks
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath: indexPath)
         
-        let cell = tableView.dequeueReusableCellWithIdentifier(linkViewModel.cellType.identifier, forIndexPath: indexPath) as! ListingTableViewCell
-        cell.setViewModel(linkViewModel)
+        let cell = tableView.dequeueReusableCell(withIdentifier: linkViewModel.cellType.identifier, for: indexPath) as! ListingTableViewCell
+        cell.setViewModel(viewModel: linkViewModel)
         
         // Map tapping on image
         if let imageCell = cell as? ImageCell {
             imageCell.tapOnPicture
                 .observeOn(MainScheduler.instance)
-                .subscribeNext { [weak self] _ in
-                    if let URL = linkViewModel.resourceURL, let weakSelf = self {
-                        let photosViewController = PhotosViewController(photos: [URL], initialPhoto: URL, delegate: weakSelf)
+                .subscribe(onNext: { [weak self] _ in
+                    if let url = linkViewModel.resourceURL, let weakSelf = self {
+                        let photosViewController = PhotosViewController(photos: [url], initialPhoto: url, delegate: weakSelf)
                         weakSelf.referencePhoto = imageCell.picture
-                        weakSelf.presentViewController(photosViewController, animated: true, completion: nil)
+                        weakSelf.present(photosViewController, animated: true, completion: nil)
                     }
-                }
+                })
                 .addDisposableTo(disposeBag)
         }
         
@@ -212,13 +210,12 @@ extension TimelineViewController: UITableViewDataSource {
             newsCell
                 .tapOnPicture
                 .observeOn(MainScheduler.instance)
-                .subscribeNext { _ in
-                    if let URL = NSURL(string: linkViewModel.URL) {
-                        let safariViewController = SFSafariViewController(URL: URL)
-                        self.presentViewController(safariViewController, animated: true, completion: nil)
+                .subscribe(onNext: { _ in
+                    if let url = URL(string: linkViewModel.url) {
+                        let safariViewController = SFSafariViewController(url: url)
+                        self.present(safariViewController, animated: true, completion: nil)
                     }
-
-                }
+                })
                 .addDisposableTo(newsCell.reuseBag)
         }
         
@@ -243,13 +240,13 @@ extension TimelineViewController {
 
     func scrollViewDidScroll(scrollView: UIScrollView) {
         if notScrolled { notScrolled = false }
-        let dir = detectScrollDirection(scrollView.contentOffset)
+        let dir = detectScrollDirection(currentContentOffset: scrollView.contentOffset)
         let tableView = scrollView as! UITableView
         if let visible = tableView.indexPathsForVisibleRows {
             for i in visible {
-                let rect = tableView.rectForRowAtIndexPath(i)
+                let rect = tableView.rectForRow(at: i)
                 if tableView.bounds.intersects(rect) && !tableView.bounds.contains(rect) {
-                    if let cell = tableView.cellForRowAtIndexPath(i) as? VideoCell {
+                    if let cell = tableView.cellForRow(at: i) as? VideoCell {
                         switch dir {
                         case .Down:
                             cell.stopVideoPlay()
@@ -261,16 +258,12 @@ extension TimelineViewController {
                     
                 }
             }
-            
+            /*
             visible.forEach { ip in
-                let rect = tableView.rectForRowAtIndexPath(ip)
+                let rect = tableView.rectForRow(at: ip)
                 let container = tableView.bounds
-                if let cell = tableView.cellForRowAtIndexPath(ip) as? VideoCell {
-                    if container.contains(rect) {
-                        
-                    }
-                }
             }
+             */
         }
     }
 }
@@ -279,11 +272,11 @@ extension TimelineViewController {
 // MARK: PhotosViewControllerDelegate
 
 extension TimelineViewController: PhotosViewControllerDelegate {
-    func photosViewController(vc: PhotosViewController, referenceViewForPhoto photo: NSURL) -> UIView? {
+    func photosViewController(vc: PhotosViewController, referenceViewForPhoto photo: URL) -> UIView? {
         return self.referencePhoto
     }
     
-    func photosViewController(vc: PhotosViewController, didNavigateToPhoto photo: NSURL, atIndex index: Int) {
+    func photosViewController(vc: PhotosViewController, didNavigateToPhoto photo: URL, atIndex index: Int) {
         print("photosViewController:didNavigateToPhoto")
     }
     
@@ -300,9 +293,8 @@ extension TimelineViewController: PhotosViewControllerDelegate {
 // MARK: Table view delegate
 
 extension TimelineViewController: UITableViewDelegate {
-    
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath)
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let linkViewModel = self.viewModel.linkViewModelAtIndexPath(indexPath: indexPath)
         
         let vc = DetailsViewController(aSubject: linkViewModel.link, provider: self.provider)
         vc.hidesBottomBarWhenPushed = true
@@ -313,19 +305,19 @@ extension TimelineViewController: UITableViewDelegate {
 extension TimelineViewController: UIPopoverPresentationControllerDelegate {
 
     func adaptivePresentationStyleForPresentationController(controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
-        return .None
+        return UIModalPresentationStyle.none
     }
     
     @objc func showAccountPopover() {
         let popover = AccountSwitchViewController()
-        popover.modalPresentationStyle = .Popover
+        popover.modalPresentationStyle = .popover
         let height: CGFloat = CGFloat(Account().numberOfAccounts + 1) * 66.0 + 66.0
-        popover.preferredContentSize = CGSizeMake(self.view.frame.width * 0.95, height)
+        popover.preferredContentSize = CGSize(width: self.view.frame.width * 0.95, height: height)
     
         if let presentation = popover.popoverPresentationController {
             presentation.delegate = self
             presentation.barButtonItem = navigationItem.rightBarButtonItem
         }
-        presentViewController(popover, animated: true, completion: nil)
+        present(popover, animated: true, completion: nil)
     }
 }

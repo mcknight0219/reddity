@@ -18,7 +18,7 @@ class ImageCell: ListingTableViewCell {
 
     var spinner: UIActivityIndicatorView = {
         let view = UIActivityIndicatorView()
-        view.activityIndicatorViewStyle = .Gray
+        view.activityIndicatorViewStyle = .gray
         view.hidesWhenStopped = true
 
         return view
@@ -28,46 +28,46 @@ class ImageCell: ListingTableViewCell {
         super.configure()
         
         self.picture?.addSubview(spinner)
-        self.picture?.bringSubviewToFront(spinner)
-        spinner.center = CGPoint(x: CGRectGetMidX(self.picture!.bounds) , y: CGRectGetMinX(self.picture!.bounds))
+        self.picture?.bringSubview(toFront: spinner)
+        spinner.center = CGPoint(x: self.picture!.bounds.midX , y: self.picture!.bounds.minX)
         spinner.startAnimating()
         
         let tap = UITapGestureRecognizer()
         self.picture?.addGestureRecognizer(tap)
         self.picture?.addSubview(self.spinner)
-        self.spinner.center = CGPointMake(CGRectGetMidX(self.picture!.bounds), CGRectGetMidY(self.picture!.bounds))
+        self.spinner.center = CGPoint(x: self.picture!.bounds.midX, y: self.picture!.bounds.midY)
         
         tapOnPicture = tap
-            .rx_event
+            .rx.event
             .map { _ in
                 return NSDate()
             }
         
         viewModel
-            .map { viewModel -> NSURL? in
+            .map { viewModel -> URL? in
                 return viewModel.resourceURL
             } 
-            .doOn {[weak self] _ in
-                self?.picture?.contentMode = .ScaleAspectFill
+            .do(onNext: {[weak self] _ in
+                self?.picture?.contentMode = .scaleAspectFill
                 self?.picture?.clipsToBounds = true
                 self?.picture?.image = self?.placeholder
-            }
-            .map { element -> NSURL? in
+            })
+            .map { element -> URL? in
                 if let value = element {
                     return value
                 } else {
                     return nil
                 }
             }
-            .subscribeNext {[weak self] URL in
-                if let URL = URL {
-                    self?.picture?.sd_setImageWithURL(URL, placeholderImage: self?.placeholder, completed: { [weak self] (_, _, _, _) in
+            .subscribe(onNext: {[weak self] url in
+                if let url = url {
+                    self?.picture?.kf.setImage(with: url, placeholder: self?.placeholder, options: nil, progressBlock: nil, completionHandler: { _ in
                         if let weakSelf = self {
                             weakSelf.spinner.stopAnimating()
                         }
                     })
                 }
-            }
+            })
             .addDisposableTo(reuseBag)
     }
     

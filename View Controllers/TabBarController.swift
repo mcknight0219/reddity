@@ -15,14 +15,14 @@ class TabBarController: UITabBarController {
         super.viewDidLoad()
         self.applyTheme()
 
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TabBarController.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(TabBarController.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
     }
 
     func applyTheme() {
         if ThemeManager.defaultManager.currentTheme == "Dark" {
             self.tabBar.barTintColor = UIColor(colorLiteralRed: 28/255, green: 28/255, blue: 37/255, alpha: 1.0)
         } else {
-            self.tabBar.barTintColor = UIColor.whiteColor()
+            self.tabBar.barTintColor = UIColor.white
         }
     }
 }

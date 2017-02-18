@@ -7,9 +7,7 @@
 //
 
 import UIKit
-#if !RX_NO_MODULE
 import RxSwift
-#endif
 
 class ListingTableViewCell: UITableViewCell {
 
@@ -57,7 +55,7 @@ class ListingTableViewCell: UITableViewCell {
     override func prepareForReuse() {
         super.prepareForReuse()
         self.picture?.image = self.placeholder
-        self.video?.player?.replaceCurrentItemWithPlayerItem(nil)
+        self.video?.player?.replaceCurrentItem(with: nil)
         self.video?.firstTimePlay = true
         self.configure()
     }
@@ -66,29 +64,29 @@ class ListingTableViewCell: UITableViewCell {
         reuseBag = DisposeBag()
         
         self.applyTheme()
-        self.selectionStyle = .None
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(ListingTableViewCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        self.selectionStyle = .none
+        NotificationCenter.default.addObserver(self, selector: #selector(ListingTableViewCell.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
     
         // Common to all listing table view cell
         viewModel
             .map { viewModel -> String in
                 return viewModel.title
             }
-            .bindTo(self.title!.rx_text)
+            .bindTo(self.title!.rx.text)
             .addDisposableTo(reuseBag)
         
         viewModel
             .map { viewModel -> String in
                 return viewModel.subreddit
             }
-            .bindTo(self.subreddit!.rx_text)
+            .bindTo(self.subreddit!.rx.text)
             .addDisposableTo(reuseBag)
         
         viewModel
             .map { viewModel -> String in
                 return  viewModel.date
             }
-            .bindTo(self.date!.rx_text)
+            .bindTo(self.date!.rx.text)
             .addDisposableTo(reuseBag)
     }
 

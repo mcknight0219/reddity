@@ -33,7 +33,7 @@ struct Comment: Listing, Equatable {
     }
 
     let text: String
-    let createdAt: NSDate
+    let createdAt: Date
     let ups: Int
     let downs: Int
     var score: Int {
@@ -56,7 +56,7 @@ struct Comment: Listing, Equatable {
         self.id = id
         self.name = "\(self.listType.description)\(self.id)"
         self.text = text
-        self.createdAt = NSDate(timeIntervalSince1970: Double(timestampString)!)
+        self.createdAt = Date(timeIntervalSince1970: Double(timestampString)!)
         self.ups = ups
         self.downs = downs
         self.user = user
@@ -77,26 +77,26 @@ private var _commentsParsedDict = [String:Comment]()
 func commentsParser(json: JSON) -> [Comment] {
     let treeJson = json[1]["data"]["children"]
 
-    _commentsParsedDict.removeAll(keepCapacity: false)
+    _commentsParsedDict.removeAll(keepingCapacity: false)
 
     // The replies that direct to post
     var tops = [Comment]()
     for (_, commentJson):(String, JSON) in treeJson {
-        if let comment = commentParser(commentJson["data"]) {
+        if let comment = commentParser(json: commentJson["data"]) {
             tops.append(comment)
         }
     }
     
-    fixParentRef(&tops)
+    fixParentRef(seq: &tops)
 
     return tops
 }
 
-internal func fixParentRef(inout seq: [Comment]) {
+internal func fixParentRef(seq: inout [Comment]) {
     for i in 0..<seq.count {
         for j in 0..<seq[i].replies.count {
             seq[i].replies[j].parent = seq[i]
-            fixParentRef(&seq[i].replies)
+            fixParentRef(seq: &seq[i].replies)
         }
     }
 }
@@ -110,20 +110,20 @@ internal func commentParser(json: JSON) -> Comment? {
     let parentId = json["parent_id"].stringValue
     
     var parent: Comment?
-    if parentId.startsWith("t3_") {
+    if parentId.startsWith(sub: "t3_") {
         // The root comments have link itself as parent
         parent = nil
     
     } else {
-        parent = _commentsParsedDict[parentId.substringFromIndex(parentId.startIndex.advancedBy(3))]
+        parent = _commentsParsedDict[parentId.substring(from: parentId.index(parentId.startIndex, offsetBy: 3))]
     }
 
     var comment = Comment(id: json["id"].stringValue, parent: parent, text: json["body"].stringValue, timestampString: json["created"].stringValue, ups: json["ups"].intValue, downs: json["downs"].intValue, user: json["author"].stringValue)
     _commentsParsedDict[comment.id] = comment
     for (_, replyJson): (String, JSON) in json["replies"]["data"]["children"] {
-        let reply = commentParser(replyJson["data"])
+        let reply = commentParser(json: replyJson["data"])
         if let reply = reply {
-            comment.addReply(reply)
+            comment.addReply(aComment: reply)
         }
     }
 

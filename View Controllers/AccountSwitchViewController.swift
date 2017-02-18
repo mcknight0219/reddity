@@ -13,20 +13,20 @@ class AccountSwitchViewController: BaseTableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         hideFooter()
-        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "AccountSwitchCell")
-        tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "AddAccountCell")
-        tableView.layoutMargins = UIEdgeInsetsZero
-        tableView.separatorInset = UIEdgeInsetsZero
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "AccountSwitchCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "AddAccountCell")
+        tableView.layoutMargins = UIEdgeInsets.zero
+        tableView.separatorInset = UIEdgeInsets.zero
         automaticallyAdjustsScrollViewInsets = false
         
-        let px = 1 / UIScreen.mainScreen().scale
-        let frame = CGRectMake(0, 0, self.tableView.frame.size.width, px)
+        let px = 1 / UIScreen.main.scale
+        let frame = CGRect(x: 0, y: 0, width: self.tableView.frame.size.width, height: px)
         let line = UIView(frame: frame)
         self.tableView.tableHeaderView = line
         line.backgroundColor = self.tableView.separatorColor
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         self.tableView.contentInset = UIEdgeInsetsMake(33, 0, -33, 0)
@@ -36,66 +36,67 @@ class AccountSwitchViewController: BaseTableViewController {
 // MARK: - Tableview data source
 
 extension AccountSwitchViewController {
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
-
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 66
     }
 
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return account.numberOfAccounts + 1
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         if indexPath.row == account.numberOfAccounts {
-            let cell = UITableViewCell(style: .Default, reuseIdentifier: "AddAccountCell")
+            let cell = UITableViewCell(style: .default, reuseIdentifier: "AddAccountCell")
             cell.textLabel!.text = "Add an account"
-            cell.layoutMargins = UIEdgeInsetsZero
+            cell.layoutMargins = UIEdgeInsets.zero
             return cell
             
         } else {
-            let cell = UITableViewCell(style: .Default, reuseIdentifier: "AccountSwitchCell")
+            let cell = UITableViewCell(style: .default, reuseIdentifier: "AccountSwitchCell")
             cell.imageView!.image = UIImage(named: "avator")
             let name = account.allUserNames[indexPath.row]
             if name == account.user!.name {
                 let label = UILabel(frame: CGRect(x: 0, y: 0, width: 25, height: 25))
                 label.text = "✓"
-                label.textColor = UIColor.blueColor()
+                label.textColor = UIColor.blue
                 label.sizeToFit()
                 cell.accessoryView = label
             }
             cell.textLabel!.text = name
-            cell.layoutMargins = UIEdgeInsetsZero
+            cell.layoutMargins = UIEdgeInsets.zero
             return cell
         }
     }
 
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         /// Add new account
         if indexPath.row == account.numberOfAccounts {
-            self.dismissViewControllerAnimated(true, completion: {
-                NSNotificationCenter.defaultCenter().postNotificationName("SignInNotification", object: nil)
+            self.dismiss(animated: true, completion: {
+                NotificationCenter.default.post(name: Notification.Name.onSignIn, object: nil)
 
             })
         } else {
             let name = account.allUserNames[indexPath.row]
             if name == account.user!.name {
-                if let win = (UIApplication.sharedApplication().delegate as! AppDelegate).window {
+                if let win = (UIApplication.shared.delegate as! AppDelegate).window {
                     /// shake
                     let animation = CABasicAnimation(keyPath: "position")
                     animation.duration = 0.02
                     animation.repeatCount = 8
                     animation.autoreverses = true
-                    animation.fromValue = NSValue(CGPoint: CGPointMake(win.center.x - 8.0, win.center.y))
-                    animation.toValue = NSValue(CGPoint: CGPointMake(win.center.x + 8.0, win.center.y))
-                    win.layer.addAnimation(animation, forKey: "position")
+                    animation.fromValue = NSValue(cgPoint: CGPoint(x: win.center.x - 8.0, y: win.center.y))
+                    animation.toValue = NSValue(cgPoint: CGPoint(x: win.center.x + 8.0, y: win.center.y))
+                    win.layer.add(animation, forKey: "position")
                 }
             } else {
                 account.user = AccountType.LoggedInUser(name: name)
-                self.dismissViewControllerAnimated(true, completion: {
+                self.dismiss(animated: true, completion: {
                    
                 })
             }

@@ -8,10 +8,10 @@
 
 import Foundation
 
-extension NSURLComponents {
-    func appendQueryItem(name name: String, value: String) {
-        var queryItems: [NSURLQueryItem] = self.queryItems ?? [NSURLQueryItem]()
-        queryItems.append(NSURLQueryItem(name: name, value: value))
+extension URLComponents {
+    mutating func appendQueryItem(name: String, value: String) {
+        var queryItems: [URLQueryItem] = self.queryItems ?? [URLQueryItem]()
+        queryItems.append(URLQueryItem(name: name, value: value))
         self.queryItems = queryItems
     }
 }

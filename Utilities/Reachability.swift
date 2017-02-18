@@ -20,24 +20,25 @@ class ReachabilityManager: NSObject {
         return _reach.asObservable()
     }
     
-    private let reachability = Reachability.reachabilityForInternetConnection()
+    private let reachability = Reachability.forInternetConnection()!
     
     override init() {
         super.init()
         
         reachability.reachableBlock = { [weak self] _ in
-            dispatch_async(dispatch_get_main_queue()) {
+            DispatchQueue.main.async {
                 self?._reach.onNext(true)
             }
         }
         
         reachability.unreachableBlock = { [weak self] _ in
-            dispatch_async(dispatch_get_main_queue()) {
+            DispatchQueue.main.async {
                 self?._reach.onNext(false)
             }
         }
         
         reachability.startNotifier()
+        
         _reach.onNext(reachability.isReachable())
     }
 }

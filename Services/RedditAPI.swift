@@ -33,7 +33,8 @@ enum RedditAPI {
 }
 
 extension RedditAPI: TargetType {
-    var path: String {
+
+    public var path: String {
         switch self {
         case .XApp:
             return "/api/v1/access_token"
@@ -67,7 +68,7 @@ extension RedditAPI: TargetType {
         }
     }
 
-    var base: String {
+    public var base: String {
         switch self {
         case .XApp:
             return "https://www.reddit.com"
@@ -76,16 +77,16 @@ extension RedditAPI: TargetType {
         }
     }
 
-    var baseURL: NSURL { return NSURL(string: base)! }
+    public var baseURL: URL { return URL(string: base)! }
 
-    var parameters: [String: AnyObject]? {
+    public var parameters: [String: Any]? {
         switch self {
         case .XApp(let grant, let code):
             switch grant {
             case .Code:
                 return ["grant_type": grant.rawValue, "code": code!, "redirect_uri": "reddity://response"]
             case .Installed:
-                return ["grant_type": grant.rawValue, "device_id": NSUUID().UUIDString]
+                return ["grant_type": grant.rawValue, "device_id": NSUUID().uuidString]
             default:
                 return ["grant_type": grant.rawValue, "refresh_token": XAppToken().refreshToken!]
             }
@@ -119,25 +120,29 @@ extension RedditAPI: TargetType {
         }
     }
 
-    var method: Moya.Method {
+    public var method: Moya.Method {
         switch self {
         case .XApp, .Subscribe, .Unsubscribe:
-            return .POST
+            return .post
         default:
-            return .GET
+            return .get
         }
     }
     
-    var multipartBody: [MultipartFormData]? {
-        return nil
+    public var sampleData: Data {
+        return Data()
     }
     
-    var sampleData: NSData {
-        return NSData()
+    public var parameterEncoding: ParameterEncoding {
+        return JSONEncoding.default
+    }
+    
+    public var task: Task {
+        return .request
     }
 }
 
 func url(route: TargetType) -> String {
-    return (route.baseURL.URLByAppendingPathComponent(route.path)?.absoluteString)!
+    return route.baseURL.appendingPathComponent(route.path).absoluteString
 }
 

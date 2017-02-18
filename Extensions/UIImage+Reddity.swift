@@ -13,10 +13,10 @@ extension UIImage {
         
         let image: UIImage
         
-        UIGraphicsBeginImageContext(CGSizeMake(1, 1))
+        UIGraphicsBeginImageContext(CGSize(width: 1, height: 1))
         
         color.setFill()
-        CGContextFillRect(UIGraphicsGetCurrentContext()!, CGRectMake(0, 0, 1, 1))
+        UIGraphicsGetCurrentContext()!.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
         image = UIGraphicsGetImageFromCurrentImageContext()!
         
         UIGraphicsEndImageContext()
@@ -26,7 +26,7 @@ extension UIImage {
     
     func resize(size: CGSize) -> UIImage {
         UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
-        self.drawInRect(CGRect(origin: CGPointZero, size: size))
+        self.draw(in: CGRect(origin: CGPoint.zero, size: size))
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         

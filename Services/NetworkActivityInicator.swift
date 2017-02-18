@@ -13,8 +13,9 @@ class NetworkActivityIndicator {
     class func incrementActivityCount () {
         self.activityCount = self.activityCount + 1
         if self.activityCount > 1 {
-            dispatch_async(dispatch_get_main_queue()) {
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            
+            DispatchQueue.main.async {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = true
             }
         }
     }
@@ -23,8 +24,8 @@ class NetworkActivityIndicator {
         self.activityCount = self.activityCount - 1
         if self.activityCount < 0 { self.activityCount = 0 }
 
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC))), dispatch_get_main_queue()) {
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = ( self.activityCount > 0 )
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1) {
+            UIApplication.shared.isNetworkActivityIndicatorVisible = ( self.activityCount > 0 )
         }
     }
 }

@@ -16,16 +16,16 @@ import Moya
 
 protocol TimelineViewModelType {
     var showSpinner: Observable<Bool>! { get }
-    var loadNextPageTrigger: Observable<NSDate>! { get }
+    var loadNextPageTrigger: Observable<Date>! { get }
     var isRefreshing: Variable<Bool> { get }
     var showLoadingFooter: Observable<Bool>! { get }
 
     var numberOfLinks: Int { get }
-    var updatedContents: Observable<NSDate> { get }
+    var updatedContents: Observable<Date> { get }
     
     func reload()
     func linkViewModels() -> [LinkViewModel]
-    func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel
+    func linkViewModelAtIndexPath(indexPath: IndexPath) -> LinkViewModel
 }
 
 class TimelineViewModel: NSObject, TimelineViewModelType {
@@ -40,7 +40,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         return distinctLinks.value.count
     }
 
-    var updatedContents: Observable<NSDate> {
+    var updatedContents: Observable<Date> {
         return links
             .asObservable()
             .map {
@@ -48,7 +48,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
             }
             .ignore(false)
             .map { _ in
-                return NSDate()
+                return Date()
             }
     }
     
@@ -57,9 +57,9 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     
     var distinctLinks = Variable<[Link]>([])
     var showSpinner: Observable<Bool>!
-    var loadNextPageTrigger: Observable<NSDate>!
+    var loadNextPageTrigger: Observable<Date>!
     
-    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<NSDate>) {
+    init(subreddit: String, provider: Networking, loadNextPageTrigger: Observable<Date>) {
         self.subreddit = subreddit
         self.provider = provider
         self.loadNextPageTrigger = loadNextPageTrigger
@@ -72,10 +72,10 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         isRefreshing.value = true
         
         recursiveLinkRequest()
-            .takeUntil(rx_deallocated)
-            .doOnNext { _ in
+            .takeUntil(rx.deallocated)
+            .do(onNext: { _ in
                 self.isRefreshing.value = false
-            }
+            })
             .bindTo(links)
             .addDisposableTo(disposeBag)
     }
@@ -85,7 +85,7 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
     private func setup() {
         // start loading upon creation
         recursiveLinkRequest()
-            .takeUntil(rx_deallocated)
+            .takeUntil(rx.deallocated)
             .bindTo(links)
             .addDisposableTo(disposeBag)
         
@@ -104,35 +104,35 @@ class TimelineViewModel: NSObject, TimelineViewModelType {
         showLoadingFooter =
             Observable
                 .combineLatest(loadNextPageTrigger, updatedContents) {
-                    $0.1.compare($0.0) == .OrderedAscending
+                    $0.1.compare($0.0) == .orderedAscending
                 }
     }
     
     private func recursiveLinkRequest() -> Observable<[Link]> {
-        return linkRequest([], after: "", loadNextPageTrigger: self.loadNextPageTrigger)
+        return linkRequest(loadedSoFar: [], after: "", loadNextPageTrigger: self.loadNextPageTrigger)
     }
     
-    private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<NSDate>) -> Observable<[Link]> {
+    private func linkRequest(loadedSoFar: [Link], after: String, loadNextPageTrigger: Observable<Date>) -> Observable<[Link]> {
         let endpoint = self.subreddit.isEmpty
             ? RedditAPI.FrontPage(after: after)
             : RedditAPI.Subreddit(name: self.subreddit, after: after)
         
-        return self.provider.request(endpoint)
+        return self.provider.request(action: endpoint)
             .filterSuccessfulStatusCodes()
             .flatMap { response -> Observable<[Link]> in
                 
                 let jsonObject = JSON(data: response.data)
                 let afterName = jsonObject["data"]["after"].string ?? ""
-                let newLinks = linkParser(jsonObject)
+                let newLinks = linkParser(json: jsonObject)
                 let updatedLinks = loadedSoFar + newLinks
                 
                 return Observable.just(updatedLinks)
                     .concat(Observable.never().takeUntil(loadNextPageTrigger))
-                    .concat(self.linkRequest(updatedLinks, after: afterName, loadNextPageTrigger: loadNextPageTrigger))
+                    .concat(self.linkRequest(loadedSoFar: updatedLinks, after: afterName, loadNextPageTrigger: loadNextPageTrigger))
             }
     }
     
-    func linkViewModelAtIndexPath(indexPath: NSIndexPath) -> LinkViewModel {
+    func linkViewModelAtIndexPath(indexPath: IndexPath) -> LinkViewModel {
         return distinctLinks.value[indexPath.item].viewModel
     }
 

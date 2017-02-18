@@ -1,6 +1,5 @@
 import UIKit
 import ChameleonFramework
-import FontAwesome_swift
 #if !RX_NO_MODULE
 import RxSwift
 #endif
@@ -39,7 +38,7 @@ class CommentCell: UITableViewCell {
     override func awakeFromNib() {
         super.awakeFromNib()
         self.applyTheme()
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(CommentCell.applyTheme), name: kThemeManagerDidChangeThemeNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(CommentCell.applyTheme), name: Notification.Name.onThemeChanged, object: nil)
     }
 
     override func prepareForReuse() {
@@ -58,28 +57,28 @@ class CommentCell: UITableViewCell {
         dateLabel.text = aComment.createdAt.minutesAgo()
         userLabel.text = aComment.user
         
-        commentButton.setImage(UIImage(named: "comment"), forState: .Normal)
-        commentButton.setTitle(" \(aComment.numberOfReplies)", forState: .Normal)
+        commentButton.setImage(UIImage(named: "comment"), for: .normal)
+        commentButton.setTitle(" \(aComment.numberOfReplies)", for: .normal)
         
-        upButton.setImage(UIImage(named: "unlike"), forState:  .Normal)
-        upButton.setTitle(" \(aComment.ups)", forState: .Normal)
+        upButton.setImage(UIImage(named: "unlike"), for:  .normal)
+        upButton.setTitle(" \(aComment.ups)", for: .normal)
 
         // Map events
         Observable.just(aComment.numberOfReplies)
             .map { $0 > 0 }
-            .bindTo(commentButton.rx_enabled)
+            .bindTo(commentButton.rx.isEnabled)
             .addDisposableTo(reuseBag)
 
-        commentButton.rx_tap
-            .subscribeNext { [weak self] in 
+        commentButton.rx.tap
+            .subscribe(onNext: { [weak self] in
                 self?._expandRepliesPressed.onNext(NSDate())
-            }
+            })
             .addDisposableTo(reuseBag)
         
-        upButton.rx_tap 
-            .subscribeNext { [weak self] in 
+        upButton.rx.tap
+            .subscribe(onNext: { [weak self] in
                 self?._votePressed.onNext(NSDate())
-            }
+            })
             .addDisposableTo(reuseBag)
     }
     
@@ -87,8 +86,8 @@ class CommentCell: UITableViewCell {
         let theme = CellTheme()!
         self.backgroundColor         = theme.backgroundColor
         self.commentLabel?.textColor = theme.mainTextColor
-        self.commentButton.tintColor = UIColor.lightGrayColor()
-        self.upButton.tintColor = UIColor.lightGrayColor()
+        self.commentButton.tintColor = UIColor.lightGray
+        self.upButton.tintColor = UIColor.lightGray
     }
 
 }

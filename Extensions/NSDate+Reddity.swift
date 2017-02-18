@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension NSDate {
+extension Date {
     func daysAgo() -> String {
         let days = Int(abs(self.timeIntervalSinceNow) / (24 * 3600))
         
@@ -17,9 +17,9 @@ extension NSDate {
         } else if days < 30 {
             return "\(String(days))d"
         } else if 31...365 ~= days {
-            let formatter = NSDateFormatter()
+            let formatter = DateFormatter()
             formatter.dateFormat = "MM-dd"
-            return formatter.stringFromDate(self)
+            return formatter.string(from: self)
         } else {
             return "One year ago"
         }
@@ -40,9 +40,9 @@ extension NSDate {
     /**
      Return the date string in sqlite format  
      */
-    class func sqliteDate(aDate: NSDate = NSDate()) -> String {
-        let formatter = NSDateFormatter()
+    static func sqliteDate(aDate: Date = Date()) -> String {
+        let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter.stringFromDate(aDate)
+        return formatter.string(from: aDate)
     }
 }

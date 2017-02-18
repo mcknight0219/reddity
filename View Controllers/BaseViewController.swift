@@ -7,9 +7,8 @@
 //
 
 import UIKit
-#if !RX_NO_MODULE
 import RxSwift
-#endif
+import SVProgressHUD
 
 /**
  A customized view controller that listens to theme changed notification
@@ -20,14 +19,13 @@ class BaseViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         reachabilityManager.reach
-            .subscribeNext { connected in
-                let hud = HUDManager.sharedInstance
+            .subscribe(onNext: { connected in
                 if !connected {
-                    hud.showToast(withTitle: "No Internet Connection.")
+                    SVProgressHUD.showError(withStatus: "No Internet Connection")
+                    SVProgressHUD.dismiss(withDelay: 1.5)
                 }             
-            }
+            })
             .addDisposableTo(disposeBag)
     } 
 }

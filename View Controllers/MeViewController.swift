@@ -29,46 +29,46 @@ class MeViewController: BaseTableViewController {
         self.tableView.tableFooterView = UIView()
         
         self.themeSwitch = {
-            $0.onTintColor = UIColor.greenColor()
+            $0.onTintColor = UIColor.green
             return $0
         }(UISwitch())
         
         self.nsfwSwitch = {
-            $0.onTintColor = UIColor.greenColor()
+            $0.onTintColor = UIColor.green
             return $0
         }(UISwitch())
         
         let darkThemeOn = Variable(Settings().theme == .Dark)
-        themeSwitch.rx_value <-> darkThemeOn
+        (themeSwitch.rx.value <-> darkThemeOn).addDisposableTo(disposeBag)
         
         darkThemeOn
             .asObservable()
-            .subscribeNext { x in
-                ThemeManager.defaultManager.setTheme(x ? "Dark" : "Default")
-            }
+            .subscribe(onNext: { x in
+                ThemeManager.defaultManager.setTheme(newTheme: x ? "Dark" : "Default")
+            })
             .addDisposableTo(disposeBag)
         
         let nsfwOn = Variable(true)
-        nsfwSwitch.rx_value <-> nsfwOn
+        (nsfwSwitch.rx.value <-> nsfwOn).addDisposableTo(disposeBag)
         nsfwOn.asObservable()
-            .subscribeNext { _ in
-            }
+            .subscribe(onNext: { _ in
+            })
             .addDisposableTo(disposeBag)
     }
 
     enum Section: Int {
-        case AccountAndStorage = 0
-        case Settings
-        case About
+        case accountAndStorage = 0
+        case settings
+        case about
 
         init?(sec: Int) {
             switch sec {
             case 0:
-                self = AccountAndStorage
+                self = .accountAndStorage
             case 1:
-                self = Settings
+                self = .settings
             case 2:
-                self = About
+                self = .about
             default:
                 return nil
             }
@@ -80,29 +80,29 @@ class MeViewController: BaseTableViewController {
 
         var numberOfRows: Int {
             switch self {
-            case AccountAndStorage:
+            case .accountAndStorage:
                 return 2
-            case Settings:
+            case .settings:
                 return 4
-            case About:
+            case .about:
                 return 1
             }
         }
 
         var title: String {
             switch self {
-            case AccountAndStorage:
+            case .accountAndStorage:
                 return ""
-            case Settings:
+            case .settings:
                 return "General"
-            case About:
+            case .about:
                 return ""
             }
         }
         
         var height: CGFloat {
             switch self {
-            case Settings:
+            case .settings:
                 return 50
             default:
                 return 40
@@ -112,32 +112,31 @@ class MeViewController: BaseTableViewController {
     
     // MARK: - Table view data source
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return Section.numberOfSections()
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return Section.init(sec: section)!.numberOfRows
     }
 
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 44
     }
-
-    override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let sec = Section.init(sec: section)!
-        let view = UIView(frame: CGRectMake(0, 0, tableView.frame.size.width, sec.height))
-        view.backgroundColor = UIColor.clearColor()
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: tableView.frame.size.width, height: sec.height))
+        view.backgroundColor = UIColor.clear
         
-        let sep = UIView(frame: CGRectMake(0, view.frame.size.height-0.5, view.frame.size.width, 0.5))
+        let sep = UIView(frame: CGRect(x: 0, y: view.frame.size.height-0.5, width: view.frame.size.width, height: 0.5))
         sep.backgroundColor = UIColor(colorLiteralRed: 244/255, green: 244/255, blue: 244/255, alpha: 1)
         view.addSubview(sep)
         
-        if case .Settings = sec {
-            let titleLabel = UILabel(frame: CGRectMake(15, 20, tableView.frame.size.width, 40))
-            titleLabel.backgroundColor = UIColor.clearColor()
+        if case .settings = sec {
+            let titleLabel = UILabel(frame: CGRect(x: 15, y: 20, width: tableView.frame.size.width, height: 40))
+            titleLabel.backgroundColor = UIColor.clear
             titleLabel.text = sec.title
-            titleLabel.font = UIFont.systemFontOfSize(15)
+            titleLabel.font = UIFont.systemFont(ofSize: 15)
             
             view.addSubview(titleLabel)
         }
@@ -145,27 +144,27 @@ class MeViewController: BaseTableViewController {
         return view
     }
     
-    override func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return Section.init(sec: section)!.height
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = self.tableView.dequeueReusableCellWithIdentifier("SettingCell")
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        var cell = self.tableView.dequeueReusableCell(withIdentifier: "SettingCell")
         if cell == nil {
-            cell = UITableViewCell(style: .Value1, reuseIdentifier: "SettingCell")
+            cell = UITableViewCell(style: .value1, reuseIdentifier: "SettingCell")
         }
         // Common cell settings
-        cell!.textLabel?.font = UIFont.systemFontOfSize(16)
-        cell!.accessoryType = .DisclosureIndicator
+        cell!.textLabel?.font = UIFont.systemFont(ofSize: 16)
+        cell!.accessoryType = .disclosureIndicator
 
         switch Section.init(sec: indexPath.section)! {
-        case .AccountAndStorage:
+        case .accountAndStorage:
             if indexPath.row == 0 {
                 cell!.textLabel?.text = "Account"
             } else {
                 cell!.textLabel?.text = "Storage"
             }
-        case .Settings:
+        case .settings:
             switch indexPath.row {
             case 0:
                 cell!.textLabel?.text = "Dark theme"
@@ -185,40 +184,40 @@ class MeViewController: BaseTableViewController {
             default:
                 break
             }
-        case .About:
+        case .about:
             cell!.textLabel?.text = "About Reddity"
         }
                 
         return cell!
     }
     
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch Section.init(sec: indexPath.section)! {
-        case .AccountAndStorage:
+        case .accountAndStorage:
             switch indexPath.row {
             case 0:
                 let accountVC: AccountViewController = {
                     $0.hidesBottomBarWhenPushed = true
-                    $0.modalPresentationStyle = .FullScreen
+                    $0.modalPresentationStyle = .fullScreen
                     return $0
                 }(AccountViewController())
                 navigationController?.pushViewController(accountVC, animated: true)
             case 1:
                 let storageVC: StorageViewController = {
                     $0.hidesBottomBarWhenPushed = true
-                    $0.modalPresentationStyle = .FullScreen
+                    $0.modalPresentationStyle = .fullScreen
                     return $0
                 }(StorageViewController())
                 navigationController?.pushViewController(storageVC, animated: true)
             default:
                 break
             }
-        case .Settings:
+        case .settings:
             switch indexPath.row {
             case 3:
                 let autoPlayVC: VideoAutoplayViewController = {
                     $0.hidesBottomBarWhenPushed = true
-                    $0.modalPresentationStyle = .FullScreen
+                    $0.modalPresentationStyle = .fullScreen
                     return $0
                 }(VideoAutoplayViewController())
                 navigationController?.pushViewController(autoPlayVC, animated: true)

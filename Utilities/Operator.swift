@@ -14,8 +14,7 @@ import RxCocoa
 
 // Two way binding operator between property and variable
 
-infix operator <-> {
-}
+infix operator <->
 
 func <-> <T>(property: ControlProperty<T>, variable: Variable<T>) -> Disposable {
     let bindToUIDisposable = variable.asObservable()
@@ -27,7 +26,7 @@ func <-> <T>(property: ControlProperty<T>, variable: Variable<T>) -> Disposable 
                 bindToUIDisposable.dispose()
         })
     
-    return StableCompositeDisposable.create(bindToUIDisposable, bindToVariable)
+    return CompositeDisposable(bindToUIDisposable, bindToVariable)
 }
 
 

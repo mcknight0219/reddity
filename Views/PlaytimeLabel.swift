@@ -31,21 +31,21 @@ class PlaytimeLabel: UILabel {
     
     func commonInit() {
         
-        self.textColor = UIColor.whiteColor()
-        self.backgroundColor = UIColor.blackColor().colorWithAlphaComponent(0.75)
-        self.layer.borderColor = UIColor.whiteColor().CGColor
+        self.textColor = UIColor.white
+        self.backgroundColor = UIColor.black.withAlphaComponent(0.75)
+        self.layer.borderColor = UIColor.white.cgColor
         self.layer.borderWidth = 1.0
         self.layer.cornerRadius = 6
         self.clipsToBounds = true
-        self.textAlignment = .Center
+        self.textAlignment = .center
         
         self.displayLink = CADisplayLink(target: self, selector: #selector(PlaytimeLabel.updateText))
-        self.displayLink.addToRunLoop(NSRunLoop.currentRunLoop(), forMode: NSDefaultRunLoopMode)
+        self.displayLink.add(to: RunLoop.current, forMode: RunLoopMode.defaultRunLoopMode)
     }
     
-    override func drawTextInRect(rect: CGRect) {
+    override func drawText(in rect: CGRect) {
         let insets = UIEdgeInsetsMake(4, 5, 4, 5)
-        super.drawTextInRect(UIEdgeInsetsInsetRect(rect, insets))
+        super.drawText(in: UIEdgeInsetsInsetRect(rect, insets))
     }
     
     @objc func updateText() {

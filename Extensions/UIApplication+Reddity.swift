@@ -12,14 +12,14 @@ extension UIApplication {
     
     // Construct a meaningful user agent sent to reddit
     class func userAgent() -> String {
-        let dict = NSBundle.mainBundle().infoDictionary
+        let dict = Bundle.main.infoDictionary
         
         let appName = dict!["CFBundleExecutable"]!
         let version = dict!["CFBundleVersion"]!
         
-        let deviceModel = UIDevice.currentDevice().model
-        let systemVersion = UIDevice.currentDevice().systemVersion
-        let screenScale = UIScreen.mainScreen().scale
+        let deviceModel = UIDevice.current.model
+        let systemVersion = UIDevice.current.systemVersion
+        let screenScale = UIScreen.main.scale
         
         return "\(appName)/\(version) \(deviceModel); iOS \(systemVersion); Scale/\(screenScale)"
     }

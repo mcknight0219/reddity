@@ -25,7 +25,7 @@ class CommentLabel : UILabel {
     
     override var text: String? {
         didSet {
-            if let attributedText = self.parseMarkdown(self.text ?? "") {
+            if let attributedText = self.parseMarkdown(text: self.text ?? "") {
                 self.attributedText = attributedText
             }
         }
@@ -56,14 +56,14 @@ class CommentLabel : UILabel {
     
     
     func commonInit() {
-        self.userInteractionEnabled = true
+        self.isUserInteractionEnabled = true
         self.numberOfLines = 0
-        self.lineBreakMode = .ByWordWrapping
-        self.textAlignment = .Natural
+        self.lineBreakMode = .byWordWrapping
+        self.textAlignment = .natural
     }
     
     
-    private func characterIndex(atPoint point: CGPoint) -> Int {
+    fileprivate func characterIndex(atPoint point: CGPoint) -> Int {
         guard let _ = self.attributedText else {
             return NSNotFound
         }
@@ -72,13 +72,13 @@ class CommentLabel : UILabel {
         layoutManager.addTextContainer(textContainer)
         textStorage?.addLayoutManager(layoutManager)
         
-        let coefficent: CGFloat = textAlignment == .Center ? 0.5 : (textAlignment == .Right ? 1.0 : 0.0)
+        let coefficent: CGFloat = textAlignment == .center ? 0.5 : (textAlignment == .right ? 1.0 : 0.0)
         
-        let boundingBox = layoutManager.usedRectForTextContainer(textContainer)
-        let textContainerOffset = CGPointMake((self.bounds.size.width - boundingBox.size.width) * coefficent - boundingBox.origin.x,
-                                              (self.bounds.size.height - boundingBox.size.height) * 0.5 - boundingBox.origin.y)
-        let locationOfTouch = CGPointMake(point.x - textContainerOffset.x, point.y - textContainerOffset.y)
-        let indexOfCharacter = layoutManager.characterIndexForPoint(locationOfTouch, inTextContainer: textContainer, fractionOfDistanceBetweenInsertionPoints: nil)
+        let boundingBox = layoutManager.usedRect(for: textContainer)
+        let textContainerOffset = CGPoint(x: (self.bounds.size.width - boundingBox.size.width) * coefficent - boundingBox.origin.x,
+                                          y: (self.bounds.size.height - boundingBox.size.height) * 0.5 - boundingBox.origin.y)
+        let locationOfTouch = CGPoint(x: point.x - textContainerOffset.x, y: point.y - textContainerOffset.y)
+        let indexOfCharacter = layoutManager.characterIndex(for: locationOfTouch, in: textContainer, fractionOfDistanceBetweenInsertionPoints: nil)
         
         return indexOfCharacter
     }
@@ -92,9 +92,8 @@ class CommentLabel : UILabel {
         self.unhighlighedAttributedText = attributedString
         
         var effectiveRange = NSMakeRange(0, 0)
-        if let _ = attributedString.attribute(NSLinkAttributeName, atIndex: index, longestEffectiveRange: &effectiveRange, inRange: NSMakeRange(0, attributedString.length)) {
-            
-            attributedString.addAttribute(NSBackgroundColorAttributeName, value: UIColor.lightGrayColor(), range: effectiveRange)
+        if let _ = attributedString.attribute(NSLinkAttributeName, at: index, longestEffectiveRange: &effectiveRange, in: NSMakeRange(0, attributedString.length)) {
+            attributedString.addAttribute(NSBackgroundColorAttributeName, value: UIColor.lightGray, range: effectiveRange)
             self.attributedText = attributedString
             
             return
@@ -114,33 +113,33 @@ class CommentLabel : UILabel {
 // MARK:  User interaction
 
 extension CommentLabel {
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let touch  = touches.first!
-        let characterIndex = self.characterIndex(atPoint: touch.locationInView(self))
+        let characterIndex = self.characterIndex(atPoint: touch.location(in: self))
         if characterIndex == NSNotFound {
-            super.touchesBegan(touches, withEvent: event)
+            super.touchesBegan(touches, with: event)
             return
         }
         
         //self.applyHighlightAt(characterIndex)
         
-        let attributes = self.attributedText?.attributesAtIndex(characterIndex, effectiveRange: nil)
+        let attributes = self.attributedText?.attributes(at: characterIndex, effectiveRange: nil)
         if let URL = attributes?[NSLinkAttributeName] as? NSURL {
             self.activeLink = URL
         } else {
             self.activeLink = nil
-            super.touchesBegan(touches, withEvent: event)
+            super.touchesBegan(touches, with: event)
         }
     }
     
-    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let url = self.activeLink {
             
-            self.delegate?.urlDidTapped(url)
+            self.delegate?.urlDidTapped(URL: url)
             
         } else {
             
-            super.touchesEnded(touches, withEvent: event)
+            super.touchesEnded(touches, with: event)
         
         }
     }
@@ -162,7 +161,7 @@ extension CommentLabel {
         }
 
         let md = SwiftyMarkdown(string: text)
-        md.link.color = UIColor.blueColor()
+        md.link.color = UIColor.blue
         md.code.fontName = "CourierNewPSMT"
 
         return md.attributedString()

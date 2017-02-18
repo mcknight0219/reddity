@@ -23,13 +23,13 @@ final class StartupViewController: UIViewController {
         super.viewDidLoad()
 
         self.makeUI()
-        self.loginButton.addTarget(self, action: #selector(StartupViewController.login), forControlEvents: .TouchDown)
-        self.skipButton.addTarget(self, action: #selector(StartupViewController.skip), forControlEvents: .TouchDown)
+        self.loginButton.addTarget(self, action: #selector(StartupViewController.login), for: .touchDown)
+        self.skipButton.addTarget(self, action: #selector(StartupViewController.skip), for: .touchDown)
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(StartupViewController.postOAuth(_:)), name: "OAuthFinishedNotification", object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(StartupViewController.postOAuth), name: Notification.Name.onOAuthFinished, object: nil)
     }
     
-    override func prefersStatusBarHidden() -> Bool {
+    override var prefersStatusBarHidden: Bool {
         return true
     }
     
@@ -38,13 +38,13 @@ final class StartupViewController: UIViewController {
     }
     
     func makeUI() {
-        self.view.backgroundColor = UIColor.whiteColor()
-        
+        self.view.backgroundColor = UIColor.white
+()
         logo = UIImageView(image: UIImage(named: "logo"))
-        logo.contentMode = .ScaleAspectFit
+        logo.contentMode = .scaleAspectFit
         
         self.view.addSubview(logo)
-        logo.snp_makeConstraints { (make) -> Void in
+        logo.snp.makeConstraints { (make) -> Void in
             make.top.equalTo(80)
             make.height.equalTo(75)
             make.leading.equalTo(25)
@@ -52,38 +52,38 @@ final class StartupViewController: UIViewController {
         }
         
         loginButton = UIButton()
-        loginButton.setTitle("Log In", forState: .Normal)
-        loginButton.setTitleColor(FlatWhite(), forState: .Normal)
+        loginButton.setTitle("Log In", for: .normal)
+        loginButton.setTitleColor(FlatWhite(), for: .normal)
         loginButton.titleLabel?.font = UIFont(name: "Lato-Bold", size: 18)
         loginButton.titleEdgeInsets = UIEdgeInsetsMake(5, 7, 5, 7)
         loginButton.backgroundColor = FlatOrange()
         loginButton.tintColor = FlatWhite()
         loginButton.layer.cornerRadius = 20
         loginButton.layer.borderWidth = 0.8
-        loginButton.layer.borderColor = FlatWhite().CGColor
+        loginButton.layer.borderColor = FlatWhite().cgColor
         
         self.view.addSubview(loginButton)
-        loginButton.snp_makeConstraints { (make) -> Void in
+        loginButton.snp.makeConstraints { (make) -> Void in
             make.bottom.equalTo(-250)
             make.leading.equalTo(30)
             make.height.equalTo(45)
             make.trailing.equalTo(-30)
         }
         
-        loginButton.canBecomeFirstResponder()
+        loginButton.becomeFirstResponder()
         
         skipButton = UIButton()
-        skipButton.setTitle("Skip", forState: .Normal)
-        skipButton.setTitleColor(FlatOrange(), forState: .Normal)
+        skipButton.setTitle("Skip", for: .normal)
+        skipButton.setTitleColor(FlatOrange(), for: .normal)
         skipButton.titleLabel?.font = UIFont(name: "Lato-Regular", size: 18)
         skipButton.tintColor = FlatOrange()
         skipButton.layer.cornerRadius = 20
         skipButton.layer.borderWidth = 0.8
-        skipButton.layer.borderColor = FlatOrange().CGColor
+        skipButton.layer.borderColor = FlatOrange().cgColor
         
         self.view.addSubview(skipButton)
-        skipButton.snp_makeConstraints { (make) -> Void in
-            make.top.equalTo(self.loginButton.snp_bottom).offset(15)
+        skipButton.snp.makeConstraints { (make) -> Void in
+            make.top.equalTo(self.loginButton.snp.bottom).offset(15)
             make.leading.equalTo(30)
             make.trailing.equalTo(-30)
             make.height.equalTo(45)
@@ -92,16 +92,17 @@ final class StartupViewController: UIViewController {
     }
     
     func skip() {
-        NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
+        NotificationCenter.default.post(name: Notification.Name.onAfterStartup, object: nil)
     }
     
     func login() {
-        let authUrl = NSURL(string: "https://ssl.reddit.com/api/v1/authorize.compact?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet())!)
-        let safariViewController = SFSafariViewController(URL: authUrl!)
-        self.presentViewController(safariViewController, animated: true, completion: nil)
+        let urlStr = "https://ssl.reddit.com/api/v1/authorize.compact?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        let authUrl = URL(string: urlStr!)
+        let safariViewController = SFSafariViewController(url: authUrl!)
+        self.present(safariViewController, animated: true, completion: nil)
         
         self.oAuthCompleteAction = {
-            safariViewController.dismissViewControllerAnimated(true, completion: nil)
+            safariViewController.dismiss(animated: true, completion: nil)
         }
     }
 }
@@ -113,17 +114,17 @@ extension StartupViewController {
         if let number = notification.object as? NSNumber {
             switch number.intValue {
             case 1:
-                NSNotificationCenter.defaultCenter().postNotificationName("PushInTabBarAfterStartup", object: nil)
+                NotificationCenter.default.post(name: Notification.Name.onAfterStartup, object: nil)
             default:
-                dispatch_async(dispatch_get_main_queue()) { [weak self] in
-                    let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .Alert)
+                DispatchQueue.main.async { [weak self] in
+                    let alertController = UIAlertController(title: "Sorry", message: "Access denied to user account. You can try log in later in Settings", preferredStyle: .alert)
                     
-                    let action = UIAlertAction(title: "Ok", style: .Default) { action in
+                    let action = UIAlertAction(title: "Ok", style: .default) { action in
                         
                     }
                     
                     alertController.addAction(action)
-                    self!.presentViewController(alertController, animated: true, completion: nil)
+                    self!.present(alertController, animated: true, completion: nil)
                     alertController.view.tintColor = FlatOrange()
                 }
             }

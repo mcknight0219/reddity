@@ -15,27 +15,27 @@ class SignInViewController: UIViewController, WKUIDelegate {
     
     override func loadView() {
         let webConfiguration = WKWebViewConfiguration()
-        webView = WKWebView(frame: CGRectZero, configuration: webConfiguration)
+        webView = WKWebView(frame: CGRect.zero, configuration: webConfiguration)
         webView.navigationDelegate = self
         view = webView
         
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(SignInViewController.postSignIn(_:)), name: "OAuthFinishedNotification", object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(SignInViewController.postSignIn), name: Notification.Name.onOAuthFinished, object: nil)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "Sign In"
 
-        let signInURL = NSURL(string: "https://ssl.reddit.com/api/v1/authorize.compact?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".stringByAddingPercentEncodingWithAllowedCharacters(.URLQueryAllowedCharacterSet())!)!
-        let request = NSURLRequest(URL: signInURL)
-        webView.loadRequest(request)
+        let signInURL: URL = URL(string: "https://ssl.reddit.com/api/v1/authorize.compact?client_id=oJcxJfNvAUDpOQ&response_type=code&state=TEST&redirect_uri=reddity://response&duration=permanent&scope=identity,subscribe,mysubreddits,read".addingPercentEncoding(withAllowedCharacters: CharacterSet.urlQueryAllowed)!)!
+        let request = URLRequest(url: signInURL)
+        webView.load(request)
         
     }
     
     @objc func postSignIn(notification: NSNotification) {
         if let number = notification.object as? NSNumber {
             if number == 1 {
-                navigationController?.popViewControllerAnimated(true)
+                _ = navigationController?.popViewController(animated: true)
             } else {
                 
             }
@@ -44,15 +44,15 @@ class SignInViewController: UIViewController, WKUIDelegate {
 }
 
 extension SignInViewController: WKNavigationDelegate {
-    func webView(webView: WKWebView, decidePolicyForNavigationAction navigationAction: WKNavigationAction, decisionHandler: (WKNavigationActionPolicy) -> Void) {
-        if let URL = navigationAction.request.URL {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if let URL = navigationAction.request.url {
             if URL.scheme == "reddity" {
-                let app = UIApplication.sharedApplication()
+                let app = UIApplication.shared
                 app.openURL(URL)
-                decisionHandler(.Cancel)
+                decisionHandler(.cancel)
                 return
             }
-            decisionHandler(.Allow)
+            decisionHandler(.allow)
         }
     }
 }

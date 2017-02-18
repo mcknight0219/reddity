@@ -7,9 +7,9 @@
 //
 
 import UIKit
-import ChameleonFramework
-import Action
 import RxSwift
+import SVProgressHUD
+import ChameleonFramework
 
 class SubscriptionViewController: BaseTableViewController {
  
@@ -18,20 +18,20 @@ class SubscriptionViewController: BaseTableViewController {
         return {
             let label: UILabel = {
                 $0.text = "You don't have any subscription yet."
-                $0.font = UIFont(name: "Lato-Regular", size: 18)
-                $0.textColor = UIColor.grayColor()
+                $0.font = UIFont(name: "Helvetica Neue", size: 18)
+                $0.textColor = UIColor.gray
                 $0.numberOfLines = 0
-                $0.textAlignment = .Center
+                $0.textAlignment = .center
                 
                 return $0
             }(UILabel())
             $0.addSubview(label)
             
             let this = $0
-            label.snp_makeConstraints { make in
+            label.snp.makeConstraints { make in
                 make.leading.equalTo(this).offset(25)
                 make.trailing.equalTo(this).offset(-25)
-                make.top.equalTo(UIScreen.mainScreen().bounds.height / 2 - 150)
+                make.top.equalTo(UIScreen.main.bounds.height / 2 - 150)
             }
             
             $0.addGestureRecognizer(self._tapOnBackground)
@@ -42,30 +42,30 @@ class SubscriptionViewController: BaseTableViewController {
     
     lazy var subtitleView: UILabel = {
         return {
-            $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Regular", size: 14)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
+            $0.backgroundColor = UIColor.clear
+            $0.font = UIFont(name: "Helvetica Neue", size: 14)
+            $0.textAlignment = .center
+            $0.textColor = UIColor.darkGray
             
             return $0
-        }(UILabel(frame: CGRectMake(0, 24, 200, 44-24)))
+        }(UILabel(frame: CGRect(x: 0, y: 24, width: 200, height: 44-24)))
     }()
     
     lazy var titleView: UILabel = {
         return {
-            $0.backgroundColor = UIColor.clearColor()
-            $0.font = UIFont(name: "Lato-Bold", size: 20)
-            $0.textAlignment = .Center
-            $0.textColor = UIColor.darkGrayColor()
+            $0.backgroundColor = UIColor.clear
+            $0.font = UIFont(name: "Helvetica Neue", size: 20)
+            $0.textAlignment = .center
+            $0.textColor = UIColor.darkGray
             $0.text = "Subscription"
 
             return $0
-        }(UILabel(frame: CGRectMake(0, 2, 200, 24)))
+        }(UILabel(frame: CGRect(x: 0, y: 2, width: 200, height: 24)))
     }()
 
     var provider: Networking!
     
-    private var selectedOrderIndex = Variable<Int>(0)
+    fileprivate var selectedOrderIndex = Variable<Int>(0)
     lazy var viewModel: SubscriptionViewModelType = {
         return SubscriptionViewModel(provider: self.provider, selectedOrder: self.selectedOrderIndex.asObservable())
     }()
@@ -75,30 +75,28 @@ class SubscriptionViewController: BaseTableViewController {
         self.refreshControl = UIRefreshControl()
         hideFooter()
         
-        let navTitleView =  UIView(frame: CGRectMake(0, 0, 200, 44))
-        navTitleView.backgroundColor = UIColor.clearColor()
+        let navTitleView =  UIView(frame: CGRect(x: 0, y: 0, width: 200, height: 44))
+        navTitleView.backgroundColor = UIColor.clear
         navTitleView.autoresizesSubviews = true
         navTitleView.addSubview(self.titleView)
         navTitleView.addSubview(subtitleView)
-        navTitleView.autoresizingMask = [.FlexibleTopMargin, .FlexibleBottomMargin, .FlexibleRightMargin, .FlexibleLeftMargin]
+        navTitleView.autoresizingMask = [.flexibleTopMargin, .flexibleBottomMargin, .flexibleRightMargin, .flexibleLeftMargin]
         navigationItem.titleView = navTitleView
         
-        let sortButton = UIBarButtonItem(title: "Sort", style: .Plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
+        let sortButton = UIBarButtonItem(title: "Sort", style: .plain, target: self, action: #selector(SubscriptionViewController.sortItemTapped))
         navigationItem.rightBarButtonItem = sortButton
         
         viewModel
             .showBackground
-            .doOn { event in
-                if let show = event.element {
-                    if show {
-                        HUDManager.sharedInstance.showCentralActivityIndicator()
-                    } else {
-                        HUDManager.sharedInstance.hideCentralActivityIndicator()
-                    }
+            .do(onNext: { show in
+                if show {
+                    SVProgressHUD.show()
+                } else {
+                    SVProgressHUD.dismiss()
                 }
-            }
+            }, onError: nil)
             .map { !$0 }
-            .bindTo(sortButton.rx_enabled)
+            .bindTo(sortButton.rx.isEnabled)
             .addDisposableTo(disposeBag)
         
         viewModel
@@ -107,81 +105,82 @@ class SubscriptionViewController: BaseTableViewController {
             .map { n in
                 return self.tableView
             }
-            .doOnNext { tableView in
+            .do(onNext: { tableView in
                 tableView.reloadData()
-            }
-            .subscribeNext { _ in
-                self.subtitleView.text = "(\(self.viewModel.numberOfSubscriptions))"
-            }
+            }, onError: nil)
+            .subscribe(onNext: { [weak self] _ in
+                self?.subtitleView.text = "(\(self?.viewModel.numberOfSubscriptions))"
+            }, onError: nil)
             .addDisposableTo(disposeBag)
 
         self.refreshControl!
-            .rx_controlEvent(.ValueChanged)
+            .rx.controlEvent(.valueChanged)
             .flatMap { reachabilityManager.reach }
-            .subscribeNext {[weak self] on in
+            .subscribe(onNext: {[weak self] on in
                 if on {
                     self?.viewModel.reload()
                 } else {
                     self?.refreshControl?.endRefreshing()
                 }
-            }
+            }, onError: nil)
             .addDisposableTo(disposeBag)
 
         viewModel
             .showRefresh
             .asObservable()
-            .subscribeNext {[weak self] show in
+            .subscribe(onNext: {[weak self] show in
                 if !show {
                     self?.refreshControl?.endRefreshing()
                 }
-            }
+            }, onError: nil)
             .addDisposableTo(disposeBag)
     }
 
     // MARK: - Table view data source
-
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
+
     
-    override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 80
     }
 
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.numberOfSubscriptions
     }
-
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        var cell = tableView.dequeueReusableCellWithIdentifier("SubscriptionCell")
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        var cell = tableView.dequeueReusableCell(withIdentifier: "SubscriptionCell")
         if cell == nil {
-            cell = UITableViewCell(style: .Subtitle, reuseIdentifier: "SubscriptionCell")
+            cell = UITableViewCell(style: .subtitle, reuseIdentifier: "SubscriptionCell")
         }
 
-        cell!.textLabel?.text = self.viewModel.displayNameAtIndexPath(indexPath)
-        cell!.detailTextLabel?.text = "\(self.viewModel.subscribersAtIndexPath(indexPath))"
-        cell!.accessoryType = .DetailButton
+        cell!.textLabel?.text = self.viewModel.displayNameAtIndexPath(indexPath: indexPath)
+        cell!.detailTextLabel?.text = "\(self.viewModel.subscribersAtIndexPath(indexPath: indexPath))"
+        cell!.accessoryType = .detailButton
         
         return cell!
     }
 
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        let name = self.viewModel.displayNameAtIndexPath(indexPath)
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let name = self.viewModel.displayNameAtIndexPath(indexPath: indexPath)
         
         let timelineVC = TimelineViewController(subredditName: name)
         timelineVC.provider = Networking.newNetworking()
         timelineVC.hidesBottomBarWhenPushed = true
-
+        
         navigationController?.pushViewController(timelineVC, animated: true)
     }
-
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+    
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
     }
     
-    override func tableView(tableView: UITableView, editActionsForRowAtIndexPath indexPath: NSIndexPath) -> [UITableViewRowAction]? {
-        let deleteAction = UITableViewRowAction(style: .Normal, title: "Unsubscribe") {action in
-            self.viewModel.unsubscribe(indexPath)
+    override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
+        let deleteAction = UITableViewRowAction(style: .normal, title: "Unsubscribe") {action in
+            self.viewModel.unsubscribe(indexPath: indexPath)
         }
         
         return [deleteAction]
@@ -192,26 +191,28 @@ class SubscriptionViewController: BaseTableViewController {
 extension SubscriptionViewController {
     func sortItemTapped() {
         let alert = self.sortOrderAlertController()
-        presentViewController(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
 
     func sortOrderAlertController() -> UIAlertController {
-        let sortOrderController = UIAlertController(title: "Choose order of subscribed subreddits", message: nil, preferredStyle: .ActionSheet)
+        let sortOrderController = UIAlertController(title: "Choose order of subscribed subreddits", message: nil, preferredStyle: .actionSheet)
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        sortOrderController.addAction(cancel)
         
-        let cancelAction = UIAlertAction.Action("Cancel", style: .Cancel)
-        sortOrderController.addAction(cancelAction)
         
-        _ = ["Alphabetical", "Popularity", "Favorite"].enumerate().map { (index, name) in
+        
+        _ = ["Alphabetical", "Popularity", "Favorite"].enumerated().map { (index, name) in
             var mod = name
             if self.selectedOrderIndex.value == index {
                 mod = mod + "✓"
             }
-            let option = UIAlertAction.Action(mod, style: .Default)
-            option.rx_action = CocoaAction {
-                self.selectedOrderIndex.value = index
-                return Observable.empty()
-            }
-            sortOrderController.addAction(option)
+            
+            let op = UIAlertAction(title: mod, style: .default, handler: { [weak self] _ in
+                if let weakSelf = self {
+                    weakSelf.selectedOrderIndex.value = index
+                }
+            })
+            sortOrderController.addAction(op)
         }
         
         return sortOrderController

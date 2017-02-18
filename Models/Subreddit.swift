@@ -76,7 +76,7 @@ func subredditsParser(json: JSON) -> [Subreddit] {
     for (_, subJson):(String, JSON) in subsJson {
         let content = subJson["data"]
         
-        if let subreddit = subredditParser(content) {
+        if let subreddit = subredditParser(json: content) {
             subreddits.append(subreddit)
         }
     }
@@ -91,10 +91,10 @@ func subredditsParser(json: JSON) -> [Subreddit] {
  of `rs`
  */
 func createSubredditFromQueryResult(rs: FMResultSet) -> Subreddit {
-    return Subreddit(id: rs.stringForColumn("id"), 
-                displayName: rs.stringForColumn("displayName"),
+    return Subreddit(id: rs.string(forColumn: "id"), 
+                displayName: rs.string(forColumn: "displayName"),
                 description: "",
-                title: rs.stringForColumn("title"),
-                subscribers: Int(rs.intForColumn("subscribers")),
-                headerImageUrl: rs.stringForColumn("imageURL"))
+                title: rs.string(forColumn: "title"),
+                subscribers: Int(rs.int(forColumn: "subscribers")),
+                headerImageUrl: rs.string(forColumn: "imageURL"))
 }

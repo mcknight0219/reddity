@@ -30,13 +30,13 @@ class TextCell: ListingTableViewCell {
                 return viewModel.selfText
             }
             .filter { !$0.isEmpty }
-            .subscribeNext { [weak self] text in
+            .subscribe(onNext: { [weak self] text in
                 if let weakSelf = self {
                     weakSelf.selfText!.text = text
                     weakSelf.selfText!.sizeToFit()
                     weakSelf.selfTextHeight.constant = weakSelf.selfText!.frame.height
                 }
-            }
+            })
             .addDisposableTo(reuseBag)
     }
 }
